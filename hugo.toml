@@ -1,7 +1,7 @@
 # 保持这个简单的 baseURL，或者直接写 '/'
-baseURL = 'https://0-1byte.github.io/my-blog/'
+baseURL = 'https://0-1byte.github.io/'
 languageCode = 'zh-cn'
-title = '0-1Byte'
+title = 'Chen'
 theme = 'PaperMod'
 
 # 核心修正：删掉之前的 relativeURLs = true（它往往是乱码的元凶）
@@ -17,7 +17,7 @@ relativeURLs = false
     # 隐藏第一篇文章的大图模式（强制它和其他文章一样小）
     disableSpecialFirstPost = true 
     [params.homeInfoParams]
-        Title = "0-1Byte,Enjoy"
+        Title = "Relax"
     [params.cover]
         responsiveImages = true # 自动根据屏幕缩放图片
         linkFullImages = false  # 点击图片不跳转原图

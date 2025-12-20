@@ -66,3 +66,48 @@
     margin-bottom: 25px;
     border: 1px solid rgba(128, 128, 128, 0.1);
 }
+
+/* 修改首页文章标题字体 */
+.entry-header h2 {
+    /* 方案 1：如果你喜欢手写艺术感，用下面这行 */
+    font-family: 'Dancing Script', cursive !important;
+    
+    /* 方案 2：如果你喜欢高端杂志感，用下面这行（二选一） */
+    /* font-family: 'Playfair Display', serif !important; */
+
+    font-size: 32px !important;    /* 稍微加大一点更有艺术感 */
+    letter-spacing: 1px !important; /* 增加字母间距 */
+    background: linear-gradient(to right, var(--primary), #ff4b2b); /* 渐变色效果（可选） */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
+}
+
+/* 鼠标悬停时的艺术动效 */
+.post-entry:hover .entry-header h2 {
+    transform: translateX(5px); /* 轻轻右移 */
+    filter: brightness(1.2);    /* 变亮 */
+}
+
+/* 统一网站大标题与文章标题的字体 */
+.logo a {
+    /* 使用与文章标题完全一致的字体 */
+    font-family: 'Dancing Script', cursive !important; 
+    
+    /* 样式微调，让大标题更有分量 */
+    font-size: 36px !important; 
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    
+    /* 保持颜色与主题一致，或者你可以沿用之前的渐变色 */
+    color: var(--primary) !important;
+    
+    /* 去掉下划线（如果有的话） */
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+}
+
+.logo a:hover {
+    opacity: 0.8;
+    transform: translateY(-1px); /* 悬停时轻微上浮 */
+}
