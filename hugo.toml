@@ -24,7 +24,7 @@ relativeURLs = false
         # 这一行是灵魂：让首页列表显示更小、更精致的图片
         displayFullPostContent = false
     [params.assets]
-        favicon = "favicon.ico"  # 指向你刚才放在 static 目录下的文件
+        favicon = "cat.ico"  # 指向你刚才放在 static 目录下的文件
 
 
 
