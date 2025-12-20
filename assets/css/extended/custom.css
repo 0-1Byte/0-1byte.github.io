@@ -1,0 +1,83 @@
+@media screen and (min-width: 768px) {
+    .post-entry {
+        display: grid !important;
+        /* 核心定义：两列。左列固定320px，右列自动填满剩余空间 */
+        grid-template-columns: 320px 1fr !important;
+        /* 核心定义：三行。分别对应标题、摘要、日期。高度由内容决定 */
+        grid-template-rows: min-content min-content min-content !important;
+        gap: 0 40px !important; /* 行间距0，列间距40px */
+        padding: 25px !important;
+        align-content: center !important; /* 内容整体垂直居中 */
+        min-height: 250px !important; /* 保证卡片有最小高度 */
+        text-align: left !important; /* 强制所有文字左对齐 */
+    }
+
+    /* 1. 图片：霸占左侧列，并且跨越右侧的3行高度 */
+    .entry-cover {
+        grid-column: 1 / 2 !important; /* 在第1列 */
+        grid-row: 1 / 4 !important;    /* 跨越第1行到第4行(即覆盖右侧三行) */
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .entry-cover img {
+        width: 320px !important;
+        height: 200px !important;
+        object-fit: cover !important;
+        border-radius: 12px !important;
+        margin: auto 0 !important; /* 图片在自己的格子里居中 */
+    }
+
+    /* 2. 标题：强制在第2列，第1行 */
+    .entry-header {
+        grid-column: 2 / 3 !important;
+        grid-row: 1 / 2 !important;
+        margin-bottom: 10px !important;
+        width: 100% !important;
+        align-self: end !important; /* 靠下对齐，贴近摘要 */
+    }
+
+    .entry-header h2 {
+        font-size: 26px !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+        text-align: left !important; /* 强制左对齐，解决右移问题 */
+    }
+
+    /* 3. 摘要：强制在第2列，第2行 */
+    .entry-content {
+        grid-column: 2 / 3 !important;
+        grid-row: 2 / 3 !important;
+        margin-bottom: 10px !important;
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+        color: var(--secondary) !important;
+        /* 限制显示两行 */
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-align: left !important;
+    }
+
+    /* 4. 日期：强制在第2列，第3行 */
+    .entry-footer {
+        grid-column: 2 / 3 !important;
+        grid-row: 3 / 4 !important;
+        font-size: 14px !important;
+        margin-top: 0 !important;
+        align-self: start !important; /* 靠上对齐，贴近摘要 */
+        text-align: left !important;
+    }
+}
+
+/* 统一卡片背景 */
+.post-entry {
+    background: var(--entry);
+    border-radius: 16px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(128, 128, 128, 0.1);
+}

@@ -1,7 +1,7 @@
 # 保持这个简单的 baseURL，或者直接写 '/'
 baseURL = 'https://0-1byte.github.io/my-blog/'
 languageCode = 'zh-cn'
-title = '0-1Byte 的技术精炼厂'
+title = '0-1Byte'
 theme = 'PaperMod'
 
 # 核心修正：删掉之前的 relativeURLs = true（它往往是乱码的元凶）
@@ -11,6 +11,18 @@ relativeURLs = false
 
 [params]
     env = "production"
+    # 开启卡片式布局
+    ShowFullTextContent = false
+    # 这里的设置会让首页排版更有序
+    # 隐藏第一篇文章的大图模式（强制它和其他文章一样小）
+    disableSpecialFirstPost = true 
     [params.homeInfoParams]
-        Title = "Hello, 0-1Byte Here!"
-        Content = "凡是过往，皆为序章。这里记录我的职业重启与代码修行。"
+        Title = "0-1Byte,Enjoy"
+    [params.cover]
+        responsiveImages = true # 自动根据屏幕缩放图片
+        linkFullImages = false  # 点击图片不跳转原图
+        # 这一行是灵魂：让首页列表显示更小、更精致的图片
+        displayFullPostContent = false
+
+
+
