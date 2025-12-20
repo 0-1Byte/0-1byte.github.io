@@ -5,6 +5,7 @@ draft: false
 # 注意：冒号后面一定要有一个空格
 cover:
     image: "images/posts/cover.jpg" # 路径对应 static/images/posts/cover.jpg
+    # image: "https://cdn.jsdelivr.net/gh/0-1byte/0-1byte.github.io@main/images/posts/cover.webp"
     alt: "Reload Cover"
     relative: false
     hidden: false
