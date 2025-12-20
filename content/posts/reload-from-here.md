@@ -4,7 +4,7 @@ date: 2025-12-20T11:48:57+08:00
 draft: false
 # 注意：冒号后面一定要有一个空格
 cover:
-    image: "/images/posts/cover.jpg" # 路径对应 static/images/posts/cover.jpg
+    image: "images/posts/cover.jpg" # 路径对应 static/images/posts/cover.jpg
     alt: "Reload Cover"
     relative: false
     hidden: false
