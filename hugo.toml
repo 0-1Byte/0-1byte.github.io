@@ -1,4 +1,16 @@
-baseURL = 'https://example.org/'
-languageCode = 'en-us'
-title = '0-1Byte,Enjoy'
-theme = "PaperMod"
+# 保持这个简单的 baseURL，或者直接写 '/'
+baseURL = 'https://0-1byte.github.io/my-blog/'
+languageCode = 'zh-cn'
+title = '0-1Byte 的技术精炼厂'
+theme = 'PaperMod'
+
+# 核心修正：删掉之前的 relativeURLs = true（它往往是乱码的元凶）
+# 加上下面这两行，确保资源路径能被正确解析
+canonifyURLs = true
+relativeURLs = false
+
+[params]
+    env = "production"
+    [params.homeInfoParams]
+        Title = "Hello, 0-1Byte Here!"
+        Content = "凡是过往，皆为序章。这里记录我的职业重启与代码修行。"
