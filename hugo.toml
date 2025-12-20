@@ -17,7 +17,7 @@ relativeURLs = false
     # 隐藏第一篇文章的大图模式（强制它和其他文章一样小）
     disableSpecialFirstPost = true 
     [params.homeInfoParams]
-        Title = "Relax"
+        Title = "focus"
     [params.cover]
         responsiveImages = true # 自动根据屏幕缩放图片
         linkFullImages = false  # 点击图片不跳转原图

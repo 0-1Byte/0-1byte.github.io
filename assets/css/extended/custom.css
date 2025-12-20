@@ -69,17 +69,18 @@
 
 /* 修改首页文章标题字体 */
 .entry-header h2 {
-    /* 方案 1：如果你喜欢手写艺术感，用下面这行 */
+    /* 已注释：恢复正常阅读字体 */
     font-family: 'Dancing Script', cursive !important;
     
-    /* 方案 2：如果你喜欢高端杂志感，用下面这行（二选一） */
-    /* font-family: 'Playfair Display', serif !important; */
-
-    font-size: 32px !important;    /* 稍微加大一点更有艺术感 */
-    letter-spacing: 1px !important; /* 增加字母间距 */
-    background: linear-gradient(to right, var(--primary), #ff4b2b); /* 渐变色效果（可选） */
+    font-size: 26px !important;    /* 稍微调小一点，适合默认字体排版 */
+    font-weight: bold !important;
+    
+    /* 已注释：去掉渐变色，恢复默认颜色 */
+    background: linear-gradient(to right, var(--primary), #ff4b2b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    
+    color: var(--primary); /* 明确指定使用主题色 */
     transition: all 0.3s ease;
 }
 
@@ -91,18 +92,16 @@
 
 /* 统一网站大标题与文章标题的字体 */
 .logo a {
-    /* 使用与文章标题完全一致的字体 */
     font-family: 'Dancing Script', cursive !important; 
-    
-    /* 样式微调，让大标题更有分量 */
     font-size: 36px !important; 
     font-weight: 700 !important;
     letter-spacing: 0.5px !important;
     
-    /* 保持颜色与主题一致，或者你可以沿用之前的渐变色 */
-    color: var(--primary) !important;
+    /* 添加渐变色效果 */
+    background: linear-gradient(to right, var(--primary), #ff4b2b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     
-    /* 去掉下划线（如果有的话） */
     text-decoration: none !important;
     transition: all 0.3s ease;
 }
@@ -110,4 +109,26 @@
 .logo a:hover {
     opacity: 0.8;
     transform: translateY(-1px); /* 悬停时轻微上浮 */
+}
+
+/* 修改首页欢迎语 (Home Info) 的标题字体 */
+.home-info h1 {
+    /* 使用与网站标题、文章标题完全一致的字体 */
+    font-family: 'Dancing Script', cursive !important;
+    
+    /* 艺术字通常需要大一点才好看 */
+    font-size: 56px !important; 
+    
+    /* 这里的渐变色可以根据你的喜好调整，或者设为 var(--primary) 保持纯色 */
+    color: var(--primary) !important;
+    
+    /* 增加一点手写感特有的间距 */
+    margin-bottom: 15px !important;
+    letter-spacing: 1px !important;
+}
+
+/* 如果你还想顺便改一下下面那句副标题（描述文字） */
+.home-info .p {
+    font-size: 18px !important;
+    opacity: 0.9 !important;
 }
