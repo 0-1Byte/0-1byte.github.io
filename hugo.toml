@@ -1,6 +1,7 @@
 # 保持这个简单的 baseURL，或者直接写 '/'
 baseURL = 'https://0-1byte.github.io/'
-languageCode = 'zh-cn'
+# 修正 1：Hugo v0.158+ 废弃了 languageCode，建议换成 locale 消除警告
+locale = 'zh-cn'
 title = 'Chen'
 theme = 'PaperMod'
 
@@ -9,23 +10,29 @@ theme = 'PaperMod'
 canonifyURLs = true
 relativeURLs = false
 
+# 修正 2：添加 author 配置，解决 rss.xml 渲染报错
+[author]
+    name = "Chen"
+
 [params]
     env = "production"
-    # 开启卡片式布局
+
+    [params.author]
+        name = "Chen"
+
     ShowFullTextContent = false
-    # 这里的设置会让首页排版更有序
-    # 隐藏第一篇文章的大图模式（强制它和其他文章一样小）
-    disableSpecialFirstPost = true 
+    disableSpecialFirstPost = true
+
     [params.homeInfoParams]
         Title = "focus"
-    [params.cover]
-        responsiveImages = true # 自动根据屏幕缩放图片
-        linkFullImages = false  # 点击图片不跳转原图
-        # 这一行是灵魂：让首页列表显示更小、更精致的图片
-        displayFullPostContent = false
-    [params.assets]
-        favicon = "cat.ico"  # 指向你刚才放在 static 目录下的文件
 
+    [params.cover]
+        responsiveImages = true
+        linkFullImages = false
+        displayFullPostContent = false
+
+    [params.assets]
+        favicon = "cat.ico"
 
 [menu]
 
