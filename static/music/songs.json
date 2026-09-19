@@ -1,0 +1,30 @@
+[
+  {
+    "id": "example-01",
+    "title": "Call You Tonight",
+    "artist": "Whitney Houston",
+    "album": "I Look To You",
+    "year": 2026,
+    "tags": ["All"],
+    "cover": "./assets/Whitney Houston_ Call You Tonight.jpg",
+    "audio": "./assets/Whitney Houston_ Call You Tonight.mp3",
+    "note": "把这条记录替换成你真正喜欢的第一首歌。",
+    "youtube": "",
+    "spotify": "",
+    "appleMusic": ""
+  },
+  {
+    "id": "example-02",
+    "title": "Another Song",
+    "artist": "Another Artist",
+    "album": "Another Album",
+    "year": 2025,
+    "tags": ["All"],
+    "cover": "./assets/cover-placeholder.svg",
+    "audio": "./assets/audio/example-02.mp3",
+    "note": "也可以把 note 写成你和这首歌之间的故事。",
+    "youtube": "",
+    "spotify": "",
+    "appleMusic": ""
+  }
+]

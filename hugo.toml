@@ -27,5 +27,11 @@ relativeURLs = false
         favicon = "cat.ico"  # 指向你刚才放在 static 目录下的文件
 
 
+[menu]
 
+[[menu.main]]
+    identifier = "music"
+    name = "Music"
+    url = "/music/"
+    weight = 30
 
