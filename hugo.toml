@@ -47,3 +47,9 @@ relativeURLs = false
     name = "Book"
     url = "/book/"
     weight = 40
+
+[[menu.main]]
+    identifier = "docu"
+    name = "Docu"
+    url = "/docu/"
+    weight = 50
