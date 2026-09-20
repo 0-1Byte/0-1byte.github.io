@@ -132,3 +132,30 @@
     font-size: 18px !important;
     opacity: 0.9 !important;
 }
+
+/* 让主页导航与 logo、欢迎语使用同一套艺术字体 */
+#menu a,
+#menu a span {
+    font-family: 'Dancing Script', cursive !important;
+    font-size: 24px !important;
+    line-height: 32px !important;
+    font-weight: 700 !important;
+}
+
+/* 将 Music 放到 Chen 下方，并与正文左边缘对齐 */
+.nav {
+    position: relative;
+    min-height: 96px !important;
+    align-items: flex-start !important;
+}
+
+.logo {
+    height: 60px;
+}
+
+#menu {
+    position: absolute;
+    top: 60px;
+    left: max(14px, calc((100vw - var(--main-width)) / 2));
+    margin: 0 !important;
+}

@@ -3,96 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A personal music archive.">
-  <title>Music — 我的音乐档案</title>
-  <link rel="stylesheet" href="./style.css">
+
+  <!-- 防止主题切换时出现白屏闪烁 -->
+  <script>
+    (() => {
+      const saved = localStorage.getItem("pref-theme") || localStorage.getItem("music-theme");
+      const dark = saved === "dark" ||
+        (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/music/style.css">
+  <title>Music — Chen</title>
 </head>
+
 <body>
-  <div class="app-shell">
-    <header class="site-header">
-      <a class="brand" href="../" aria-label="返回个人主页">YOUR NAME / MUSIC</a>
-      <div class="header-meta">
-        <span id="song-count">0 songs</span>
-        <button id="theme-toggle" class="icon-button" type="button" aria-label="切换深色模式" title="切换主题">◐</button>
-      </div>
+  <div class="page">
+    <header class="header">
+      <a class="home" href="/">← home</a>
+      <button id="theme-toggle" class="theme-toggle" accesskey="t" type="button"
+              aria-label="切换主题" title="切换主题">
+        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="19.78" x2="19.78" y2="18.36"/>
+        </svg>
+      </button>
     </header>
 
     <main>
       <section class="hero">
-        <p class="eyebrow">PERSONAL MUSIC ARCHIVE</p>
-        <h1>Music</h1>
-        <p class="intro">
-          一些我喜欢过、正在喜欢、以后还会重新喜欢的歌。
-        </p>
-      </section>
-
-      <section class="toolbar" aria-label="音乐筛选">
-        <div id="category-tabs" class="category-tabs" role="tablist" aria-label="歌曲分类"></div>
-        <label class="search">
-          <span class="sr-only">搜索歌曲</span>
-          <input id="search-input" type="search" placeholder="搜索歌曲、歌手、专辑…" autocomplete="off">
-          <kbd>/</kbd>
-        </label>
-      </section>
-
-      <section class="content-grid">
-        <div class="song-section">
-          <div class="section-heading">
-            <span id="list-title">All songs</span>
-            <span id="visible-count">0</span>
-          </div>
-          <div id="song-list" class="song-list" aria-live="polite"></div>
-          <div id="empty-state" class="empty-state hidden">
-            没找到匹配的歌曲。
-          </div>
+        <div>
+          <p class="label">MUSIC</p>
+          <h1>Things I like to hear.</h1>
         </div>
-
-        <aside class="now-playing" aria-label="当前播放">
-          <div class="artwork-wrap">
-            <img id="player-cover" src="./assets/cover-placeholder.svg" alt="当前歌曲封面">
-            <div class="artwork-shine"></div>
-          </div>
-          <div class="player-info">
-            <p class="eyebrow">NOW PLAYING</p>
-            <h2 id="player-title">Nothing playing</h2>
-            <p id="player-artist">Choose a song</p>
-          </div>
-
-          <div class="progress-wrap">
-            <input id="progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="播放进度">
-            <div class="time-row">
-              <span id="current-time">0:00</span>
-              <span id="duration">0:00</span>
-            </div>
-          </div>
-
-          <div class="controls">
-            <button id="shuffle-btn" class="control-button" type="button" aria-label="随机播放" title="随机播放">⌘</button>
-            <button id="prev-btn" class="control-button" type="button" aria-label="上一首" title="上一首">←</button>
-            <button id="play-btn" class="play-button" type="button" aria-label="播放" title="播放">▶</button>
-            <button id="next-btn" class="control-button" type="button" aria-label="下一首" title="下一首">→</button>
-            <button id="repeat-btn" class="control-button" type="button" aria-label="循环播放" title="循环播放">↻</button>
-          </div>
-
-          <div class="volume-row">
-            <span aria-hidden="true">VOL</span>
-            <input id="volume" type="range" min="0" max="1" value="0.8" step="0.01" aria-label="音量">
-            <span id="volume-value">80</span>
-          </div>
-
-          <div id="player-note" class="player-note"></div>
-          <div id="player-links" class="player-links"></div>
-        </aside>
+        <p class="count" id="song-count"></p>
       </section>
+
+      <div id="song-grid" class="song-grid"></div>
+
+      <div id="error" class="error" hidden>
+        无法读取歌曲数据，请检查 <code>/music/songs.json</code>。
+      </div>
     </main>
 
-    <footer class="site-footer">
-      <span>Built for remembering.</span>
-      <span id="footer-year"></span>
+    <footer class="footer">
+      <span>Chen</span>
+      <span id="year"></span>
     </footer>
   </div>
 
-  <audio id="audio" preload="metadata"></audio>
-  <script src="./script.js" defer></script>
+  <script src="/music/script.js" defer></script>
 </body>
 </html>
