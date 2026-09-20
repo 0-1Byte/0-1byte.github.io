@@ -46,20 +46,37 @@ def find_recording(song: dict) -> dict | None:
 
 
 def extract_credits(recording_id: str) -> tuple[str, str]:
-    result = fetch_json(f"{API_ROOT}/recording/{recording_id}?inc=work-rels&fmt=json")
+    recording = fetch_json(f"{API_ROOT}/recording/{recording_id}?inc=work-rels&fmt=json")
     lyricists: set[str] = set()
     composers: set[str] = set()
 
-    for relation in result.get("relations", []):
-        if relation.get("target-type") != "work":
-            continue
-        work = relation.get("work", {})
-        for work_relation in work.get("relations", []):
-            artist = work_relation.get("artist", {})
+    work_ids = {
+        relation.get("work", {}).get("id")
+        for relation in recording.get("relations", [])
+        if relation.get("target-type") == "work"
+        and relation.get("work", {}).get("id")
+    }
+
+    for work_id in work_ids:
+        work = fetch_json(f"{API_ROOT}/work/{work_id}?inc=artist-rels&fmt=json")
+        for relation in work.get("relations", []):
+            artist = relation.get("artist", {})
             name = artist.get("name")
             if not name:
                 continue
-            relation_type = work_relation.get("type", "").casefold()
+            relation_type = relation.get("type", "").casefold()
+            if relation_type == "lyricist":
+                lyricists.add(name)
+            elif relation_type in {"composer", "writer"}:
+                composers.add(name)
+
+    # Some MusicBrainz entries expose work relations in a compact form.
+    for relation in recording.get("relations", []):
+        if relation.get("target-type") != "artist":
+            continue
+        name = relation.get("artist", {}).get("name")
+        relation_type = relation.get("type", "").casefold()
+        if name:
             if relation_type == "lyricist":
                 lyricists.add(name)
             elif relation_type in {"composer", "writer"}:
@@ -88,8 +105,12 @@ def main() -> int:
             print(f"::warning::Song at index {index} is not an object; skipped")
             continue
 
-        song.setdefault("lyricist", "")
-        song.setdefault("composer", "")
+        if "lyricist" not in song:
+            song["lyricist"] = ""
+            changed = True
+        if "composer" not in song:
+            song["composer"] = ""
+            changed = True
         if song["lyricist"] and song["composer"]:
             continue
 
@@ -113,7 +134,7 @@ def main() -> int:
             missing.append(label)
             print(f"::warning::{label}: lyricist/composer not found; left blank")
 
-    if changed or any("lyricist" not in song or "composer" not in song for song in songs):
+    if changed:
         DATA_FILE.write_text(
             json.dumps(songs, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
