@@ -145,6 +145,8 @@
 /* 将 Music 放到 Chen 下方，并与正文左边缘对齐 */
 .nav {
     position: relative;
+    max-width: var(--nav-width) !important;
+    margin: 0 auto !important;
     min-height: 96px !important;
     align-items: flex-start !important;
 }
@@ -156,6 +158,12 @@
 #menu {
     position: absolute;
     top: 60px;
-    left: max(14px, calc((100vw - var(--main-width)) / 2));
+    left: 14px;
     margin: 0 !important;
+}
+
+@media screen and (min-width: 768px) {
+    #menu {
+        left: calc((100% - var(--main-width)) / 2 + var(--gap));
+    }
 }
