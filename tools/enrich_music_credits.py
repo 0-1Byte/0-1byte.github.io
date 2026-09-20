@@ -28,6 +28,49 @@ def fetch_json(url: str) -> dict:
     return result
 
 
+def normalized(value: object) -> str:
+    return " ".join(str(value or "").casefold().split())
+
+
+def recording_score(recording: dict, song: dict) -> int:
+    title = normalized(song.get("title"))
+    album = normalized(song.get("album"))
+    year = str(song.get("year", "")).strip()
+    score = 0
+
+    if normalized(recording.get("title")) == title:
+        score += 100
+    elif title and title in normalized(recording.get("title")):
+        score += 25
+
+    if recording.get("video") is False:
+        score += 10
+    if "live" not in normalized(recording.get("disambiguation")):
+        score += 10
+
+    release_titles = {
+        normalized(release.get("title"))
+        for release in recording.get("releases", [])
+        if release.get("title")
+    }
+    if album and album in release_titles:
+        score += 60
+    elif album and any(album in release_title for release_title in release_titles):
+        score += 30
+
+    if any(
+        release.get("status") == "Official"
+        for release in recording.get("releases", [])
+    ):
+        score += 20
+
+    first_release_date = str(recording.get("first-release-date", ""))
+    if year and first_release_date.startswith(year):
+        score += 20
+
+    return score
+
+
 def find_recording(song: dict) -> dict | None:
     title = str(song.get("title", "")).strip()
     artist = str(song.get("artist", "")).strip()
@@ -35,18 +78,18 @@ def find_recording(song: dict) -> dict | None:
         return None
 
     query = quote(f'recording:"{title}" AND artist:"{artist}"')
-    result = fetch_json(f"{API_ROOT}/recording/?query={query}&fmt=json&limit=5")
+    result = fetch_json(f"{API_ROOT}/recording/?query={query}&fmt=json&limit=100")
     recordings = result.get("recordings", [])
-    exact = [
-        recording
-        for recording in recordings
-        if recording.get("title", "").casefold() == title.casefold()
-    ]
-    return (exact or recordings)[0] if (exact or recordings) else None
+    if not recordings:
+        return None
+
+    return max(recordings, key=lambda recording: recording_score(recording, song))
 
 
 def extract_credits(recording_id: str) -> tuple[str, str]:
-    recording = fetch_json(f"{API_ROOT}/recording/{recording_id}?inc=work-rels&fmt=json")
+    recording = fetch_json(
+        f"{API_ROOT}/recording/{recording_id}?inc=work-rels+artist-rels&fmt=json"
+    )
     lyricists: set[str] = set()
     composers: set[str] = set()
 
@@ -64,10 +107,10 @@ def extract_credits(recording_id: str) -> tuple[str, str]:
             name = artist.get("name")
             if not name:
                 continue
-            relation_type = relation.get("type", "").casefold()
-            if relation_type == "lyricist":
+            relation_type = normalized(relation.get("type"))
+            if relation_type in {"lyricist", "lyrics", "words"}:
                 lyricists.add(name)
-            elif relation_type in {"composer", "writer"}:
+            elif relation_type in {"composer", "music", "writer"}:
                 composers.add(name)
 
     # Some MusicBrainz entries expose work relations in a compact form.
@@ -75,11 +118,11 @@ def extract_credits(recording_id: str) -> tuple[str, str]:
         if relation.get("target-type") != "artist":
             continue
         name = relation.get("artist", {}).get("name")
-        relation_type = relation.get("type", "").casefold()
+        relation_type = normalized(relation.get("type"))
         if name:
-            if relation_type == "lyricist":
+            if relation_type in {"lyricist", "lyrics", "words"}:
                 lyricists.add(name)
-            elif relation_type in {"composer", "writer"}:
+            elif relation_type in {"composer", "music", "writer"}:
                 composers.add(name)
 
     return ", ".join(sorted(lyricists)), ", ".join(sorted(composers))
