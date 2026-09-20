@@ -143,12 +143,18 @@
 }
 
 /* 将 Music 放到 Chen 下方，并与正文左边缘对齐 */
-.nav {
+header.header {
+    position: relative;
+    z-index: 2;
+}
+
+nav {
     position: relative;
     max-width: var(--nav-width) !important;
     margin: 0 auto !important;
     min-height: 96px !important;
     align-items: flex-start !important;
+    z-index: 2;
 }
 
 .logo {

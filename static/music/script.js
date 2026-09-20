@@ -32,6 +32,8 @@
       const title = safeText(song.title);
       const artist = safeText(song.artist);
       const cover = resolveAsset(song.cover);
+      const lyricist = safeText(song.lyricist);
+      const composer = safeText(song.composer);
 
       const image = `
         <img
@@ -42,7 +44,14 @@
         >
       `;
 
-      let coverBlock = `<div class="cover-link"><div class="cover-wrap">${image}</div></div>`;
+      const credits = `
+        <div class="credit-overlay" aria-label="${escapeHtml(`${title} 词曲作者`)}">
+          <p><span>词</span>${escapeHtml(lyricist)}</p>
+          <p><span>曲</span>${escapeHtml(composer)}</p>
+        </div>
+      `;
+
+      let coverBlock = `<div class="cover-link"><div class="cover-wrap">${image}${credits}</div></div>`;
 
       if (song.url) {
         coverBlock = `
@@ -55,6 +64,7 @@
           >
             <div class="cover-wrap">
               ${image}
+              ${credits}
               <span class="external" aria-hidden="true">↗</span>
             </div>
           </a>

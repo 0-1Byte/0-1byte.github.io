@@ -22,6 +22,8 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+      - name: Enrich music credits
+        run: python tools/enrich_music_credits.py
       - name: Build
         run: hugo --minify
       - name: Upload artifact
