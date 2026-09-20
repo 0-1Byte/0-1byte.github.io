@@ -17,8 +17,7 @@ relativeURLs = false
 [params]
     env = "production"
 
-    [params.author]
-        name = "Chen"
+    author = "Chen"
 
     ShowFullTextContent = false
     disableSpecialFirstPost = true
