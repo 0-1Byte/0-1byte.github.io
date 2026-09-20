@@ -1,4 +1,5 @@
 :root {
+  --primary: rgb(30, 30, 30);
   --bg: #faf9f7;
   --text: #171717;
   --muted: #8a8781;
@@ -7,6 +8,7 @@
 }
 
 :root[data-theme="dark"] {
+  --primary: rgb(218, 218, 219);
   --bg: #11110f;
   --text: #f1efe9;
   --muted: #9d9a92;
@@ -66,7 +68,27 @@ a {
   height: 68px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: 'Dancing Script', cursive;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.site-nav a { transition: opacity .2s ease; }
+.site-nav a:hover { opacity: .65; }
+.site-nav a:first-child { font-size: 36px; }
+.site-nav a:not(:first-child) { font-size: 24px; }
+.site-nav a:first-child {
+  background: linear-gradient(to right, var(--primary), #ff4b2b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: .5px;
 }
 
 .theme-toggle {
@@ -273,6 +295,9 @@ a {
 /* 手机 */
 
 @media (max-width: 600px) {
+  .site-nav { gap: 9px; }
+  .site-nav a:first-child { font-size: 30px; }
+  .site-nav a:not(:first-child) { font-size: 19px; }
   .page {
     width: min(100% - 28px, 1040px);
   }

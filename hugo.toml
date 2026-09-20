@@ -53,3 +53,9 @@ relativeURLs = false
     name = "Docu"
     url = "/docu/"
     weight = 50
+
+[[menu.main]]
+    identifier = "film"
+    name = "Film"
+    url = "/film/"
+    weight = 60

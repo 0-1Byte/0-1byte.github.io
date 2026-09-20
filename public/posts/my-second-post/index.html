@@ -66,6 +66,13 @@
 
 </script><link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <link href="https://fonts.loli.net/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<script>
+  window.addEventListener("storage", event => {
+    if (event.key === "pref-theme" && (event.newValue === "light" || event.newValue === "dark")) {
+      document.documentElement.dataset.theme = event.newValue;
+    }
+  });
+</script>
 <meta property="og:url" content="http://localhost:1313/posts/my-second-post/">
   <meta property="og:site_name" content="Chen">
   <meta property="og:title" content="My Second Post">
@@ -173,6 +180,16 @@
             <li>
                 <a href="http://localhost:1313/book/" title="Book">
                     <span>Book</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/docu/" title="Docu">
+                    <span>Docu</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/film/" title="Film">
+                    <span>Film</span>
                 </a>
             </li>
         </ul>

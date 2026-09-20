@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/film/film-favicon.svg?v=1">
+  <link rel="apple-touch-icon" href="/film/film-favicon.svg?v=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <script>
+    (() => {
+      const saved = localStorage.getItem("pref-theme") || localStorage.getItem("music-theme");
+      if (saved && !localStorage.getItem("pref-theme")) localStorage.setItem("pref-theme", saved);
+      const dark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    })();
+  </script>
+  <link rel="stylesheet" href="/film/style.css?v=6">
+  <title>Film — Chen</title>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <nav class="site-nav" aria-label="Site navigation">
+        <a href="/">Chen</a><a href="/music/">Music</a><a href="/book/">Book</a><a href="/docu/">Docu</a><a href="/film/">Film</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" accesskey="t" type="button"
+              aria-label="切换主题" title="切换主题">
+        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </header>
+    <main>
+      <section class="hero">
+        <h1>Films I like to watch.</h1>
+        <p class="count" id="film-count"></p>
+      </section>
+      <div id="film-grid" class="film-grid"></div>
+      <div id="empty" class="empty" hidden>还没有添加电影。编辑 <code>/film/films.json</code> 开始记录。</div>
+      <div id="error" class="error" hidden>无法读取电影数据，请检查 <code>/film/films.json</code>。</div>
+    </main>
+    <footer class="footer"><span>Chen</span><span id="year"></span></footer>
+  </div>
+  <script src="/film/script.js?v=2" defer></script>
+</body>
+</html>

@@ -152,9 +152,20 @@ nav {
     position: relative;
     max-width: var(--nav-width) !important;
     margin: 0 auto !important;
-    min-height: 112px !important;
-    align-items: flex-start !important;
+    min-height: var(--header-height) !important;
+    align-items: center !important;
     z-index: 2;
+}
+
+.header-nav {
+    justify-content: flex-start !important;
+    padding-right: 64px;
+}
+
+.header-nav .logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .logo-switches {
@@ -162,6 +173,7 @@ nav {
     top: 0;
     right: var(--gap);
     height: var(--header-height);
+    z-index: 3;
 }
 
 .logo {
@@ -169,14 +181,34 @@ nav {
 }
 
 #menu {
-    position: absolute;
-    top: 76px;
-    left: 14px;
-    margin: 0 !important;
+    position: static;
+    margin-left: 28px !important;
+    flex-shrink: 0;
 }
 
-@media screen and (min-width: 768px) {
+#menu ul {
+    gap: 18px !important;
+}
+
+@media screen and (max-width: 767px) {
+    nav {
+        min-height: 76px !important;
+    }
+
     #menu {
-        left: calc((100% - var(--main-width)) / 2 + var(--gap));
+        margin-left: 16px !important;
+    }
+
+    #menu ul {
+        gap: 10px !important;
+    }
+
+    #menu a,
+    #menu a span {
+        font-size: 20px !important;
+    }
+
+    .header-nav {
+        padding-right: 52px;
     }
 }
