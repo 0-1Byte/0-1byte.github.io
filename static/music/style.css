@@ -66,17 +66,6 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
-
-.home {
-  color: var(--muted);
-  font-size: 12px;
-  transition: color .18s ease;
-}
-
-.home:hover {
-  color: var(--text);
 }
 
 .theme-toggle {
@@ -110,20 +99,13 @@ a {
   padding: 70px 0 38px;
 }
 
-.label {
-  margin: 0 0 13px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .18em;
-}
-
 .hero h1 {
   margin: 0;
   max-width: 650px;
-  font-size: clamp(38px, 5vw, 58px);
-  line-height: 1.02;
-  letter-spacing: -.045em;
+  font-family: 'Dancing Script', cursive;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: normal;
   font-weight: 700;
 }
 
@@ -296,7 +278,8 @@ a {
   }
 
   .hero h1 {
-    font-size: 38px;
+    font-size: 24px;
+    line-height: 32px;
   }
 
   .count {
