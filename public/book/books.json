@@ -1,0 +1,42 @@
+[
+  {
+    "id": "黑客与画家",
+    "title": "黑客与画家",
+    "author": "Paul Graham",
+    "cover": "https://covers.openlibrary.org/b/id/7256072-L.jpg",
+    "status": "",
+    "note": ""
+  },
+  {
+    "id": "有限与无限的游戏",
+    "title": "有限与无限的游戏",
+    "author": "James P. Carse, James Carse",
+    "cover": "https://covers.openlibrary.org/b/id/6609213-L.jpg",
+    "status": "",
+    "note": ""
+  },
+  {
+    "id": "悉达多",
+    "title": "悉达多",
+    "author": "赫尔曼·黑塞 姜乙",
+    "cover": "https://covers.openlibrary.org/b/id/14617972-L.jpg",
+    "status": "",
+    "note": ""
+  },
+  {
+    "id": "平面国",
+    "title": "平面国",
+    "author": "Edwin Abbott Abbott",
+    "cover": "https://covers.openlibrary.org/b/id/10069547-L.jpg",
+    "status": "",
+    "note": ""
+  },
+  {
+    "id": "我看见的世界",
+    "title": "我看见的世界",
+    "author": "Fei-Fei Lee",
+    "cover": "https://covers.openlibrary.org/b/id/14833024-L.jpg",
+    "status": "",
+    "note": ""
+  }
+]

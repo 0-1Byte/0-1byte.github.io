@@ -157,6 +157,13 @@ nav {
     z-index: 2;
 }
 
+.logo-switches {
+    position: absolute;
+    top: 0;
+    right: var(--gap);
+    height: var(--header-height);
+}
+
 .logo {
     height: 60px;
 }
