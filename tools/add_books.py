@@ -1,4 +1,4 @@
-"""Batch-add books with covers from public book metadata APIs."""
+"""Batch-add books with covers from Douban book search."""
 
 from __future__ import print_function
 
@@ -12,9 +12,11 @@ from urllib.request import Request, urlopen
 
 
 DATA_FILE = Path(__file__).resolve().parents[1] / "static" / "book" / "books.json"
+COVERS_DIR = DATA_FILE.parent / "covers"
 OPEN_LIBRARY_URL = "https://openlibrary.org/search.json?title={}&limit=10"
 GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/volumes?q=intitle:{}&maxResults=10"
-USER_AGENT = "0-1byte.github.io book importer/1.1"
+DOUBAN_SEARCH_URL = "https://search.douban.com/book/subject_search?search_text={}"
+USER_AGENT = "0-1byte.github.io book importer/2.0"
 TITLE_ALIASES = {
     "有限与无限的游戏": "Finite and Infinite Games",
     "平面国": "Flatland",
@@ -43,6 +45,63 @@ def normalize(value):
 def slug(title):
     value = re.sub(r"[^\w\u4e00-\u9fff]+", "-", title.casefold()).strip("-")
     return value or "book"
+
+
+def cache_cover(url, title):
+    COVERS_DIR.mkdir(parents=True, exist_ok=True)
+    path = COVERS_DIR / "{}.jpg".format(slug(title))
+    request = Request(
+        url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Referer": "https://book.douban.com/",
+        },
+    )
+    with urlopen(request, timeout=30) as response:
+        content = response.read()
+    if not content:
+        raise OSError("封面内容为空")
+    path.write_bytes(content)
+    return "covers/{}".format(path.name)
+
+
+def from_douban(title):
+    request = Request(
+        DOUBAN_SEARCH_URL.format(quote(title)),
+        headers={"User-Agent": USER_AGENT, "Accept-Language": "zh-CN,zh;q=0.9"},
+    )
+    with urlopen(request, timeout=30) as response:
+        source = response.read().decode("utf-8", errors="replace")
+    match = re.search(r"window\.__DATA__\s*=\s*(\{.*?\});", source, re.S)
+    if not match:
+        return None
+    data = json.loads(match.group(1))
+    wanted = normalize(title)
+    candidates = [
+        item for item in data.get("items", [])
+        if item.get("cover_url")
+        and "book-default" not in item.get("cover_url", "")
+    ]
+    if not candidates:
+        return None
+    book = next(
+        (
+            item for item in candidates
+            if wanted == normalize(item.get("title"))
+            or wanted in normalize(item.get("title"))
+        ),
+        candidates[0],
+    )
+    abstract = book.get("abstract", "")
+    author = abstract.split(" / ")[0] if abstract else ""
+    return {
+        "title": title,
+        "author": author,
+        "cover": book["cover_url"],
+        "status": "",
+        "note": "",
+        "url": book.get("url", ""),
+    }
 
 
 def from_open_library(title):
@@ -94,6 +153,19 @@ def find_book(title):
     if alias:
         candidates.append(alias)
     for candidate in candidates:
+        try:
+            book = from_douban(candidate)
+            if book:
+                try:
+                    book["cover"] = cache_cover(book["cover"], title)
+                except OSError as error:
+                    print(
+                        "豆瓣封面无法缓存，将保留远程地址：{} ({})".format(title, error),
+                        file=sys.stderr,
+                    )
+                return book
+        except (OSError, ValueError, KeyError) as error:
+            errors.append(str(error))
         for provider in (from_open_library, from_google_books):
             try:
                 book = provider(candidate)
@@ -112,7 +184,7 @@ def find_book(title):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Batch-add books by title using Open Library and Google Books."
+        description="Batch-add books by title using Douban book search."
     )
     parser.add_argument(
         "titles",
@@ -123,6 +195,11 @@ def parse_args():
         "--file",
         type=Path,
         help="Read one book title per line from a UTF-8 text file.",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Refresh existing books from Douban instead of skipping them.",
     )
     return parser.parse_args()
 
@@ -160,7 +237,15 @@ def main():
     }
     added = 0
     for title in titles:
-        if normalize(title) in existing:
+        normalized_title = normalize(title)
+        existing_index = next(
+            (
+                index for index, item in enumerate(books)
+                if normalize(item.get("title")) == normalized_title
+            ),
+            None,
+        )
+        if existing_index is not None and not args.refresh:
             print("跳过（已存在）：{}".format(title))
             continue
         book = find_book(title)
@@ -168,12 +253,16 @@ def main():
             print("未找到封面：{}".format(title), file=sys.stderr)
             continue
         book["id"] = slug(book["title"])
-        books.append(book)
-        existing.add(normalize(book["title"]))
-        added += 1
-        print("已添加：{} — {}".format(book["title"], book["author"]))
+        if existing_index is None:
+            books.append(book)
+            added += 1
+            print("已添加：{} — {}".format(book["title"], book["author"]))
+        else:
+            books[existing_index] = dict(books[existing_index], **book)
+            print("已刷新：{} — {}".format(book["title"], book["author"]))
+        existing.add(normalized_title)
 
-    if added:
+    if added or args.refresh:
         DATA_FILE.write_text(
             json.dumps(books, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",

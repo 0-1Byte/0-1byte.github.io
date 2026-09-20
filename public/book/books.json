@@ -2,41 +2,60 @@
   {
     "id": "黑客与画家",
     "title": "黑客与画家",
-    "author": "Paul Graham",
-    "cover": "https://covers.openlibrary.org/b/id/7256072-L.jpg",
+    "author": "[美] Paul Graham",
+    "cover": "covers/黑客与画家.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/7256072-L.jpg",
     "status": "",
-    "note": ""
+    "note": "",
+    "url": "https://book.douban.com/subject/6021440/"
   },
   {
     "id": "有限与无限的游戏",
     "title": "有限与无限的游戏",
-    "author": "James P. Carse, James Carse",
-    "cover": "https://covers.openlibrary.org/b/id/6609213-L.jpg",
+    "author": "[美] 詹姆斯·卡斯",
+    "cover": "covers/有限与无限的游戏.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/6609213-L.jpg",
     "status": "",
-    "note": ""
+    "note": "",
+    "url": "https://book.douban.com/subject/33438841/"
   },
   {
     "id": "悉达多",
     "title": "悉达多",
-    "author": "赫尔曼·黑塞 姜乙",
-    "cover": "https://covers.openlibrary.org/b/id/14617972-L.jpg",
+    "author": "[德] 赫尔曼·黑塞",
+    "cover": "covers/悉达多.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/14617972-L.jpg",
     "status": "",
-    "note": ""
+    "note": "",
+    "url": "https://book.douban.com/subject/26980487/"
   },
   {
     "id": "平面国",
     "title": "平面国",
-    "author": "Edwin Abbott Abbott",
-    "cover": "https://covers.openlibrary.org/b/id/10069547-L.jpg",
+    "author": "[英] 埃德温·A·艾勃特",
+    "cover": "covers/平面国.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/10069547-L.jpg",
     "status": "",
-    "note": ""
+    "note": "",
+    "url": "https://book.douban.com/subject/35170896/"
   },
   {
     "id": "我看见的世界",
     "title": "我看见的世界",
-    "author": "Fei-Fei Lee",
-    "cover": "https://covers.openlibrary.org/b/id/14833024-L.jpg",
+    "author": "[美] 李飞飞",
+    "cover": "covers/我看见的世界.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/14833024-L.jpg",
     "status": "",
-    "note": ""
+    "note": "",
+    "url": "https://book.douban.com/subject/36672955/"
+  },
+  {
+    "title": "鱼不存在",
+    "author": "[美] 露露·米勒",
+    "cover": "covers/鱼不存在.jpg",
+    "status": "",
+    "note": "",
+    "url": "https://book.douban.com/subject/36096300/",
+    "id": "鱼不存在"
   }
 ]
