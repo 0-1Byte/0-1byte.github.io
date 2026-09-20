@@ -152,7 +152,7 @@ nav {
     position: relative;
     max-width: var(--nav-width) !important;
     margin: 0 auto !important;
-    min-height: 96px !important;
+    min-height: 112px !important;
     align-items: flex-start !important;
     z-index: 2;
 }
@@ -163,7 +163,7 @@ nav {
 
 #menu {
     position: absolute;
-    top: 60px;
+    top: 76px;
     left: 14px;
     margin: 0 !important;
 }
