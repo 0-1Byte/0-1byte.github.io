@@ -57,5 +57,15 @@
     "note": "",
     "url": "https://book.douban.com/subject/36096300/",
     "id": "鱼不存在"
+  },
+  {
+    "id": "你一生的故事",
+    "title": "你一生的故事",
+    "author": "[美] 特德·姜",
+    "cover": "https://img9.doubanio.com/view/subject/m/public/s33516836.jpg",
+    "fallbackCover": "https://covers.openlibrary.org/b/id/14861346-L.jpg",
+    "status": "",
+    "note": "",
+    "url": "https://book.douban.com/subject/34672178/"
   }
 ]

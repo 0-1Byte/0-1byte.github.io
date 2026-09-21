@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 
 
 DATA_FILE = Path(__file__).resolve().parents[1] / "static" / "book" / "books.json"
+PUBLIC_DATA_FILE = Path(__file__).resolve().parents[1] / "public" / "book" / "books.json"
 COVERS_DIR = DATA_FILE.parent / "covers"
 OPEN_LIBRARY_URL = "https://openlibrary.org/search.json?title={}&limit=10"
 GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/volumes?q=intitle:{}&maxResults=10"
@@ -38,8 +39,12 @@ def fetch_json(url):
         return json.loads(response.read().decode("utf-8"))
 
 
+def clean_title(value):
+    return str(value or "").replace("\ufeff", "").replace("\u200b", "").strip()
+
+
 def normalize(value):
-    return " ".join(str(value or "").casefold().split())
+    return " ".join(clean_title(value).casefold().split())
 
 
 def slug(title):
@@ -209,9 +214,9 @@ def main():
     titles = list(args.titles)
     if args.file:
         titles.extend(
-            line.strip()
+            clean_title(line)
             for line in args.file.read_text(encoding="utf-8").splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
+            if clean_title(line) and not clean_title(line).lstrip().startswith("#")
         )
     if not titles:
         print("请输入书名，每行一本；输入空行结束：")
@@ -237,6 +242,7 @@ def main():
     }
     added = 0
     for title in titles:
+        title = clean_title(title)
         normalized_title = normalize(title)
         existing_index = next(
             (
@@ -264,6 +270,11 @@ def main():
 
     if added or args.refresh:
         DATA_FILE.write_text(
+            json.dumps(books, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    if PUBLIC_DATA_FILE.parent.exists():
+        PUBLIC_DATA_FILE.write_text(
             json.dumps(books, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
