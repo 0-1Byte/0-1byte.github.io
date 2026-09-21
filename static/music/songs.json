@@ -1,22 +1,534 @@
 [
-{"id":"adele-hello","title":"Hello","artist":"Adele","lyricist":"Adele","composer":"Adele, Greg Kurstin","cover":"/music/assets/Adele%20-%20Hello.jpg","album":"25","year":2015,"tags":["Pop"],"url":"https://music.apple.com/us/album/hello/1544494115?i=1544494392\u0026uo=4"},
-{"id":"adele-someonelikeyou","title":"Someone Like You","artist":"Adele","lyricist":"Adele","composer":"Adele, Dan Wilson","cover":"/music/assets/Adele%20-%20Someone%20Like%20You.jpg","album":"21","year":2011,"tags":["Pop"],"url":"https://music.apple.com/us/album/someone-like-you/1544491232?i=1544491998\u0026uo=4"},
-{"id":"brunomars-grenade","title":"Grenade","artist":"Bruno Mars","lyricist":"Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt","composer":"Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt","cover":"/music/assets/Bruno%20Mars%20-%20Grenade.jpg","album":"Doo-Wops \u0026 Hooligans","year":2010,"tags":["Pop"],"url":"https://music.apple.com/us/album/grenade/576654788?i=576655094\u0026uo=4"},
-{"id":"khalilfong-lovesong","title":"Love Song","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20Love%20Song.jpg","album":"Wonderland","year":2007,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/love-song/272875165?i=272875200\u0026uo=4"},
-{"id":"khalilfong-小小蟲","title":"小小蟲","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20%E5%B0%8F%E5%B0%8F%E8%9F%B2.jpg","album":"Orange Moon","year":2008,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E5%B0%8F%E5%B0%8F%E8%9F%B2/313404785?i=313404804\u0026uo=4"},
-{"id":"khalilfong-黑洞裡","title":"黑洞裡","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20%E9%BB%91%E6%B4%9E%E8%A3%A1.jpg","album":"Orange Moon","year":2008,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E9%BB%91%E6%B4%9E%E8%A3%A1/313404785?i=313404859\u0026uo=4"},
-{"id":"khalilfong-xzmhxdxh","title":"XZMHXDXH","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20XZMHXDXH.jpg","album":"The Dreamer","year":2024,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/xzmhxdxh/1772124855?i=1772125101\u0026uo=4"},
-{"id":"khalilfong-南音","title":"南音","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20%E5%8D%97%E9%9F%B3.jpg","album":"Soulboy","year":2005,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E5%8D%97%E9%9F%B3/201549018?i=201549388\u0026uo=4"},
-{"id":"khalilfong-總結","title":"總結","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20%E7%B8%BD%E7%B5%90.jpg","album":"Soulboy","year":2005,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E7%B8%BD%E7%B5%90/201549018?i=201549662\u0026uo=4"},
-{"id":"khalilfong-park","title":"Park","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20Park.jpg","album":"Wonderland","year":2007,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/park/272875165?i=272875204\u0026uo=4"},
-{"id":"khalilfong-很不低調","title":"很不低調","artist":"Khalil Fong","lyricist":"方大同","composer":"方大同","cover":"/music/assets/Khalil%20Fong%20-%20%E5%BE%88%E4%B8%8D%E4%BD%8E%E8%AA%BF.jpg","album":"JTW西遊記","year":2016,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E5%BE%88%E4%B8%8D%E4%BD%8E%E8%AA%BF/1587171414?i=1587172786\u0026uo=4"},
-{"id":"simpleplan-astronaut","title":"Astronaut","artist":"Simple Plan","lyricist":"Pierre Bouvier, Chuck Comeau, David Desrosiers, Sébastien Lefebvre, Jeff Stinco","composer":"Pierre Bouvier, Chuck Comeau, David Desrosiers, Sébastien Lefebvre, Jeff Stinco","cover":"/music/assets/Simple%20Plan%20-%20Astronaut.jpg","album":"Get Your Heart On!","year":2011,"tags":["Pop"],"url":"https://music.apple.com/us/album/astronaut/436791526?i=436791541\u0026uo=4"},
-{"id":"douwei-begoodboy","title":"Be Good, Boy","artist":"Dou Wei","lyricist":"窦唯","composer":"窦唯","cover":"/music/assets/Dou%20Wei%20-%20Be%20Good%2C%20Boy.jpg","album":"Black Dream","year":1994,"tags":["Chinese Rock"],"url":"https://music.apple.com/us/album/be-good-boy/158796449?i=158798671\u0026uo=4"},
-{"id":"blackpanther-無地自容","title":"無地自容","artist":"Black Panther","lyricist":"窦唯","composer":"李彤","cover":"/music/assets/Black%20Panther%20-%20%E7%84%A1%E5%9C%B0%E8%87%AA%E5%AE%B9.jpg","album":"滾石字典 國語部","year":1992,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/%E7%84%A1%E5%9C%B0%E8%87%AA%E5%AE%B9/1071760957?i=1071761079\u0026uo=4"},
-{"id":"whitneyhouston-callyoutonight","title":"Call You Tonight","artist":"Whitney Houston","lyricist":"Johntá Austin, Stargate","composer":"Johntá Austin, Tor Erik Hermansen, Mikkel S. Eriksen","cover":"/music/assets/Whitney%20Houston%20-%20Call%20You%20Tonight.jpg","album":"I Look to You","year":2009,"tags":["Pop"],"url":"https://music.apple.com/us/album/call-you-tonight/1481633469?i=1481633475\u0026uo=4"},
-{"id":"keyshiacole-fallinout","title":"Fallin\u0027 Out","artist":"Keyshia Cole","lyricist":"Keyshia Cole, Jamal Jones, Brian Kennedy, Claude Kelly","composer":"Keyshia Cole, Jamal Jones, Brian Kennedy, Claude Kelly","cover":"/music/assets/Keyshia%20Cole%20-%20Fallin\u0027%20Out.jpg","album":"Just Like You","year":2007,"tags":["R\u0026B/Soul"],"url":"https://music.apple.com/us/album/fallin-out/1440771521?i=1440771543\u0026uo=4"},
-{"id":"adele-setfiretotherain","title":"Set Fire to the Rain","artist":"Adele","lyricist":"Adele, Fraser T. Smith","composer":"Adele, Fraser T. Smith","cover":"/music/assets/Adele%20-%20Set%20Fire%20to%20the%20Rain.jpg","album":"21","year":2011,"tags":["Pop"],"url":"https://music.apple.com/us/album/set-fire-to-the-rain/1544491232?i=1544491988\u0026uo=4"},
-{"id":"decajoins-bathroom2019reprise","title":"Bathroom (2019 Reprise)","artist":"deca joins","lyricist":"鄭人碩","composer":"鄭人碩","cover":"/music/assets/deca%20joins%20-%20Bathroom%20(2019%20Reprise).jpg","album":"Bathroom (2019 Reprise) - Single","year":2019,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/bathroom-2019-reprise/1482252439?i=1482252440\u0026uo=4"},
-{"id":"decajoins-wave","title":"Wave","artist":"deca joins","lyricist":"鄭人碩","composer":"鄭人碩","cover":"/music/assets/deca%20joins%20-%20Wave.jpg","album":"Go Slow - EP","year":2018,"tags":["Mandopop"],"url":"https://music.apple.com/us/album/wave/1440471035?i=1440471037\u0026uo=4"},
-{"id":"easonchaneasonandtheduoband-thealbum","title":"The Album","artist":"Eason Chan \u0026 eason and the duo band","lyricist":"陈奕迅","composer":"陈奕迅","cover":"/music/assets/Eason%20Chan%20%26%20eason%20and%20the%20duo%20band%20-%20The%20Album.jpg","album":"L.O.V.E.","year":2018,"tags":["Cantopop/HK-Pop"],"url":"https://music.apple.com/us/album/the-album/1441520069?i=1441520414\u0026uo=4"}
+  {
+    "id": "adele-hello",
+    "title": "Hello",
+    "artist": "Adele",
+    "lyricist": "Adele",
+    "composer": "Adele, Greg Kurstin",
+    "cover": "/music/assets/Adele%20-%20Hello.jpg",
+    "album": "25",
+    "year": 2015,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/hello/1544494115?i=1544494392&uo=4"
+  },
+  {
+    "id": "adele-someonelikeyou",
+    "title": "Someone Like You",
+    "artist": "Adele",
+    "lyricist": "Adele",
+    "composer": "Adele, Dan Wilson",
+    "cover": "/music/assets/Adele%20-%20Someone%20Like%20You.jpg",
+    "album": "21",
+    "year": 2011,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/someone-like-you/1544491232?i=1544491998&uo=4"
+  },
+  {
+    "id": "brunomars-grenade",
+    "title": "Grenade",
+    "artist": "Bruno Mars",
+    "lyricist": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
+    "composer": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
+    "cover": "/music/assets/Bruno%20Mars%20-%20Grenade.jpg",
+    "album": "Doo-Wops & Hooligans",
+    "year": 2010,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/grenade/576654788?i=576655094&uo=4"
+  },
+  {
+    "id": "khalilfong-小小蟲",
+    "title": "小小蟲",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20%E5%B0%8F%E5%B0%8F%E8%9F%B2.jpg",
+    "album": "Orange Moon",
+    "year": 2008,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E5%B0%8F%E5%B0%8F%E8%9F%B2/313404785?i=313404804&uo=4"
+  },
+  {
+    "id": "khalilfong-黑洞裡",
+    "title": "黑洞裡",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20%E9%BB%91%E6%B4%9E%E8%A3%A1.jpg",
+    "album": "Orange Moon",
+    "year": 2008,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E9%BB%91%E6%B4%9E%E8%A3%A1/313404785?i=313404859&uo=4"
+  },
+  {
+    "id": "khalilfong-xzmhxdxh",
+    "title": "XZMHXDXH",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20XZMHXDXH.jpg",
+    "album": "The Dreamer",
+    "year": 2024,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/xzmhxdxh/1772124855?i=1772125101&uo=4"
+  },
+  {
+    "id": "khalilfong-南音",
+    "title": "南音",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20%E5%8D%97%E9%9F%B3.jpg",
+    "album": "Soulboy",
+    "year": 2005,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E5%8D%97%E9%9F%B3/201549018?i=201549388&uo=4"
+  },
+  {
+    "id": "khalilfong-總結",
+    "title": "總結",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20%E7%B8%BD%E7%B5%90.jpg",
+    "album": "Soulboy",
+    "year": 2005,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E7%B8%BD%E7%B5%90/201549018?i=201549662&uo=4"
+  },
+  {
+    "id": "khalilfong-很不低調",
+    "title": "很不低調",
+    "artist": "Khalil Fong",
+    "lyricist": "方大同",
+    "composer": "方大同",
+    "cover": "/music/assets/Khalil%20Fong%20-%20%E5%BE%88%E4%B8%8D%E4%BD%8E%E8%AA%BF.jpg",
+    "album": "JTW西遊記",
+    "year": 2016,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E5%BE%88%E4%B8%8D%E4%BD%8E%E8%AA%BF/1587171414?i=1587172786&uo=4"
+  },
+  {
+    "id": "douwei-begoodboy",
+    "title": "Be Good, Boy",
+    "artist": "Dou Wei",
+    "lyricist": "窦唯",
+    "composer": "窦唯",
+    "cover": "/music/assets/Dou%20Wei%20-%20Be%20Good%2C%20Boy.jpg",
+    "album": "Black Dream",
+    "year": 1994,
+    "tags": [
+      "Chinese Rock"
+    ],
+    "url": "https://music.apple.com/us/album/be-good-boy/158796449?i=158798671&uo=4"
+  },
+  {
+    "id": "blackpanther-無地自容",
+    "title": "無地自容",
+    "artist": "Black Panther",
+    "lyricist": "窦唯",
+    "composer": "李彤",
+    "cover": "/music/assets/Black%20Panther%20-%20%E7%84%A1%E5%9C%B0%E8%87%AA%E5%AE%B9.jpg",
+    "album": "滾石字典 國語部",
+    "year": 1992,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E7%84%A1%E5%9C%B0%E8%87%AA%E5%AE%B9/1071760957?i=1071761079&uo=4"
+  },
+  {
+    "id": "whitneyhouston-callyoutonight",
+    "title": "Call You Tonight",
+    "artist": "Whitney Houston",
+    "lyricist": "Johntá Austin, Stargate",
+    "composer": "Johntá Austin, Tor Erik Hermansen, Mikkel S. Eriksen",
+    "cover": "/music/assets/Whitney%20Houston%20-%20Call%20You%20Tonight.jpg",
+    "album": "I Look to You",
+    "year": 2009,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/call-you-tonight/1481633469?i=1481633475&uo=4"
+  },
+  {
+    "id": "keyshiacole-fallinout",
+    "title": "Fallin' Out",
+    "artist": "Keyshia Cole",
+    "lyricist": "Keyshia Cole, Jamal Jones, Brian Kennedy, Claude Kelly",
+    "composer": "Keyshia Cole, Jamal Jones, Brian Kennedy, Claude Kelly",
+    "cover": "/music/assets/Keyshia%20Cole%20-%20Fallin'%20Out.jpg",
+    "album": "Just Like You",
+    "year": 2007,
+    "tags": [
+      "R&B/Soul"
+    ],
+    "url": "https://music.apple.com/us/album/fallin-out/1440771521?i=1440771543&uo=4"
+  },
+  {
+    "id": "adele-setfiretotherain",
+    "title": "Set Fire to the Rain",
+    "artist": "Adele",
+    "lyricist": "Adele, Fraser T. Smith",
+    "composer": "Adele, Fraser T. Smith",
+    "cover": "/music/assets/Adele%20-%20Set%20Fire%20to%20the%20Rain.jpg",
+    "album": "21",
+    "year": 2011,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/set-fire-to-the-rain/1544491232?i=1544491988&uo=4"
+  },
+  {
+    "id": "decajoins-bathroom2019reprise",
+    "title": "Bathroom (2019 Reprise)",
+    "artist": "deca joins",
+    "lyricist": "鄭人碩",
+    "composer": "鄭人碩",
+    "cover": "/music/assets/deca%20joins%20-%20Bathroom%20(2019%20Reprise).jpg",
+    "album": "Bathroom (2019 Reprise) - Single",
+    "year": 2019,
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/bathroom-2019-reprise/1482252439?i=1482252440&uo=4"
+  },
+  {
+    "id": "khalil-fong-love-song",
+    "title": "Love Song",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-love-song.jpg",
+    "album": "Wonderland",
+    "year": "2007",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/love-song/272875165?i=272875200&uo=4"
+  },
+  {
+    "id": "minnie-riperton-lovin-you",
+    "title": "Lovin' You",
+    "artist": "Minnie Riperton",
+    "lyricist": "Minnie Riperton, Richard Rudolph",
+    "composer": "Minnie Riperton, Richard Rudolph",
+    "cover": "/music/assets/minnie-riperton-lovin-you.jpg",
+    "album": "Perfect Angel",
+    "year": "1974",
+    "tags": [
+      "R&B/Soul"
+    ],
+    "url": "https://music.apple.com/us/album/lovin-you/1443067528?i=1443067813&uo=4"
+  },
+  {
+    "id": "khalil-fong-手拖手",
+    "title": "手拖手",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-%E6%89%8B%E6%8B%96%E6%89%8B.jpg",
+    "album": "This Love",
+    "year": "2006",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E6%89%8B%E6%8B%96%E6%89%8B/220365864?i=220365957&uo=4"
+  },
+  {
+    "id": "khalil-fong-take-me",
+    "title": "Take Me",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-take-me.jpg",
+    "album": "15",
+    "year": "2011",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/take-me/540055014?i=540055024&uo=4"
+  },
+  {
+    "id": "khalil-fong-好不容易",
+    "title": "好不容易",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-%E5%A5%BD%E4%B8%8D%E5%AE%B9%E6%98%93.jpg",
+    "album": "15",
+    "year": "2011",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E5%A5%BD%E4%B8%8D%E5%AE%B9%E6%98%93/540055014?i=540055025&uo=4"
+  },
+  {
+    "id": "khalil-fong-romeo",
+    "title": "Romeo",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-romeo.jpg",
+    "album": "Back to Wonderland",
+    "year": "2012",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/romeo/577983280?i=577983299&uo=4"
+  },
+  {
+    "id": "khalil-fong-bb88",
+    "title": "Bb88",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-bb88.jpg",
+    "album": "BB88 - Single",
+    "year": "2012",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/bb88/534018890?i=534019429&uo=4"
+  },
+  {
+    "id": "khalil-fong-悟空",
+    "title": "悟空",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-%E6%82%9F%E7%A9%BA.jpg",
+    "album": "JTW西遊記",
+    "year": "2016",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/%E6%82%9F%E7%A9%BA/1587171414?i=1587171419&uo=4"
+  },
+  {
+    "id": "khalil-fong-gf",
+    "title": "GF",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-gf.jpg",
+    "album": "The Dreamer",
+    "year": "2024",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/gf/1772124855?i=1772125104&uo=4"
+  },
+  {
+    "id": "khalil-fong-tango",
+    "title": "Tango",
+    "artist": "Khalil Fong",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/khalil-fong-tango.jpg",
+    "album": "The Dreamer",
+    "year": "2024",
+    "tags": [
+      "Mandopop"
+    ],
+    "url": "https://music.apple.com/us/album/tango/1772124855?i=1772125105&uo=4"
+  },
+  {
+    "id": "simple-plan-astronaut",
+    "title": "Astronaut",
+    "artist": "Simple Plan",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/simple-plan-astronaut.jpg",
+    "album": "Get Your Heart On!",
+    "year": "2011",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/astronaut/436791526?i=436791541&uo=4"
+  },
+  {
+    "id": "adele-chasing-pavements",
+    "title": "Chasing Pavements",
+    "artist": "Adele",
+    "lyricist": "Adele",
+    "composer": "Adele, Eg White",
+    "cover": "/music/assets/adele-chasing-pavements.jpg",
+    "album": "Chasing Pavements - Single",
+    "year": "2008",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/chasing-pavements/1545376338?i=1545376345&uo=4"
+  },
+  {
+    "id": "adele-rolling-in-the-deep",
+    "title": "Rolling in the Deep",
+    "artist": "Adele",
+    "lyricist": "Adele, Paul Epworth",
+    "composer": "Adele, Paul Epworth",
+    "cover": "/music/assets/adele-rolling-in-the-deep.jpg",
+    "album": "21",
+    "year": "2010",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/rolling-in-the-deep/1544491232?i=1544491233&uo=4"
+  },
+  {
+    "id": "adele-don-t-you-remember",
+    "title": "Don't You Remember",
+    "artist": "Adele",
+    "lyricist": "Adele, Dan Wilson",
+    "composer": "Adele, Dan Wilson",
+    "cover": "/music/assets/adele-don-t-you-remember.jpg",
+    "album": "21",
+    "year": "2011",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/dont-you-remember/1544491232?i=1544491987&uo=4"
+  },
+  {
+    "id": "adele-take-it-all",
+    "title": "Take It All",
+    "artist": "Adele",
+    "lyricist": "Adele, Francis White",
+    "composer": "Adele, Francis White",
+    "cover": "/music/assets/adele-take-it-all.jpg",
+    "album": "21",
+    "year": "2011",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/take-it-all/1544491232?i=1544491992&uo=4"
+  },
+  {
+    "id": "adele-one-and-only",
+    "title": "One and Only",
+    "artist": "Adele",
+    "lyricist": "Adele, Greg Wells, Dan Wilson",
+    "composer": "Adele, Greg Wells, Dan Wilson",
+    "cover": "/music/assets/adele-one-and-only.jpg",
+    "album": "21",
+    "year": "2011",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/one-and-only/1544491232?i=1544491995&uo=4"
+  },
+  {
+    "id": "adele-river-lea",
+    "title": "River Lea",
+    "artist": "Adele",
+    "lyricist": "Adele, Brian Burton",
+    "composer": "Adele, Brian Burton",
+    "cover": "/music/assets/adele-river-lea.jpg",
+    "album": "25",
+    "year": "2015",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/river-lea/1544494115?i=1544494725&uo=4"
+  },
+  {
+    "id": "adele-love-in-the-dark",
+    "title": "Love in the Dark",
+    "artist": "Adele",
+    "lyricist": "Adele, Samuel Dixon",
+    "composer": "Adele, Samuel Dixon",
+    "cover": "/music/assets/adele-love-in-the-dark.jpg",
+    "album": "25",
+    "year": "2015",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/love-in-the-dark/1544494115?i=1544494731&uo=4"
+  },
+  {
+    "id": "adele-million-years-ago",
+    "title": "Million Years Ago",
+    "artist": "Adele",
+    "lyricist": "Adele, Greg Kurstin",
+    "composer": "Adele, Greg Kurstin",
+    "cover": "/music/assets/adele-million-years-ago.jpg",
+    "album": "25",
+    "year": "2015",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/million-years-ago/1544494115?i=1544494905&uo=4"
+  },
+  {
+    "id": "adele-all-i-ask",
+    "title": "All I Ask",
+    "artist": "Adele",
+    "lyricist": "Adele, Brody Brown, Philip Lawrence, Bruno Mars",
+    "composer": "Adele, Brody Brown, Philip Lawrence, Bruno Mars",
+    "cover": "/music/assets/adele-all-i-ask.jpg",
+    "album": "25",
+    "year": "2015",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/all-i-ask/1544494115?i=1544494912&uo=4"
+  },
+  {
+    "id": "adele-easy-on-me",
+    "title": "Easy On Me",
+    "artist": "Adele",
+    "lyricist": "Adele, Greg Kurstin",
+    "composer": "Adele, Greg Kurstin",
+    "cover": "/music/assets/adele-easy-on-me.jpg",
+    "album": "30",
+    "year": "2021",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/easy-on-me/1590035691?i=1590036021&uo=4"
+  },
+  {
+    "id": "adele-i-drink-wine",
+    "title": "I Drink Wine",
+    "artist": "Adele",
+    "lyricist": "Adele, Greg Kurstin",
+    "composer": "Adele, Greg Kurstin",
+    "cover": "/music/assets/adele-i-drink-wine.jpg",
+    "album": "30",
+    "year": "2021",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/i-drink-wine/1590035691?i=1590036250&uo=4"
+  },
+  {
+    "id": "céline-dion-to-love-you-more-radio-edit",
+    "title": "To Love You More (Radio Edit)",
+    "artist": "Céline Dion",
+    "lyricist": "David Foster, Junior Miles",
+    "composer": "David Foster, Junior Miles",
+    "cover": "/music/assets/c%C3%A9line-dion-to-love-you-more-radio-edit.jpg",
+    "album": "All the Way...A Decade of Song",
+    "year": "1993",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/to-love-you-more-radio-edit/1450015795?i=1450015973&uo=4"
+  }
 ]

@@ -32,8 +32,8 @@
       const title = safeText(song.title);
       const artist = safeText(song.artist);
       const cover = resolveAsset(song.cover);
-      const lyricist = safeText(song.lyricist);
-      const composer = safeText(song.composer);
+      const lyricist = safeText(song.lyricist) || "未找到词作者";
+      const composer = safeText(song.composer) || "未找到曲作者";
 
       const image = `
         <img
