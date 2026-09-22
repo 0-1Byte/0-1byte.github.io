@@ -530,5 +530,103 @@
       "Pop"
     ],
     "url": "https://music.apple.com/us/album/to-love-you-more-radio-edit/1450015795?i=1450015973&uo=4"
+  },
+  {
+    "id": "hermanos-gutiérrez-esperanza",
+    "title": "Esperanza",
+    "artist": "Hermanos Gutiérrez",
+    "lyricist": "",
+    "composer": "Daniel Alejandro Hotz, Stephan Ricardo Hotz",
+    "cover": "/music/assets/hermanos-guti%C3%A9rrez-esperanza.jpg",
+    "album": "Esperanza - Single",
+    "year": "2021",
+    "tags": [
+      "Instrumental"
+    ],
+    "url": "https://music.apple.com/us/album/esperanza/1547570078?i=1547570079&uo=4"
+  },
+  {
+    "id": "linkin-park-in-the-end",
+    "title": "In the End",
+    "artist": "LINKIN PARK",
+    "lyricist": "Chester Bennington, Rob Bourdon, Brad Delson, Joseph “Joe” Hahn, Mike Shinoda",
+    "composer": "Chester Bennington, Rob Bourdon, Brad Delson, Joseph “Joe” Hahn, Mike Shinoda",
+    "cover": "/music/assets/linkin-park-in-the-end.jpg",
+    "album": "Hybrid Theory (Deluxe Edition)",
+    "year": "2000",
+    "tags": [
+      "Alternative"
+    ],
+    "url": "https://music.apple.com/us/album/in-the-end/590431776?i=590431785&uo=4"
+  },
+  {
+    "id": "alec-benjamin-let-me-down-slowly",
+    "title": "Let Me Down Slowly",
+    "artist": "Alec Benjamin",
+    "lyricist": "Alec Benjamin, Sir Nolan, Michael Pollack",
+    "composer": "Alec Benjamin, Sir Nolan, Michael Pollack",
+    "cover": "/music/assets/alec-benjamin-let-me-down-slowly.jpg",
+    "album": "Narrated for You",
+    "year": "2018",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/let-me-down-slowly/1441728723?i=1441728727&uo=4"
+  },
+  {
+    "id": "ed-sheeran-perfect",
+    "title": "Perfect",
+    "artist": "Ed Sheeran",
+    "lyricist": "Ed Sheeran",
+    "composer": "Ed Sheeran",
+    "cover": "/music/assets/ed-sheeran-perfect.jpg",
+    "album": "÷ (Deluxe)",
+    "year": "2017",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/perfect/1193701079?i=1193701400&uo=4"
+  },
+  {
+    "id": "ed-sheeran-shape-of-you",
+    "title": "Shape of You",
+    "artist": "Ed Sheeran",
+    "lyricist": "Kevin “She’kspere” Briggs, Tameka “Tiny” Cottle, Kandi, Steve Mac, Johnny McDaid, Ed Sheeran",
+    "composer": "Kevin “She’kspere” Briggs, Tameka “Tiny” Cottle, Kandi, Steve Mac, Johnny McDaid, Ed Sheeran",
+    "cover": "/music/assets/ed-sheeran-shape-of-you.jpg",
+    "album": "÷ (Deluxe)",
+    "year": "2017",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/shape-of-you/1193701079?i=1193701392&uo=4"
+  },
+  {
+    "id": "alicia-keys-if-i-ain-t-got-you",
+    "title": "If I Ain't Got You",
+    "artist": "Alicia Keys",
+    "lyricist": "Alicia Keys",
+    "composer": "Alicia Keys",
+    "cover": "/music/assets/alicia-keys-if-i-ain-t-got-you.jpg",
+    "album": "The Diary of Alicia Keys",
+    "year": "2003",
+    "tags": [
+      "R&B/Soul"
+    ],
+    "url": "https://music.apple.com/us/album/if-i-aint-got-you/255342344?i=255343130&uo=4"
+  },
+  {
+    "id": "michael-jackson-billie-jean",
+    "title": "Billie Jean",
+    "artist": "Michael Jackson",
+    "lyricist": "Michael Jackson",
+    "composer": "Michael Jackson",
+    "cover": "/music/assets/michael-jackson-billie-jean.jpg",
+    "album": "Thriller",
+    "year": "1982",
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/album/billie-jean/269572838?i=269573364&uo=4"
   }
 ]
