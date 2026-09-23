@@ -1,15 +1,7 @@
 [
   {
-    "id": "赤手登峰",
-    "title": "赤手登峰",
-    "cover": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2564278600.jpg",
-    "year": 2018,
-    "note": "",
-    "url": "https://movie.douban.com/subject/30167509/"
-  },
-  {
     "title": "A Beautiful Obsession",
-    "cover": "https://m.media-amazon.com/images/M/MV5BMmM1N2ZkNzQtOWM2Mi00Y2Y4LWExNTUtNzU4YmY0N2E4NmM5XkEyXkFqcGc@._V1_.jpg",
+    "cover": "covers/a-beautiful-obsession.jpg",
     "year": 2026,
     "note": "",
     "url": "https://movie.douban.com/subject/38586438/",
@@ -17,7 +9,7 @@
   },
   {
     "title": "All or Nothing: Manchester City",
-    "cover": "https://m.media-amazon.com/images/M/MV5BMTgwNjYyNzAyOF5BMl5BanBnXkFtZTgwNjAyMjAwNjM@._V1_.jpg",
+    "cover": "covers/all-or-nothing-manchester-city.jpg",
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/30281493/",
@@ -25,7 +17,7 @@
   },
   {
     "title": "Matchday: Inside FC Barcelona",
-    "cover": "https://m.media-amazon.com/images/M/MV5BOGQzYTA0YjUtZTc4MS00YzRjLThjODMtZmQzMTEyYzhlNjUwXkEyXkFqcGc@._V1_.jpg",
+    "cover": "covers/matchday-inside-fc-barcelona.jpg",
     "year": 2019,
     "note": "",
     "url": "https://movie.douban.com/subject/34899741/",
@@ -33,7 +25,7 @@
   },
   {
     "title": "Captains of the World",
-    "cover": "https://m.media-amazon.com/images/M/MV5BZTA5MTFmNGEtOTEwMS00MjA5LWE2MTAtMTRhOWUxYmJjMGY5XkEyXkFqcGc@._V1_.jpg",
+    "cover": "covers/captains-of-the-world.jpg",
     "year": 2023,
     "note": "",
     "url": "https://movie.douban.com/subject/36484605/",
@@ -41,7 +33,7 @@
   },
   {
     "title": "罗斯托夫的14秒",
-    "cover": "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2637345242.jpg",
+    "cover": "covers/罗斯托夫的14秒.jpg",
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/34482019/",
@@ -49,10 +41,26 @@
   },
   {
     "title": "Free Solo",
-    "cover": "https://m.media-amazon.com/images/M/MV5BMjA2YTAxMzMtNzA2Mi00NTcyLTg4NzUtODIxYzFiYzdiNWNlXkEyXkFqcGc@._V1_.jpg",
+    "cover": "covers/free-solo.jpg",
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/30167509/",
     "id": "free-solo"
+  },
+  {
+    "title": "The Thinking Game",
+    "cover": "covers/the-thinking-game.jpg",
+    "year": 2024,
+    "note": "",
+    "url": "https://movie.douban.com/subject/36877225/",
+    "id": "the-thinking-game"
+  },
+  {
+    "title": "AlphaGo",
+    "cover": "covers/alphago.jpg",
+    "year": 2017,
+    "note": "",
+    "url": "https://movie.douban.com/subject/27012433/",
+    "id": "alphago"
   }
 ]

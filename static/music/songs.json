@@ -628,5 +628,19 @@
       "Pop"
     ],
     "url": "https://music.apple.com/us/album/billie-jean/269572838?i=269573364&uo=4"
+  },
+  {
+    "id": "eason-chan-shall-we-talk",
+    "title": "Shall We Talk",
+    "artist": "Eason Chan",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/eason-chan-shall-we-talk.jpg",
+    "album": "Eason Chan (Cantonese Collection)",
+    "year": "2001",
+    "tags": [
+      "Cantopop/HK-Pop"
+    ],
+    "url": "https://music.apple.com/us/album/shall-we-talk/651449675?i=651449681&uo=4"
   }
 ]

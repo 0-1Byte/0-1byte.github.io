@@ -2,28 +2,5 @@
 # 导入器会自动查询歌手、专辑、年份和封面。
 # 推荐写成“歌手 | 歌曲名”，避免同名歌曲选错。
 # 例如：Adele | Hello
-周杰伦 | 彩虹
-张学友 | 李香兰
-李荣浩 | 模特
-李荣浩 | 哎呀
-陈奕迅 | 陀飞轮
-陈奕迅 | 任我行
-陈奕迅 | 娱乐天空
-陈奕迅 | 可一可再
-王菲 | 我也不想这样
-古巨基 | 必杀技
-李克勤 | 月半小夜曲
-Linkin Park | In The End
-许嵩 | 乌鸦
-陶喆 | Melody
-林忆莲 | 词不达意
-Alec Benjamin | Let Me Down Slowly
-孙燕姿 | 开始懂了
-林宥嘉 | 我已经敢想你
-Ed Sheeran | Perfect
-Ed Sheeran | Shape of You
-Alicia Keys | If I Ain't Got You
-Michael Jackson | Billie Jean
-Glass Animals | The Other Side of Paradise
-Hermanos Gutiérrez | Esperanza
-Céline Dion | To Love You More
+Eason Chan | 任我行
+
