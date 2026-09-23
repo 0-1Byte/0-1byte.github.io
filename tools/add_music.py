@@ -46,6 +46,342 @@ KNOWN_CREDITS = {
         "David Foster, Junior Miles",
         "David Foster, Junior Miles",
     ),
+    ("khalilfong", "love song"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "手拖手"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "take me"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "好不容易"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "romeo"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "bb88"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "悟空"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "gf"): (
+        "方大同",
+        "方大同",
+    ),
+    ("khalilfong", "tango"): (
+        "方大同",
+        "方大同",
+    ),
+    ("simpleplan", "astronaut"): (
+        "Pierre Bouvier, Chuck Comeau, David Desrosiers, Sébastien Lefebvre, Jeff Stinco",
+        "Pierre Bouvier, Chuck Comeau, David Desrosiers, Sébastien Lefebvre, Jeff Stinco",
+    ),
+    ("hermanosgutierrez", "esperanza"): (
+        "",
+        "Daniel Alejandro Hotz, Stephan Ricardo Hotz",
+    ),
+    ("linkinpark", "numb"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "in the end"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "what i've done"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "crawling"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "one step closer"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "breaking the habit"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "faint"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "shadow of the day"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "leave out all the rest"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("linkinpark", "new divide"): (
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+        "Chester Bennington, Mike Shinoda, Brad Delson, Dave Farrell, Joe Hahn, Rob Bourdon",
+    ),
+    ("jaychou", "断了的弦"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "完美主义"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "反方向的钟"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "开不了口"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "安静"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "半岛铁盒"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "暗号"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "分裂"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "最后的战役"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "以父之名"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "晴天"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "三年二班"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "东风破"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "你听得到"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "她的睫毛"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "梯田"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "七里香"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "借口"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "外婆"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "搁浅"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "园游会"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "止战之殇"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "夜曲"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "发如雪"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "黑色毛衣"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "枫"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "浪漫手机"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "珊瑚海"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "漂移"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "一路向北"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "夜的第七章"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "听妈妈的话"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "退后"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "菊花台"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "牛仔很忙"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "彩虹"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "我不配"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "最长的电影"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "给我一首歌的时间"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "花海"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "说好的幸福呢"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "兰亭序"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "流浪诗人"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "时光机"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "稻香"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "说了再见"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "烟花易冷"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "我落泪情绪零碎"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "红尘客栈"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "哪里都是你"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("jaychou", "美人鱼"): (
+        "方文山",
+        "周杰伦",
+    ),
+    ("linjiaqian", "某种老朋友"): (
+        "林家谦",
+        "林家谦",
+    ),
+    ("adele", "chasing pavements"): (
+        "Adele",
+        "Adele, Eg White",
+    ),
+    ("adele", "rolling in the deep"): (
+        "Adele, Paul Epworth",
+        "Adele, Paul Epworth",
+    ),
+    ("adele", "don't you remember"): (
+        "Adele, Dan Wilson",
+        "Adele, Dan Wilson",
+    ),
+    ("adele", "take it all"): (
+        "Adele, Francis White",
+        "Adele, Francis White",
+    ),
+    ("adele", "one and only"): (
+        "Adele, Greg Wells, Dan Wilson",
+        "Adele, Greg Wells, Dan Wilson",
+    ),
+    ("adele", "river lea"): (
+        "Adele, Brian Burton",
+        "Adele, Brian Burton",
+    ),
+    ("adele", "love in the dark"): (
+        "Adele, Samuel Dixon",
+        "Adele, Samuel Dixon",
+    ),
+    ("adele", "million years ago"): (
+        "Adele, Greg Kurstin",
+        "Adele, Greg Kurstin",
+    ),
+    ("adele", "all i ask"): (
+        "Adele, Brody Brown, Philip Lawrence, Bruno Mars",
+        "Adele, Brody Brown, Philip Lawrence, Bruno Mars",
+    ),
+    ("adele", "easy on me"): (
+        "Adele, Greg Kurstin",
+        "Adele, Greg Kurstin",
+    ),
+    ("adele", "i drink wine"): (
+        "Adele, Greg Kurstin",
+        "Adele, Greg Kurstin",
+    ),
 }
 
 
