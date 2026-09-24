@@ -32,7 +32,7 @@
       const title = safeText(song.title);
       const artist = safeText(song.artist);
       const cover = resolveAsset(song.cover);
-      const lyricist = safeText(song.lyricist) || "未找到词作者";
+      const lyricist = safeText(song.lyricist);
       const composer = safeText(song.composer) || "未找到曲作者";
 
       const image = `
@@ -46,7 +46,7 @@
 
       const credits = `
         <div class="credit-overlay" aria-label="${escapeHtml(`${title} 词曲作者`)}">
-          <p><span>词</span>${escapeHtml(lyricist)}</p>
+          ${lyricist ? `<p><span>词</span>${escapeHtml(lyricist)}</p>` : ""}
           <p><span>曲</span>${escapeHtml(composer)}</p>
         </div>
       `;

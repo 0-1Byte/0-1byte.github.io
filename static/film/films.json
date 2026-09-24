@@ -126,5 +126,21 @@
     "note": "",
     "url": "",
     "id": "寻梦环游记"
+  },
+  {
+    "title": "Arrival",
+    "cover": "covers/arrival.jpg",
+    "year": 2016,
+    "note": "",
+    "url": "https://movie.douban.com/subject/21324900/",
+    "id": "arrival"
+  },
+  {
+    "title": "致命魔术",
+    "cover": "covers/致命魔术.jpg",
+    "year": 2006,
+    "note": "",
+    "url": "https://movie.douban.com/subject/1780330/",
+    "id": "致命魔术"
   }
 ]

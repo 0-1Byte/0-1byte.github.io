@@ -62,5 +62,13 @@
     "note": "",
     "url": "https://movie.douban.com/subject/27012433/",
     "id": "alphago"
+  },
+  {
+    "title": " Rafa",
+    "cover": "covers/rafa.jpg",
+    "year": 2026,
+    "note": "",
+    "url": "https://movie.douban.com/subject/37163615/",
+    "id": "rafa"
   }
 ]
