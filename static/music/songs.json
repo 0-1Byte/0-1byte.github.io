@@ -647,8 +647,8 @@
     "id": "bruno-mars-catch-a-grenade-the-hooligans-remix",
     "title": "Catch a Grenade (The Hooligans Remix)",
     "artist": "Bruno Mars",
-      "lyricist": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
-      "composer": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
+    "lyricist": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
+    "composer": "Bruno Mars, Philip Lawrence, Ari Levine, Brody Brown, Claude Kelly, Andrew Wyatt",
     "cover": "/music/assets/bruno-mars-catch-a-grenade-the-hooligans-remix.jpg",
     "album": "The Grenade Sessions - EP",
     "year": "2011",
@@ -689,8 +689,8 @@
     "id": "lukas-graham-funeral",
     "title": "Funeral",
     "artist": "Lukas Graham",
-      "lyricist": "Lukas Forchhammer, Morten Ristorp, Stefan Forrest, Morten Pilegaard",
-      "composer": "Lukas Forchhammer, Morten Ristorp, Stefan Forrest, Morten Pilegaard",
+    "lyricist": "Lukas Forchhammer, Morten Ristorp, Stefan Forrest, Morten Pilegaard",
+    "composer": "Lukas Forchhammer, Morten Ristorp, Stefan Forrest, Morten Pilegaard",
     "cover": "/music/assets/lukas-graham-funeral.jpg",
     "album": "Lukas Graham",
     "year": "2015",
@@ -731,8 +731,8 @@
     "id": "khalil-fong-ring-finger",
     "title": "Ring Finger",
     "artist": "Khalil Fong",
-      "lyricist": "方大同",
-      "composer": "方大同",
+    "lyricist": "方大同",
+    "composer": "方大同",
     "cover": "/music/assets/khalil-fong-ring-finger.jpg",
     "album": "JTW西遊記",
     "year": "2016",
@@ -740,5 +740,257 @@
       "Mandopop"
     ],
     "url": "https://music.apple.com/us/album/ring-finger/1587171414?i=1587171826&uo=4"
+  },
+  {
+    "id": "陳奕迅-任我行",
+    "title": "任我行",
+    "artist": "陳奕迅",
+    "lyricist": "林夕",
+    "composer": "Christopher Chak",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E4%BB%BB%E6%88%91%E8%A1%8C.jpg",
+    "album": "The Key",
+    "year": "2013",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%BB%BB%E6%88%91%E8%A1%8C/1386714588?i=1386714597&uo=4"
+  },
+  {
+    "id": "陳奕迅-let-it-out",
+    "title": "Let It Out",
+    "artist": "陳奕迅",
+    "lyricist": "Eric Kwok, 林若寧",
+    "composer": "Eric Kwok",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-let-it-out.jpg",
+    "album": "...3mm",
+    "year": "2012",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/let-it-out/1445753233?i=1445753746&uo=4"
+  },
+  {
+    "id": "陳奕迅-eason-and-the-duo-band-可一可再",
+    "title": "可一可再",
+    "artist": "陳奕迅 & eason and the duo band",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-eason-and-the-duo-band-%E5%8F%AF%E4%B8%80%E5%8F%AF%E5%86%8D.jpg",
+    "album": "可一可再 - Single",
+    "year": "2018",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8F%AF%E4%B8%80%E5%8F%AF%E5%86%8D/1431690016?i=1431690032&uo=4"
+  },
+  {
+    "id": "李克勤-月半小夜曲-live-in-hong-kong-2015",
+    "title": "月半小夜曲 (Live In Hong Kong / 2015)",
+    "artist": "李克勤",
+    "lyricist": "吉元由美",
+    "composer": "河合奈保子",
+    "cover": "/music/assets/%E6%9D%8E%E5%85%8B%E5%8B%A4-%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2-live-in-hong-kong-2015.jpg",
+    "album": "Joey Yung X Hacken Lee Concert 2015 (Live)",
+    "year": "2015",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2-live-in-hong-kong-2015/1442958275?i=1442959495&uo=4"
+  },
+  {
+    "id": "陶喆-melody",
+    "title": "Melody",
+    "artist": "陶喆",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-melody.jpg",
+    "album": "黑色柳丁",
+    "year": "2002",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/melody/914664926?i=914664940&uo=4"
+  },
+  {
+    "id": "陳奕迅-陀飛輪",
+    "title": "陀飛輪",
+    "artist": "陳奕迅",
+    "lyricist": "黃偉文",
+    "composer": "Vincent Chow",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E9%99%80%E9%A3%9B%E8%BC%AA.jpg",
+    "album": "Time Flies 2010 - EP",
+    "year": "2009",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%99%80%E9%A3%9B%E8%BC%AA/1443717418?i=1443717750&uo=4"
+  },
+  {
+    "id": "陳奕迅-夕陽無限好",
+    "title": "夕陽無限好",
+    "artist": "陳奕迅",
+    "lyricist": "林夕",
+    "composer": "Eric Kwok",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E5%A4%95%E9%99%BD%E7%84%A1%E9%99%90%E5%A5%BD.jpg",
+    "album": "U 87",
+    "year": "2005",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%95%E9%99%BD%E7%84%A1%E9%99%90%E5%A5%BD/1443374875?i=1443375265&uo=4"
+  },
+  {
+    "id": "王菲-我也不想這樣",
+    "title": "我也不想這樣",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "Alex San",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E6%88%91%E4%B9%9F%E4%B8%8D%E6%83%B3%E9%80%99%E6%A8%A3.jpg",
+    "album": "王菲97",
+    "year": "1997",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E4%B9%9F%E4%B8%8D%E6%83%B3%E9%80%99%E6%A8%A3/965768005?i=965768366&uo=4"
+  },
+  {
+    "id": "古巨基-必殺技",
+    "title": "必殺技",
+    "artist": "古巨基",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E5%8F%A4%E5%B7%A8%E5%9F%BA-%E5%BF%85%E6%AE%BA%E6%8A%80.jpg",
+    "album": "勁歌. 金曲新曲 + 精選",
+    "year": "2003",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%BF%85%E6%AE%BA%E6%8A%80/1442943660?i=1442944281&uo=4"
+  },
+  {
+    "id": "李克勤-月半小夜曲",
+    "title": "月半小夜曲",
+    "artist": "李克勤",
+    "lyricist": "吉元由美",
+    "composer": "河合奈保子",
+    "cover": "/music/assets/%E6%9D%8E%E5%85%8B%E5%8B%A4-%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2.jpg",
+    "album": "命運符號",
+    "year": "1988",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2/1443304226?i=1443304352&uo=4"
+  },
+  {
+    "id": "許嵩-烏鴉",
+    "title": "烏鴉",
+    "artist": "許嵩",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E8%A8%B1%E5%B5%A9-%E7%83%8F%E9%B4%89.jpg",
+    "album": "呼吸之野",
+    "year": "2021",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%83%8F%E9%B4%89/1567365066?i=1567365067&uo=4"
+  },
+  {
+    "id": "林憶蓮-詞不達意",
+    "title": "詞不達意",
+    "artist": "林憶蓮",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E6%9E%97%E6%86%B6%E8%93%AE-%E8%A9%9E%E4%B8%8D%E9%81%94%E6%84%8F.jpg",
+    "album": "呼吸",
+    "year": "2006",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%A9%9E%E4%B8%8D%E9%81%94%E6%84%8F/905221552?i=905221558&uo=4"
+  },
+  {
+    "id": "孫燕姿-開始懂了",
+    "title": "開始懂了",
+    "artist": "孫燕姿",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E9%96%8B%E5%A7%8B%E6%87%82%E4%BA%86.jpg",
+    "album": "Your Song (2006 新歌+精選)",
+    "year": "2000",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%96%8B%E5%A7%8B%E6%87%82%E4%BA%86/280911988?i=280911990&uo=4"
+  },
+  {
+    "id": "林宥嘉-我已經敢想你",
+    "title": "我已經敢想你",
+    "artist": "林宥嘉",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E6%9E%97%E5%AE%A5%E5%98%89-%E6%88%91%E5%B7%B2%E7%B6%93%E6%95%A2%E6%83%B3%E4%BD%A0.jpg",
+    "album": "今日營業中",
+    "year": "2016",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E5%B7%B2%E7%B6%93%E6%95%A2%E6%83%B3%E4%BD%A0/1124800418?i=1124800733&uo=4"
+  },
+  {
+    "id": "周杰倫-彩虹",
+    "title": "彩虹",
+    "artist": "周杰倫",
+    "lyricist": "周杰倫",
+    "composer": "周杰倫",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%BD%A9%E8%99%B9.jpg",
+    "album": "我很忙",
+    "year": "2007",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%BD%A9%E8%99%B9/1721455530?i=1721455866&uo=4"
+  },
+  {
+    "id": "張學友-李香蘭",
+    "title": "李香蘭",
+    "artist": "張學友",
+    "lyricist": "周禮茂",
+    "composer": "玉置浩二",
+    "cover": "/music/assets/%E5%BC%B5%E5%AD%B8%E5%8F%8B-%E6%9D%8E%E9%A6%99%E8%98%AD.jpg",
+    "album": "夢中的你",
+    "year": "1990",
+    "tags": [
+      "廣東歌/香港流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9D%8E%E9%A6%99%E8%98%AD/1480627537?i=1480627544&uo=4"
+  },
+  {
+    "id": "李榮浩-模特",
+    "title": "模特",
+    "artist": "李榮浩",
+    "lyricist": "周耀輝",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%A8%A1%E7%89%B9.jpg",
+    "album": "模特",
+    "year": "2013",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%A8%A1%E7%89%B9/1743353783?i=1743353794&uo=4"
+  },
+  {
+    "id": "李榮浩-哎呀",
+    "title": "哎呀",
+    "artist": "李榮浩",
+    "lyricist": "",
+    "composer": "",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%93%8E%E5%91%80.jpg",
+    "album": "李榮浩",
+    "year": "2014",
+    "tags": [
+      "國語流行樂"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%93%8E%E5%91%80/935650862?i=935654986&uo=4"
   }
 ]
