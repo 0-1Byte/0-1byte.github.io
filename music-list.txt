@@ -1,5 +1,6 @@
 # 每行一首歌曲，保存为 UTF-8。
 # 导入器会自动查询歌手、专辑、年份和封面。
 # 推荐写成“歌手 | 歌曲名”，避免同名歌曲选错。
-# 例如：Adele | Hello
-陈奕迅 | 娱乐天空
+# 例如：Adele | Hello  Glass Animals | The Other Side of Paradise
+林忆莲 | 词不达意
+Darren Hayes | Creepin' up on You
