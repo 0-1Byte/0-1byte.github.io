@@ -180,9 +180,10 @@ nav {
     height: 60px;
 }
 
+/* 与合集页 .site-nav gap:18px 对齐：logo 与首个菜单项间距一致 */
 #menu {
     position: static;
-    margin-left: 28px !important;
+    margin-left: 18px !important;
     flex-shrink: 0;
 }
 
@@ -196,19 +197,61 @@ nav {
     }
 
     #menu {
-        margin-left: 16px !important;
+        margin-left: 8px !important;
     }
 
     #menu ul {
-        gap: 10px !important;
+        gap: 8px !important;
     }
 
     #menu a,
     #menu a span {
-        font-size: 20px !important;
+        font-size: 17px !important;
+    }
+
+    .logo a {
+        font-size: 28px !important;
     }
 
     .header-nav {
         padding-right: 52px;
     }
+}
+
+/* ========== 暗色主题：与合集页统一 ==========
+   合集页基准：
+     --bg:      #11110f  （暖黑背景）
+     --text:    #f1efe9
+     --muted:   #9d9a92
+     --line:    #35342f
+     --button:  #191917  （略抬升的卡片面）
+   PaperMod 默认偏冷灰 rgb(29,30,32)，在此覆盖。
+*/
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+    --theme: #11110f;
+    --entry: #191917;
+    --primary: rgb(218, 218, 219);
+    --secondary: #9d9a92;
+    --tertiary: #35342f;
+    --content: #f1efe9;
+    --code-block-bg: #191917;
+    --code-bg: #1f1e1b;
+    --border: #35342f;
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .list {
+    background: var(--theme);
+}
+
+html[data-theme="dark"] .toc {
+    background: var(--entry);
+}
+
+/* 卡片边框在更深背景上更柔和 */
+html[data-theme="dark"] .post-entry {
+    border-color: rgba(255, 255, 255, 0.06);
+    background: var(--entry);
 }

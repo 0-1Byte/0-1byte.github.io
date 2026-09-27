@@ -295,9 +295,9 @@ a {
 /* 手机 */
 
 @media (max-width: 600px) {
-  .site-nav { gap: 9px; }
-  .site-nav a:first-child { font-size: 30px; }
-  .site-nav a:not(:first-child) { font-size: 19px; }
+  .site-nav { gap: 8px; }
+  .site-nav a:first-child { font-size: 28px; }
+  .site-nav a:not(:first-child) { font-size: 17px; }
   .page {
     width: min(100% - 28px, 1040px);
   }
