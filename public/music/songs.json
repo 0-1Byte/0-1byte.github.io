@@ -43,7 +43,7 @@
   },
   {
     "id": "khalilfong-小小蟲",
-    "title": "小小蟲",
+    "title": "小小虫",
     "artist": "Khalil Fong",
     "lyricist": "方大同",
     "composer": "方大同",
@@ -57,7 +57,7 @@
   },
   {
     "id": "khalilfong-黑洞裡",
-    "title": "黑洞裡",
+    "title": "黑洞里",
     "artist": "Khalil Fong",
     "lyricist": "方大同",
     "composer": "方大同",
@@ -99,7 +99,7 @@
   },
   {
     "id": "khalilfong-總結",
-    "title": "總結",
+    "title": "总结",
     "artist": "Khalil Fong",
     "lyricist": "方大同",
     "composer": "方大同",
@@ -113,12 +113,12 @@
   },
   {
     "id": "khalilfong-很不低調",
-    "title": "很不低調",
+    "title": "很不低调",
     "artist": "Khalil Fong",
     "lyricist": "方大同",
     "composer": "方大同",
     "cover": "/music/assets/Khalil%20Fong%20-%20%E5%BE%88%E4%B8%8D%E4%BD%8E%E8%AA%BF.jpg",
-    "album": "JTW西遊記",
+    "album": "JTW西游记",
     "year": 2016,
     "tags": [
       "Mandopop"
@@ -141,12 +141,12 @@
   },
   {
     "id": "blackpanther-無地自容",
-    "title": "無地自容",
+    "title": "无地自容",
     "artist": "Black Panther",
     "lyricist": "窦唯",
     "composer": "李彤",
     "cover": "/music/assets/Black%20Panther%20-%20%E7%84%A1%E5%9C%B0%E8%87%AA%E5%AE%B9.jpg",
-    "album": "滾石字典 國語部",
+    "album": "滚石字典 国语部",
     "year": 1992,
     "tags": [
       "Mandopop"
@@ -199,8 +199,8 @@
     "id": "decajoins-bathroom2019reprise",
     "title": "Bathroom (2019 Reprise)",
     "artist": "deca joins",
-    "lyricist": "鄭人碩",
-    "composer": "鄭人碩",
+    "lyricist": "郑人硕",
+    "composer": "郑人硕",
     "cover": "/music/assets/deca%20joins%20-%20Bathroom%20(2019%20Reprise).jpg",
     "album": "Bathroom (2019 Reprise) - Single",
     "year": 2019,
@@ -314,7 +314,7 @@
     "lyricist": "方大同",
     "composer": "方大同",
     "cover": "/music/assets/khalil-fong-%E6%82%9F%E7%A9%BA.jpg",
-    "album": "JTW西遊記",
+    "album": "JTW西游记",
     "year": "2016",
     "tags": [
       "Mandopop"
@@ -734,7 +734,7 @@
     "lyricist": "方大同",
     "composer": "方大同",
     "cover": "/music/assets/khalil-fong-ring-finger.jpg",
-    "album": "JTW西遊記",
+    "album": "JTW西游记",
     "year": "2016",
     "tags": [
       "Mandopop"
@@ -744,42 +744,42 @@
   {
     "id": "陳奕迅-任我行",
     "title": "任我行",
-    "artist": "陳奕迅",
+    "artist": "陈奕迅",
     "lyricist": "林夕",
     "composer": "Christopher Chak",
     "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E4%BB%BB%E6%88%91%E8%A1%8C.jpg",
     "album": "The Key",
     "year": "2013",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E4%BB%BB%E6%88%91%E8%A1%8C/1386714588?i=1386714597&uo=4"
   },
   {
     "id": "陳奕迅-let-it-out",
     "title": "Let It Out",
-    "artist": "陳奕迅",
-    "lyricist": "Eric Kwok, 林若寧",
+    "artist": "陈奕迅",
+    "lyricist": "Eric Kwok, 林若宁",
     "composer": "Eric Kwok",
     "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-let-it-out.jpg",
     "album": "...3mm",
     "year": "2012",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/let-it-out/1445753233?i=1445753746&uo=4"
   },
   {
     "id": "陳奕迅-eason-and-the-duo-band-可一可再",
     "title": "可一可再",
-    "artist": "陳奕迅 & eason and the duo band",
+    "artist": "陈奕迅 & eason and the duo band",
     "lyricist": "陈咏谦",
     "composer": "陈奕迅",
     "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-eason-and-the-duo-band-%E5%8F%AF%E4%B8%80%E5%8F%AF%E5%86%8D.jpg",
     "album": "可一可再 - Single",
     "year": "2018",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E5%8F%AF%E4%B8%80%E5%8F%AF%E5%86%8D/1431690016?i=1431690032&uo=4"
   },
@@ -793,7 +793,7 @@
     "album": "Joey Yung X Hacken Lee Concert 2015 (Live)",
     "year": "2015",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2-live-in-hong-kong-2015/1442958275?i=1442959495&uo=4"
   },
@@ -807,41 +807,41 @@
     "album": "黑色柳丁",
     "year": "2002",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/melody/914664926?i=914664940&uo=4"
   },
   {
     "id": "陳奕迅-陀飛輪",
-    "title": "陀飛輪",
-    "artist": "陳奕迅",
-    "lyricist": "黃偉文",
+    "title": "陀飞轮",
+    "artist": "陈奕迅",
+    "lyricist": "黄伟文",
     "composer": "Vincent Chow",
     "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E9%99%80%E9%A3%9B%E8%BC%AA.jpg",
     "album": "Time Flies 2010 - EP",
     "year": "2009",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E9%99%80%E9%A3%9B%E8%BC%AA/1443717418?i=1443717750&uo=4"
   },
   {
     "id": "陳奕迅-夕陽無限好",
-    "title": "夕陽無限好",
-    "artist": "陳奕迅",
+    "title": "夕阳无限好",
+    "artist": "陈奕迅",
     "lyricist": "林夕",
     "composer": "Eric Kwok",
     "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E5%A4%95%E9%99%BD%E7%84%A1%E9%99%90%E5%A5%BD.jpg",
     "album": "U 87",
     "year": "2005",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E5%A4%95%E9%99%BD%E7%84%A1%E9%99%90%E5%A5%BD/1443374875?i=1443375265&uo=4"
   },
   {
     "id": "王菲-我也不想這樣",
-    "title": "我也不想這樣",
+    "title": "我也不想这样",
     "artist": "王菲",
     "lyricist": "林夕",
     "composer": "Alex San",
@@ -849,21 +849,21 @@
     "album": "王菲97",
     "year": "1997",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%88%91%E4%B9%9F%E4%B8%8D%E6%83%B3%E9%80%99%E6%A8%A3/965768005?i=965768366&uo=4"
   },
   {
     "id": "古巨基-必殺技",
-    "title": "必殺技",
+    "title": "必杀技",
     "artist": "古巨基",
     "lyricist": "林夕",
-    "composer": "林健華",
+    "composer": "林健华",
     "cover": "/music/assets/%E5%8F%A4%E5%B7%A8%E5%9F%BA-%E5%BF%85%E6%AE%BA%E6%8A%80.jpg",
-    "album": "勁歌. 金曲新曲 + 精選",
+    "album": "劲歌. 金曲新曲 + 精选",
     "year": "2003",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E5%BF%85%E6%AE%BA%E6%8A%80/1442943660?i=1442944281&uo=4"
   },
@@ -874,122 +874,122 @@
     "lyricist": "吉元由美",
     "composer": "河合奈保子",
     "cover": "/music/assets/%E6%9D%8E%E5%85%8B%E5%8B%A4-%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2.jpg",
-    "album": "命運符號",
+    "album": "命运符号",
     "year": "1988",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%9C%88%E5%8D%8A%E5%B0%8F%E5%A4%9C%E6%9B%B2/1443304226?i=1443304352&uo=4"
   },
   {
     "id": "許嵩-烏鴉",
-    "title": "烏鴉",
-    "artist": "許嵩",
-    "lyricist": "許嵩",
-    "composer": "許嵩",
+    "title": "乌鸦",
+    "artist": "许嵩",
+    "lyricist": "许嵩",
+    "composer": "许嵩",
     "cover": "/music/assets/%E8%A8%B1%E5%B5%A9-%E7%83%8F%E9%B4%89.jpg",
     "album": "呼吸之野",
     "year": "2021",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E7%83%8F%E9%B4%89/1567365066?i=1567365067&uo=4"
   },
   {
     "id": "林憶蓮-詞不達意",
-    "title": "詞不達意",
-    "artist": "林憶蓮",
+    "title": "词不达意",
+    "artist": "林忆莲",
     "lyricist": "小寒",
     "composer": "Peter Svensson",
     "cover": "/music/assets/%E6%9E%97%E6%86%B6%E8%93%AE-%E8%A9%9E%E4%B8%8D%E9%81%94%E6%84%8F.jpg",
     "album": "呼吸",
     "year": "2006",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E8%A9%9E%E4%B8%8D%E9%81%94%E6%84%8F/905221552?i=905221558&uo=4"
   },
   {
     "id": "孫燕姿-開始懂了",
-    "title": "開始懂了",
-    "artist": "孫燕姿",
-    "lyricist": "姚若龍",
+    "title": "开始懂了",
+    "artist": "孙燕姿",
+    "lyricist": "姚若龙",
     "composer": "李偲菘",
     "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E9%96%8B%E5%A7%8B%E6%87%82%E4%BA%86.jpg",
-    "album": "Your Song (2006 新歌+精選)",
+    "album": "Your Song (2006 新歌+精选)",
     "year": "2000",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E9%96%8B%E5%A7%8B%E6%87%82%E4%BA%86/280911988?i=280911990&uo=4"
   },
   {
     "id": "林宥嘉-我已經敢想你",
-    "title": "我已經敢想你",
+    "title": "我已经敢想你",
     "artist": "林宥嘉",
-    "lyricist": "陳信延",
+    "lyricist": "陈信延",
     "composer": "丁世光",
     "cover": "/music/assets/%E6%9E%97%E5%AE%A5%E5%98%89-%E6%88%91%E5%B7%B2%E7%B6%93%E6%95%A2%E6%83%B3%E4%BD%A0.jpg",
-    "album": "今日營業中",
+    "album": "今日营业中",
     "year": "2016",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%88%91%E5%B7%B2%E7%B6%93%E6%95%A2%E6%83%B3%E4%BD%A0/1124800418?i=1124800733&uo=4"
   },
   {
     "id": "周杰倫-彩虹",
     "title": "彩虹",
-    "artist": "周杰倫",
-    "lyricist": "周杰倫",
-    "composer": "周杰倫",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
     "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%BD%A9%E8%99%B9.jpg",
     "album": "我很忙",
     "year": "2007",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E5%BD%A9%E8%99%B9/1721455530?i=1721455866&uo=4"
   },
   {
     "id": "張學友-李香蘭",
-    "title": "李香蘭",
-    "artist": "張學友",
-    "lyricist": "周禮茂",
+    "title": "李香兰",
+    "artist": "张学友",
+    "lyricist": "周礼茂",
     "composer": "玉置浩二",
     "cover": "/music/assets/%E5%BC%B5%E5%AD%B8%E5%8F%8B-%E6%9D%8E%E9%A6%99%E8%98%AD.jpg",
-    "album": "夢中的你",
+    "album": "梦中的你",
     "year": "1990",
     "tags": [
-      "廣東歌/香港流行樂"
+      "广东歌/香港流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%9D%8E%E9%A6%99%E8%98%AD/1480627537?i=1480627544&uo=4"
   },
   {
     "id": "李榮浩-模特",
     "title": "模特",
-    "artist": "李榮浩",
-    "lyricist": "周耀輝",
+    "artist": "李荣浩",
+    "lyricist": "周耀辉",
     "composer": "李荣浩",
     "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%A8%A1%E7%89%B9.jpg",
     "album": "模特",
     "year": "2013",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E6%A8%A1%E7%89%B9/1743353783?i=1743353794&uo=4"
   },
   {
     "id": "李榮浩-哎呀",
     "title": "哎呀",
-    "artist": "李榮浩",
-    "lyricist": "李榮浩",
-    "composer": "李榮浩",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
     "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%93%8E%E5%91%80.jpg",
-    "album": "李榮浩",
+    "album": "李荣浩",
     "year": "2014",
     "tags": [
-      "國語流行樂"
+      "国语流行乐"
     ],
     "url": "https://music.apple.com/hk/album/%E5%93%8E%E5%91%80/935650862?i=935654986&uo=4"
   },
@@ -1003,7 +1003,7 @@
     "album": "Dreamland (+ Bonus Levels)",
     "year": "2021",
     "tags": [
-      "另類音樂"
+      "另类音乐"
     ],
     "url": "https://music.apple.com/hk/album/heat-waves/1681997782?i=1681997971&uo=4"
   },
@@ -1020,5 +1020,1517 @@
       "Pop"
     ],
     "url": "https://music.apple.com/sg/album/creepin-up-on-you/203942989?i=203943867&uo=4"
+  },
+  {
+    "id": "lsd-genius-feat-sia-diplo-labrinth",
+    "title": "Genius (feat. Sia, Diplo & Labrinth)",
+    "artist": "LSD",
+    "lyricist": "Jr Blender, Labrinth, Sia, Thomas Wesley",
+    "composer": "Jr Blender, Labrinth, Sia, Thomas Wesley",
+    "cover": "/music/assets/lsd-genius-feat-sia-diplo-labrinth.jpg",
+    "album": "LABRINTH, SIA & DIPLO PRESENT... LSD",
+    "year": "2018",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/genius-feat-sia-diplo-labrinth/1455271201?i=1455271210&uo=4"
+  },
+  {
+    "id": "周杰倫-暗號",
+    "title": "暗号",
+    "artist": "周杰伦",
+    "lyricist": "许世昌",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%9A%97%E8%99%9F.jpg",
+    "album": "八度空间",
+    "year": "2002",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9A%97%E8%99%9F/1721459350?i=1721459355&uo=4"
+  },
+  {
+    "id": "周杰倫-完美主義",
+    "title": "完美主义",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%AE%8C%E7%BE%8E%E4%B8%BB%E7%BE%A9.jpg",
+    "album": "杰伦",
+    "year": "2000",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%AE%8C%E7%BE%8E%E4%B8%BB%E7%BE%A9/1721459212?i=1721459218&uo=4"
+  },
+  {
+    "id": "周杰倫-反方向的鐘",
+    "title": "反方向的钟",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%8F%8D%E6%96%B9%E5%90%91%E7%9A%84%E9%90%98.jpg",
+    "album": "杰伦",
+    "year": "2000",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8F%8D%E6%96%B9%E5%90%91%E7%9A%84%E9%90%98/1721459212?i=1721459423&uo=4"
+  },
+  {
+    "id": "周杰倫-半島鐵盒",
+    "title": "半岛铁盒",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%8D%8A%E5%B3%B6%E9%90%B5%E7%9B%92.jpg",
+    "album": "八度空间",
+    "year": "2002",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8D%8A%E5%B3%B6%E9%90%B5%E7%9B%92/1721459350?i=1721459354&uo=4"
+  },
+  {
+    "id": "周杰倫-以父之名",
+    "title": "以父之名",
+    "artist": "周杰伦",
+    "lyricist": "黄俊郎",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E4%BB%A5%E7%88%B6%E4%B9%8B%E5%90%8D.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%BB%A5%E7%88%B6%E4%B9%8B%E5%90%8D/1721464893?i=1721464904&uo=4"
+  },
+  {
+    "id": "周杰倫-三年二班",
+    "title": "三年二班",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E4%B8%89%E5%B9%B4%E4%BA%8C%E7%8F%AD.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%89%E5%B9%B4%E4%BA%8C%E7%8F%AD/1721464893?i=1721465357&uo=4"
+  },
+  {
+    "id": "周杰倫-東風破",
+    "title": "东风破",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%9D%B1%E9%A2%A8%E7%A0%B4.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9D%B1%E9%A2%A8%E7%A0%B4/1721464893?i=1721465358&uo=4"
+  },
+  {
+    "id": "周杰倫-妳聽得到",
+    "title": "妳听得到",
+    "artist": "周杰伦",
+    "lyricist": "曾郁婷",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%A6%B3%E8%81%BD%E5%BE%97%E5%88%B0.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A6%B3%E8%81%BD%E5%BE%97%E5%88%B0/1721464893?i=1721465363&uo=4"
+  },
+  {
+    "id": "周杰倫-她的睫毛",
+    "title": "她的睫毛",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%A5%B9%E7%9A%84%E7%9D%AB%E6%AF%9B.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A5%B9%E7%9A%84%E7%9D%AB%E6%AF%9B/1721464893?i=1721465383&uo=4"
+  },
+  {
+    "id": "周杰倫-梯田",
+    "title": "梯田",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%A2%AF%E7%94%B0.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%A2%AF%E7%94%B0/1721464893?i=1721465528&uo=4"
+  },
+  {
+    "id": "周杰倫-聽爸爸的話",
+    "title": "听爸爸的话",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E8%81%BD%E7%88%B8%E7%88%B8%E7%9A%84%E8%A9%B1.jpg",
+    "album": "哎呦,不错哦",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%81%BD%E7%88%B8%E7%88%B8%E7%9A%84%E8%A9%B1/1721457634?i=1721458231&uo=4"
+  },
+  {
+    "id": "周杰倫-外婆",
+    "title": "外婆",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%A4%96%E5%A9%86.jpg",
+    "album": "七里香",
+    "year": "2004",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%96%E5%A9%86/1721450027?i=1721450040&uo=4"
+  },
+  {
+    "id": "周杰倫-止戰之殤",
+    "title": "止战之殇",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%AD%A2%E6%88%B0%E4%B9%8B%E6%AE%A4.jpg",
+    "album": "七里香",
+    "year": "2004",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%AD%A2%E6%88%B0%E4%B9%8B%E6%AE%A4/1721450027?i=1721450209&uo=4"
+  },
+  {
+    "id": "周杰倫-夜曲",
+    "title": "夜曲",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%A4%9C%E6%9B%B2.jpg",
+    "album": "周杰伦2007世界巡回演唱会",
+    "year": "2008",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%9C%E6%9B%B2/1721457718?i=1721458326&uo=4"
+  },
+  {
+    "id": "周杰倫-髮如雪",
+    "title": "发如雪",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E9%AB%AE%E5%A6%82%E9%9B%AA.jpg",
+    "album": "11月的萧邦",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%AB%AE%E5%A6%82%E9%9B%AA/1721453716?i=1721454114&uo=4"
+  },
+  {
+    "id": "周杰倫-浪漫手機",
+    "title": "浪漫手机",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%B5%AA%E6%BC%AB%E6%89%8B%E6%A9%9F.jpg",
+    "album": "11月的萧邦",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%B5%AA%E6%BC%AB%E6%89%8B%E6%A9%9F/1721453716?i=1721454118&uo=4"
+  },
+  {
+    "id": "周杰倫-晴天",
+    "title": "晴天",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%99%B4%E5%A4%A9.jpg",
+    "album": "叶惠美",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%99%B4%E5%A4%A9/1721464893?i=1721464906&uo=4"
+  },
+  {
+    "id": "周杰倫-夜的第七章",
+    "title": "夜的第七章",
+    "artist": "周杰伦",
+    "lyricist": "黄俊郎",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E5%A4%9C%E7%9A%84%E7%AC%AC%E4%B8%83%E7%AB%A0.jpg",
+    "album": "依然范特西",
+    "year": "2006",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%9C%E7%9A%84%E7%AC%AC%E4%B8%83%E7%AB%A0/1721453996?i=1721454007&uo=4"
+  },
+  {
+    "id": "周杰倫-退後",
+    "title": "退后",
+    "artist": "周杰伦",
+    "lyricist": "宋健彰",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E9%80%80%E5%BE%8C.jpg",
+    "album": "依然范特西",
+    "year": "2006",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%80%80%E5%BE%8C/1721453996?i=1721454284&uo=4"
+  },
+  {
+    "id": "周杰倫-楊瑞代-流浪詩人",
+    "title": "流浪诗人",
+    "artist": "周杰伦 & 杨瑞代",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%A5%8A%E7%91%9E%E4%BB%A3-%E6%B5%81%E6%B5%AA%E8%A9%A9%E4%BA%BA.jpg",
+    "album": "魔杰座",
+    "year": "2008",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%B5%81%E6%B5%AA%E8%A9%A9%E4%BA%BA/1721460694?i=1721460919&uo=4"
+  },
+  {
+    "id": "周杰倫-說了再見",
+    "title": "说了再见",
+    "artist": "周杰伦",
+    "lyricist": "古小力, 黄凌嘉",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E8%AA%AA%E4%BA%86%E5%86%8D%E8%A6%8B.jpg",
+    "album": "跨时代",
+    "year": "2010",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%AA%AA%E4%BA%86%E5%86%8D%E8%A6%8B/1721449917?i=1721449919&uo=4"
+  },
+  {
+    "id": "周杰倫-聖誕星-feat-楊瑞代",
+    "title": "圣诞星 (feat. 杨瑞代)",
+    "artist": "周杰伦",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E8%81%96%E8%AA%95%E6%98%9F-feat-%E6%A5%8A%E7%91%9E%E4%BB%A3.jpg",
+    "album": "圣诞星 (feat. 杨瑞代) - Single",
+    "year": "2023",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%81%96%E8%AA%95%E6%98%9F-feat-%E6%A5%8A%E7%91%9E%E4%BB%A3/1722042209?i=1722042212&uo=4"
+  },
+  {
+    "id": "周杰倫-軌跡-kala",
+    "title": "轨迹 (Kala)",
+    "artist": "周杰伦",
+    "lyricist": "黄俊郎",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E8%BB%8C%E8%B7%A1-kala.jpg",
+    "album": "寻找周杰伦 - EP",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%BB%8C%E8%B7%A1-kala/1721843417?i=1721843421&uo=4"
+  },
+  {
+    "id": "周杰倫-斷了的弦-kala",
+    "title": "断了的弦 (Kala)",
+    "artist": "周杰伦",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E5%91%A8%E6%9D%B0%E5%80%AB-%E6%96%B7%E4%BA%86%E7%9A%84%E5%BC%A6-kala.jpg",
+    "album": "寻找周杰伦 - EP",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%96%B7%E4%BA%86%E7%9A%84%E5%BC%A6-kala/1721843417?i=1721843422&uo=4"
+  },
+  {
+    "id": "孫燕姿-天黑黑",
+    "title": "天黑黑",
+    "artist": "孙燕姿",
+    "lyricist": "廖莹如, 吴依铮",
+    "composer": "李偲菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E5%A4%A9%E9%BB%91%E9%BB%91.jpg",
+    "album": "My Story (2006 新歌+精选)",
+    "year": "2000",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%A9%E9%BB%91%E9%BB%91/280798610?i=280798622&uo=4"
+  },
+  {
+    "id": "孫燕姿-遇見",
+    "title": "遇见",
+    "artist": "孙燕姿",
+    "lyricist": "易家扬",
+    "composer": "林一峰",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E9%81%87%E8%A6%8B.jpg",
+    "album": "Your Song (2006 新歌+精选)",
+    "year": "2003",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%81%87%E8%A6%8B/280911988?i=280911996&uo=4"
+  },
+  {
+    "id": "孫燕姿-眼淚成詩",
+    "title": "眼泪成诗",
+    "artist": "孙燕姿",
+    "lyricist": "林夕",
+    "composer": "刘宝龙",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E7%9C%BC%E6%B7%9A%E6%88%90%E8%A9%A9.jpg",
+    "album": "完美的一天",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%9C%BC%E6%B7%9A%E6%88%90%E8%A9%A9/255921008?i=255921209&uo=4"
+  },
+  {
+    "id": "孫燕姿-我懷念的",
+    "title": "我怀念的",
+    "artist": "孙燕姿",
+    "lyricist": "姚若龙",
+    "composer": "李偲菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E6%88%91%E6%87%B7%E5%BF%B5%E7%9A%84.jpg",
+    "album": "逆光",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E6%87%B7%E5%BF%B5%E7%9A%84/905226289?i=905226305&uo=4"
+  },
+  {
+    "id": "孫燕姿-漩渦",
+    "title": "漩涡",
+    "artist": "孙燕姿",
+    "lyricist": "小寒",
+    "composer": "李偲菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E6%BC%A9%E6%B8%A6.jpg",
+    "album": "逆光",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%BC%A9%E6%B8%A6/905226289?i=905226310&uo=4"
+  },
+  {
+    "id": "孫燕姿-180度",
+    "title": "180度",
+    "artist": "孙燕姿",
+    "lyricist": "李俊健",
+    "composer": "黄慧雯",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-180%E5%BA%A6.jpg",
+    "album": "是时候",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/180%E5%BA%A6/1442430575?i=1442430993&uo=4"
+  },
+  {
+    "id": "孫燕姿-愚人的國度",
+    "title": "愚人的国度",
+    "artist": "孙燕姿",
+    "lyricist": "孙燕姿, 李焯雄",
+    "composer": "李偲菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E6%84%9A%E4%BA%BA%E7%9A%84%E5%9C%8B%E5%BA%A6.jpg",
+    "album": "是时候",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%84%9A%E4%BA%BA%E7%9A%84%E5%9C%8B%E5%BA%A6/1442430575?i=1442431246&uo=4"
+  },
+  {
+    "id": "孫燕姿-樣子-電視劇-要久久愛-主題曲",
+    "title": "样子 (电视剧《要久久爱》主题曲)",
+    "artist": "孙燕姿",
+    "lyricist": "苟璘",
+    "composer": "汪拾米",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E6%A8%A3%E5%AD%90-%E9%9B%BB%E8%A6%96%E5%8A%87-%E8%A6%81%E4%B9%85%E4%B9%85%E6%84%9B-%E4%B8%BB%E9%A1%8C%E6%9B%B2.jpg",
+    "album": "样子 (电视剧《要久久爱》主题曲) - Single",
+    "year": "2024",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%A8%A3%E5%AD%90-%E9%9B%BB%E8%A6%96%E5%8A%87-%E8%A6%81%E4%B9%85%E4%B9%85%E6%84%9B-%E4%B8%BB%E9%A1%8C%E6%9B%B2/1719227940?i=1719227950&uo=4"
+  },
+  {
+    "id": "孫燕姿-半句再見",
+    "title": "半句再见",
+    "artist": "孙燕姿",
+    "lyricist": "藤井树",
+    "composer": "李偲菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E5%8D%8A%E5%8F%A5%E5%86%8D%E8%A6%8B.jpg",
+    "album": "半句再见 - Single",
+    "year": "2018",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8D%8A%E5%8F%A5%E5%86%8D%E8%A6%8B/1363418961?i=1363418962&uo=4"
+  },
+  {
+    "id": "孫燕姿-蔡健雅-原點",
+    "title": "原点",
+    "artist": "孙燕姿 & 蔡健雅",
+    "lyricist": "杜鑫",
+    "composer": "陈文华",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E8%94%A1%E5%81%A5%E9%9B%85-%E5%8E%9F%E9%BB%9E.jpg",
+    "album": "双栖动物",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8E%9F%E9%BB%9E/255921226?i=255923074&uo=4"
+  },
+  {
+    "id": "孫燕姿-雨天",
+    "title": "雨天",
+    "artist": "孙燕姿",
+    "lyricist": "小寒",
+    "composer": "李伟菘",
+    "cover": "/music/assets/%E5%AD%AB%E7%87%95%E5%A7%BF-%E9%9B%A8%E5%A4%A9.jpg",
+    "album": "My Story (2006 新歌+精选)",
+    "year": "2006",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%9B%A8%E5%A4%A9/280798610?i=280798617&uo=4"
+  },
+  {
+    "id": "陳奕迅-黃金時代",
+    "title": "黄金时代",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "柳重言",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E9%BB%83%E9%87%91%E6%99%82%E4%BB%A3.jpg",
+    "album": "我的快乐时代",
+    "year": "1998",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%BB%83%E9%87%91%E6%99%82%E4%BB%A3/1575742728?i=1575742925&uo=4"
+  },
+  {
+    "id": "陳奕迅-k歌之王",
+    "title": "K歌之王",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "陈辉阳",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-k%E6%AD%8C%E4%B9%8B%E7%8E%8B.jpg",
+    "album": "陈奕迅 广东精选",
+    "year": "2000",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/k%E6%AD%8C%E4%B9%8B%E7%8E%8B/651449675?i=651449679&uo=4"
+  },
+  {
+    "id": "陳奕迅-單車",
+    "title": "单车",
+    "artist": "陈奕迅",
+    "lyricist": "黄伟文",
+    "composer": "柳重言",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E5%96%AE%E8%BB%8A.jpg",
+    "album": "陈奕迅 广东精选",
+    "year": "2002",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%96%AE%E8%BB%8A/651449675?i=651449685&uo=4"
+  },
+  {
+    "id": "陳奕迅-明年今日",
+    "title": "明年今日",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "陈小霞",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E6%98%8E%E5%B9%B4%E4%BB%8A%E6%97%A5.jpg",
+    "album": "陈奕迅 广东精选",
+    "year": "2000",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%98%8E%E5%B9%B4%E4%BB%8A%E6%97%A5/651449675?i=651449678&uo=4"
+  },
+  {
+    "id": "陳奕迅-歲月如歌",
+    "title": "岁月如歌",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "徐伟贤",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E6%AD%B2%E6%9C%88%E5%A6%82%E6%AD%8C.jpg",
+    "album": "Live for Today",
+    "year": "2003",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%AD%B2%E6%9C%88%E5%A6%82%E6%AD%8C/542676848?i=542677437&uo=4"
+  },
+  {
+    "id": "陳奕迅-最佳損友",
+    "title": "最佳损友",
+    "artist": "陈奕迅",
+    "lyricist": "黄伟文",
+    "composer": "Eric Kwok",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E6%9C%80%E4%BD%B3%E6%90%8D%E5%8F%8B.jpg",
+    "album": "Life Continues",
+    "year": "2006",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9C%80%E4%BD%B3%E6%90%8D%E5%8F%8B/1442912707?i=1442913348&uo=4"
+  },
+  {
+    "id": "陳奕迅-富士山下",
+    "title": "富士山下",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "Christopher Chak",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E5%AF%8C%E5%A3%AB%E5%B1%B1%E4%B8%8B.jpg",
+    "album": "What's Going On...? (2nd Edition)",
+    "year": "2006",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%AF%8C%E5%A3%AB%E5%B1%B1%E4%B8%8B/1720091272?i=1720091290&uo=4"
+  },
+  {
+    "id": "陳奕迅-淘汰",
+    "title": "淘汰",
+    "artist": "陈奕迅",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E6%B7%98%E6%B1%B0.jpg",
+    "album": "LOVE 07情歌集压轴篇",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%B7%98%E6%B1%B0/1568640664?i=1568640883&uo=4"
+  },
+  {
+    "id": "陳奕迅-浮誇",
+    "title": "浮夸",
+    "artist": "陈奕迅",
+    "lyricist": "黄伟文",
+    "composer": "C. Y. Kong",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E6%B5%AE%E8%AA%87.jpg",
+    "album": "U 87",
+    "year": "2005",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%B5%AE%E8%AA%87/1443374875?i=1443375396&uo=4"
+  },
+  {
+    "id": "陳奕迅-葡萄成熟時",
+    "title": "葡萄成熟时",
+    "artist": "陈奕迅",
+    "lyricist": "黄伟文",
+    "composer": "Anfernee Cheung, Vincent Chow",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E8%91%A1%E8%90%84%E6%88%90%E7%86%9F%E6%99%82.jpg",
+    "album": "U 87",
+    "year": "2005",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%91%A1%E8%90%84%E6%88%90%E7%86%9F%E6%99%82/1443374875?i=1443375474&uo=4"
+  },
+  {
+    "id": "陳奕迅-陰天快樂",
+    "title": "阴天快乐",
+    "artist": "陈奕迅",
+    "lyricist": "易家扬",
+    "composer": "林俊杰",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E9%99%B0%E5%A4%A9%E5%BF%AB%E6%A8%82.jpg",
+    "album": "rice & shine",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%99%B0%E5%A4%A9%E5%BF%AB%E6%A8%82/1422694136?i=1422694720&uo=4"
+  },
+  {
+    "id": "陳奕迅-孤獨患者",
+    "title": "孤独患者",
+    "artist": "陈奕迅",
+    "lyricist": "小寒",
+    "composer": "方大同",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E5%AD%A4%E7%8D%A8%E6%82%A3%E8%80%85.jpg",
+    "album": "?",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%AD%A4%E7%8D%A8%E6%82%A3%E8%80%85/1443783500?i=1443783507&uo=4"
+  },
+  {
+    "id": "陳奕迅-一絲不掛",
+    "title": "一丝不挂",
+    "artist": "陈奕迅",
+    "lyricist": "林夕",
+    "composer": "Christopher Chak",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E4%B8%80%E7%B5%B2%E4%B8%8D%E6%8E%9B.jpg",
+    "album": "Time Flies 2010 - EP",
+    "year": "2009",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%80%E7%B5%B2%E4%B8%8D%E6%8E%9B/1443717418?i=1443717740&uo=4"
+  },
+  {
+    "id": "陳奕迅-無條件",
+    "title": "无条件",
+    "artist": "陈奕迅",
+    "lyricist": "袁两半",
+    "composer": "Eric Kwok",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E7%84%A1%E6%A2%9D%E4%BB%B6.jpg",
+    "album": "准备中",
+    "year": "2015",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%84%A1%E6%A2%9D%E4%BB%B6/1422674966?i=1422674971&uo=4"
+  },
+  {
+    "id": "陳奕迅-穩穩的幸福",
+    "title": "稳稳的幸福",
+    "artist": "陈奕迅",
+    "lyricist": "小柯",
+    "composer": "小柯",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E7%A9%A9%E7%A9%A9%E7%9A%84%E5%B9%B8%E7%A6%8F.jpg",
+    "album": "稳稳的幸福 - Single",
+    "year": "2013",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%A9%A9%E7%A9%A9%E7%9A%84%E5%B9%B8%E7%A6%8F/1494882271?i=1494882274&uo=4"
+  },
+  {
+    "id": "陳奕迅-王菲-因為愛情",
+    "title": "因为爱情",
+    "artist": "陈奕迅 & 王菲",
+    "lyricist": "小柯",
+    "composer": "小柯",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-%E7%8E%8B%E8%8F%B2-%E5%9B%A0%E7%82%BA%E6%84%9B%E6%83%85.jpg",
+    "album": "Stranger Under My Skin (Remastered 2025)",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%9B%A0%E7%82%BA%E6%84%9B%E6%83%85/1821210438?i=1821210454&uo=4"
+  },
+  {
+    "id": "陳奕迅-eason-and-the-duo-band-與你常在",
+    "title": "与你常在",
+    "artist": "陈奕迅 & eason and the duo band",
+    "lyricist": "陈咏谦",
+    "composer": "Charles Arthur Huntley, Mark James Fortin",
+    "cover": "/music/assets/%E9%99%B3%E5%A5%95%E8%BF%85-eason-and-the-duo-band-%E8%88%87%E4%BD%A0%E5%B8%B8%E5%9C%A8.jpg",
+    "album": "L.O.V.E.",
+    "year": "2018",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%88%87%E4%BD%A0%E5%B8%B8%E5%9C%A8/1441543918?i=1441544206&uo=4"
+  },
+  {
+    "id": "王菲-如風",
+    "title": "如风",
+    "artist": "王菲",
+    "lyricist": "林振强",
+    "composer": "张宇",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E5%A6%82%E9%A2%A8.jpg",
+    "album": "王菲 89-97 32精选",
+    "year": "1993",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A6%82%E9%A2%A8/1463501453?i=1463501538&uo=4"
+  },
+  {
+    "id": "王菲-我怕",
+    "title": "我怕",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "Alex San",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E6%88%91%E6%80%95.jpg",
+    "album": "讨好自己",
+    "year": "1994",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E6%80%95/1443347545?i=1443347559&uo=4"
+  },
+  {
+    "id": "王菲-百年孤寂",
+    "title": "百年孤寂",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "C. Y. Kong, Adrian Chan",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E7%99%BE%E5%B9%B4%E5%AD%A4%E5%AF%82.jpg",
+    "album": "只爱陌生人",
+    "year": "1999",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%99%BE%E5%B9%B4%E5%AD%A4%E5%AF%82/966481932?i=966481938&uo=4"
+  },
+  {
+    "id": "王菲-郵差-廣東話",
+    "title": "邮差 (广东话)",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "C. Y. Kong",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E9%83%B5%E5%B7%AE-%E5%BB%A3%E6%9D%B1%E8%A9%B1.jpg",
+    "album": "只爱陌生人",
+    "year": "1999",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%83%B5%E5%B7%AE-%E5%BB%A3%E6%9D%B1%E8%A9%B1/966481932?i=966481945&uo=4"
+  },
+  {
+    "id": "王菲-給自己的情書-笑忘書-廣東版",
+    "title": "给自己的情书 (\"笑忘书\" 广东版)",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "江志仁",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E7%B5%A6%E8%87%AA%E5%B7%B1%E7%9A%84%E6%83%85%E6%9B%B8-%E7%AC%91%E5%BF%98%E6%9B%B8-%E5%BB%A3%E6%9D%B1%E7%89%88.jpg",
+    "album": "寓言",
+    "year": "2000",
+    "tags": [
+      "广东歌/香港流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%B5%A6%E8%87%AA%E5%B7%B1%E7%9A%84%E6%83%85%E6%9B%B8-%E7%AC%91%E5%BF%98%E6%9B%B8-%E5%BB%A3%E6%9D%B1%E7%89%88/966489223?i=966489239&uo=4"
+  },
+  {
+    "id": "王菲-笑忘書",
+    "title": "笑忘书",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "江志仁",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E7%AC%91%E5%BF%98%E6%9B%B8.jpg",
+    "album": "寓言",
+    "year": "2000",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%AC%91%E5%BF%98%E6%9B%B8/966489223?i=966489237&uo=4"
+  },
+  {
+    "id": "王菲-煙",
+    "title": "烟",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "张亚东",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E7%85%99.jpg",
+    "album": "将爱",
+    "year": "2003",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%85%99/966483493?i=966483504&uo=4"
+  },
+  {
+    "id": "王菲-匆匆那年",
+    "title": "匆匆那年",
+    "artist": "王菲",
+    "lyricist": "林夕",
+    "composer": "梁翘柏",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E5%8C%86%E5%8C%86%E9%82%A3%E5%B9%B4.jpg",
+    "album": "匆匆那年 - Single",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8C%86%E5%8C%86%E9%82%A3%E5%B9%B4/966805714?i=966805806&uo=4"
+  },
+  {
+    "id": "王菲-世界贈予我的",
+    "title": "世界赠予我的",
+    "artist": "王菲",
+    "lyricist": "袁晶",
+    "composer": "曹正杰",
+    "cover": "/music/assets/%E7%8E%8B%E8%8F%B2-%E4%B8%96%E7%95%8C%E8%B4%88%E4%BA%88%E6%88%91%E7%9A%84.jpg",
+    "album": "世界赠予我的 - Single",
+    "year": "2025",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%96%E7%95%8C%E8%B4%88%E4%BA%88%E6%88%91%E7%9A%84/1791923799?i=1791923800&uo=4"
+  },
+  {
+    "id": "陶喆-流沙",
+    "title": "流沙",
+    "artist": "陶喆",
+    "lyricist": "娃娃",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E6%B5%81%E6%B2%99.jpg",
+    "album": "陶喆同名专辑",
+    "year": "1997",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%B5%81%E6%B2%99/1416149926?i=1416149940&uo=4"
+  },
+  {
+    "id": "陶喆-找自己",
+    "title": "找自己",
+    "artist": "陶喆",
+    "lyricist": "陶喆",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E6%89%BE%E8%87%AA%E5%B7%B1.jpg",
+    "album": "I'm O.K.",
+    "year": "1999",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%89%BE%E8%87%AA%E5%B7%B1/905206471?i=905206476&uo=4"
+  },
+  {
+    "id": "陶喆-小鎮姑娘",
+    "title": "小镇姑娘",
+    "artist": "陶喆",
+    "lyricist": "娃娃",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E5%B0%8F%E9%8E%AE%E5%A7%91%E5%A8%98.jpg",
+    "album": "I'm O.K.",
+    "year": "1999",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%B0%8F%E9%8E%AE%E5%A7%91%E5%A8%98/905206471?i=905206477&uo=4"
+  },
+  {
+    "id": "陶喆-普通朋友",
+    "title": "普通朋友",
+    "artist": "陶喆",
+    "lyricist": "陶喆",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E6%99%AE%E9%80%9A%E6%9C%8B%E5%8F%8B.jpg",
+    "album": "I'm O.K.",
+    "year": "1999",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%99%AE%E9%80%9A%E6%9C%8B%E5%8F%8B/905206471?i=905206479&uo=4"
+  },
+  {
+    "id": "陶喆-黑色柳丁",
+    "title": "黑色柳丁",
+    "artist": "陶喆",
+    "lyricist": "娃娃",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E9%BB%91%E8%89%B2%E6%9F%B3%E4%B8%81.jpg",
+    "album": "黑色柳丁",
+    "year": "2002",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%BB%91%E8%89%B2%E6%9F%B3%E4%B8%81/914664926?i=914664931&uo=4"
+  },
+  {
+    "id": "陶喆-討厭紅樓夢",
+    "title": "讨厌红楼梦",
+    "artist": "陶喆",
+    "lyricist": "娃娃",
+    "composer": "陶喆",
+    "cover": "/music/assets/%E9%99%B6%E5%96%86-%E8%A8%8E%E5%8E%AD%E7%B4%85%E6%A8%93%E5%A4%A2.jpg",
+    "album": "黑色柳丁",
+    "year": "2002",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%A8%8E%E5%8E%AD%E7%B4%85%E6%A8%93%E5%A4%A2/914664926?i=914664936&uo=4"
+  },
+  {
+    "id": "王力宏-唯一",
+    "title": "唯一",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E5%94%AF%E4%B8%80.jpg",
+    "album": "唯一",
+    "year": "2001",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%94%AF%E4%B8%80/312506816?i=312506885&uo=4"
+  },
+  {
+    "id": "王力宏-愛的就是你",
+    "title": "爱的就是你",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E6%84%9B%E7%9A%84%E5%B0%B1%E6%98%AF%E4%BD%A0.jpg",
+    "album": "The Only One",
+    "year": "2001",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%84%9B%E7%9A%84%E5%B0%B1%E6%98%AF%E4%BD%A0/312654283?i=312654370&uo=4"
+  },
+  {
+    "id": "王力宏-你不知道的事",
+    "title": "你不知道的事",
+    "artist": "王力宏",
+    "lyricist": "洪瑞业, 王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84%E4%BA%8B.jpg",
+    "album": "十八般武艺",
+    "year": "2010",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84%E4%BA%8B/1528146376?i=1528146380&uo=4"
+  },
+  {
+    "id": "王力宏-依然愛你",
+    "title": "依然爱你",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E4%BE%9D%E7%84%B6%E6%84%9B%E4%BD%A0.jpg",
+    "album": "王力宏 火力全开新歌加精选 - Single (王力宏 火力全开新歌加精选 - Single)",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%BE%9D%E7%84%B6%E6%84%9B%E4%BD%A0/1587109573?i=1587109575&uo=4"
+  },
+  {
+    "id": "王力宏-需要人陪",
+    "title": "需要人陪",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E9%9C%80%E8%A6%81%E4%BA%BA%E9%99%AA.jpg",
+    "album": "十八般武艺",
+    "year": "2010",
+    "tags": [
+      "流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%9C%80%E8%A6%81%E4%BA%BA%E9%99%AA/1528146376?i=1528146384&uo=4"
+  },
+  {
+    "id": "王力宏-大城小愛",
+    "title": "大城小爱",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E5%A4%A7%E5%9F%8E%E5%B0%8F%E6%84%9B.jpg",
+    "album": "盖世英雄",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%A7%E5%9F%8E%E5%B0%8F%E6%84%9B/1134353291?i=1134353955&uo=4"
+  },
+  {
+    "id": "王力宏-花田錯",
+    "title": "花田错",
+    "artist": "王力宏",
+    "lyricist": "陈镇川",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E8%8A%B1%E7%94%B0%E9%8C%AF.jpg",
+    "album": "盖世英雄",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%8A%B1%E7%94%B0%E9%8C%AF/1134353291?i=1134353770&uo=4"
+  },
+  {
+    "id": "王力宏-在梅邊",
+    "title": "在梅边",
+    "artist": "王力宏",
+    "lyricist": "方文山",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E5%9C%A8%E6%A2%85%E9%82%8A.jpg",
+    "album": "盖世英雄",
+    "year": "2005",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%9C%A8%E6%A2%85%E9%82%8A/1134353291?i=1134353769&uo=4"
+  },
+  {
+    "id": "王力宏-我們的歌",
+    "title": "我们的歌",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E6%88%91%E5%80%91%E7%9A%84%E6%AD%8C.jpg",
+    "album": "改变自己",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E5%80%91%E7%9A%84%E6%AD%8C/1691044816?i=1691044822&uo=4"
+  },
+  {
+    "id": "王力宏-改變自己",
+    "title": "改变自己",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E6%94%B9%E8%AE%8A%E8%87%AA%E5%B7%B1.jpg",
+    "album": "改变自己",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%94%B9%E8%AE%8A%E8%87%AA%E5%B7%B1/1691044816?i=1691044818&uo=4"
+  },
+  {
+    "id": "王力宏-落葉歸根",
+    "title": "落叶归根",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E8%90%BD%E8%91%89%E6%AD%B8%E6%A0%B9.jpg",
+    "album": "改变自己",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%90%BD%E8%91%89%E6%AD%B8%E6%A0%B9/1691044816?i=1691044819&uo=4"
+  },
+  {
+    "id": "王力宏-春雨裡洗過的太陽",
+    "title": "春雨里洗过的太阳",
+    "artist": "王力宏",
+    "lyricist": "王力宏",
+    "composer": "王力宏",
+    "cover": "/music/assets/%E7%8E%8B%E5%8A%9B%E5%AE%8F-%E6%98%A5%E9%9B%A8%E8%A3%A1%E6%B4%97%E9%81%8E%E7%9A%84%E5%A4%AA%E9%99%BD.jpg",
+    "album": "心跳",
+    "year": "2008",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%98%A5%E9%9B%A8%E8%A3%A1%E6%B4%97%E9%81%8E%E7%9A%84%E5%A4%AA%E9%99%BD/1797076418?i=1797076422&uo=4"
+  },
+  {
+    "id": "李榮浩-太坦白",
+    "title": "太坦白",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%A4%AA%E5%9D%A6%E7%99%BD.jpg",
+    "album": "模特",
+    "year": "2013",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%AA%E5%9D%A6%E7%99%BD/1743353783?i=1743353800&uo=4"
+  },
+  {
+    "id": "李榮浩-老伴",
+    "title": "老伴",
+    "artist": "李荣浩",
+    "lyricist": "周耀辉",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E8%80%81%E4%BC%B4.jpg",
+    "album": "模特",
+    "year": "2013",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%80%81%E4%BC%B4/1743353783?i=1743353807&uo=4"
+  },
+  {
+    "id": "李榮浩-都一樣",
+    "title": "都一样",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E9%83%BD%E4%B8%80%E6%A8%A3.jpg",
+    "album": "模特",
+    "year": "2013",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%83%BD%E4%B8%80%E6%A8%A3/1743353783?i=1743353961&uo=4"
+  },
+  {
+    "id": "李榮浩-拜拜",
+    "title": "拜拜",
+    "artist": "李荣浩",
+    "lyricist": "李三木",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%8B%9C%E6%8B%9C.jpg",
+    "album": "拜拜 - Single",
+    "year": "2013",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%8B%9C%E6%8B%9C/896511600?i=896511602&uo=4"
+  },
+  {
+    "id": "李榮浩-作曲家",
+    "title": "作曲家",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E4%BD%9C%E6%9B%B2%E5%AE%B6.jpg",
+    "album": "李荣浩",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%BD%9C%E6%9B%B2%E5%AE%B6/935650862?i=935654983&uo=4"
+  },
+  {
+    "id": "李榮浩-喜劇之王",
+    "title": "喜剧之王",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%96%9C%E5%8A%87%E4%B9%8B%E7%8E%8B.jpg",
+    "album": "李荣浩",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%96%9C%E5%8A%87%E4%B9%8B%E7%8E%8B/935650862?i=935654980&uo=4"
+  },
+  {
+    "id": "李榮浩-不搭",
+    "title": "不搭",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E4%B8%8D%E6%90%AD.jpg",
+    "album": "李荣浩",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%8D%E6%90%AD/935650862?i=935654984&uo=4"
+  },
+  {
+    "id": "李榮浩-天生",
+    "title": "天生",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%A4%A9%E7%94%9F.jpg",
+    "album": "李荣浩",
+    "year": "2014",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%A4%A9%E7%94%9F/935650862?i=935654989&uo=4"
+  },
+  {
+    "id": "李榮浩-野生動物",
+    "title": "野生动物",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E9%87%8E%E7%94%9F%E5%8B%95%E7%89%A9.jpg",
+    "album": "有理想",
+    "year": "2015",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%87%8E%E7%94%9F%E5%8B%95%E7%89%A9/1072339647?i=1072339990&uo=4"
+  },
+  {
+    "id": "李榮浩-滿座",
+    "title": "满座",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%BB%BF%E5%BA%A7.jpg",
+    "album": "有理想",
+    "year": "2016",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%BB%BF%E5%BA%A7/1072339647?i=1072339991&uo=4"
+  },
+  {
+    "id": "李榮浩-有理想",
+    "title": "有理想",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%9C%89%E7%90%86%E6%83%B3.jpg",
+    "album": "有理想",
+    "year": "2016",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%9C%89%E7%90%86%E6%83%B3/1072339647?i=1072339992&uo=4"
+  },
+  {
+    "id": "李榮浩-爸爸媽媽",
+    "title": "爸爸妈妈",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E7%88%B8%E7%88%B8%E5%AA%BD%E5%AA%BD.jpg",
+    "album": "有理想",
+    "year": "2016",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%88%B8%E7%88%B8%E5%AA%BD%E5%AA%BD/1072339647?i=1072339993&uo=4"
+  },
+  {
+    "id": "李榮浩-不將就-電影-何以笙簫默-片尾曲",
+    "title": "不将就 (电影《何以笙箫默》片尾曲)",
+    "artist": "李荣浩",
+    "lyricist": "黄伟文",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E4%B8%8D%E5%B0%87%E5%B0%B1-%E9%9B%BB%E5%BD%B1-%E4%BD%95%E4%BB%A5%E7%AC%99%E7%B0%AB%E9%BB%98-%E7%89%87%E5%B0%BE%E6%9B%B2.jpg",
+    "album": "有理想",
+    "year": "2015",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%8D%E5%B0%87%E5%B0%B1-%E9%9B%BB%E5%BD%B1-%E4%BD%95%E4%BB%A5%E7%AC%99%E7%B0%AB%E9%BB%98-%E7%89%87%E5%B0%BE%E6%9B%B2/1072339647?i=1072339996&uo=4"
+  },
+  {
+    "id": "李榮浩-裙姊",
+    "title": "裙姊",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E8%A3%99%E5%A7%8A.jpg",
+    "album": "裙姊 - Single",
+    "year": "2017",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%A3%99%E5%A7%8A/1259352650?i=1259353407&uo=4"
+  },
+  {
+    "id": "李榮浩-祝你幸福",
+    "title": "祝你幸福",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E7%A5%9D%E4%BD%A0%E5%B9%B8%E7%A6%8F.jpg",
+    "album": "祝你幸福 - Single",
+    "year": "2017",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%A5%9D%E4%BD%A0%E5%B9%B8%E7%A6%8F/1292300546?i=1292300547&uo=4"
+  },
+  {
+    "id": "李榮浩-不說-電影-從你的全世界路過-路過版主題曲",
+    "title": "不说 (电影《从你的全世界路过》路过版主题曲)",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E4%B8%8D%E8%AA%AA-%E9%9B%BB%E5%BD%B1-%E5%BE%9E%E4%BD%A0%E7%9A%84%E5%85%A8%E4%B8%96%E7%95%8C%E8%B7%AF%E9%81%8E-%E8%B7%AF%E9%81%8E%E7%89%88%E4%B8%BB%E9%A1%8C%E6%9B%B2.jpg",
+    "album": "不说 (电影《从你的全世界路过》路过版主题曲) - Single",
+    "year": "2016",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E4%B8%8D%E8%AA%AA-%E9%9B%BB%E5%BD%B1-%E5%BE%9E%E4%BD%A0%E7%9A%84%E5%85%A8%E4%B8%96%E7%95%8C%E8%B7%AF%E9%81%8E-%E8%B7%AF%E9%81%8E%E7%89%88%E4%B8%BB%E9%A1%8C%E6%9B%B2/1149439472?i=1149440271&uo=4"
+  },
+  {
+    "id": "李榮浩-王牌冤家",
+    "title": "王牌冤家",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E7%8E%8B%E7%89%8C%E5%86%A4%E5%AE%B6.jpg",
+    "album": "王牌冤家 - Single",
+    "year": "2018",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%8E%8B%E7%89%8C%E5%86%A4%E5%AE%B6/1402199994?i=1402200354&uo=4"
+  },
+  {
+    "id": "李榮浩-我知道是你",
+    "title": "我知道是你",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%88%91%E7%9F%A5%E9%81%93%E6%98%AF%E4%BD%A0.jpg",
+    "album": "耳朵",
+    "year": "2018",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E7%9F%A5%E9%81%93%E6%98%AF%E4%BD%A0/1438536431?i=1438536438&uo=4"
+  },
+  {
+    "id": "李榮浩-耳朵",
+    "title": "耳朵",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E8%80%B3%E6%9C%B5.jpg",
+    "album": "耳朵",
+    "year": "2018",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%80%B3%E6%9C%B5/1438536431?i=1438536439&uo=4"
+  },
+  {
+    "id": "李榮浩-兩個普普通通小青年",
+    "title": "两个普普通通小青年",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%85%A9%E5%80%8B%E6%99%AE%E6%99%AE%E9%80%9A%E9%80%9A%E5%B0%8F%E9%9D%92%E5%B9%B4.jpg",
+    "album": "麻雀",
+    "year": "2020",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%85%A9%E5%80%8B%E6%99%AE%E6%99%AE%E9%80%9A%E9%80%9A%E5%B0%8F%E9%9D%92%E5%B9%B4/1828890886?i=1828890965&uo=4"
+  },
+  {
+    "id": "李榮浩-花樣年華",
+    "title": "花样年华",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E8%8A%B1%E6%A8%A3%E5%B9%B4%E8%8F%AF.jpg",
+    "album": "麻雀",
+    "year": "2020",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%8A%B1%E6%A8%A3%E5%B9%B4%E8%8F%AF/1828890886?i=1828890969&uo=4"
+  },
+  {
+    "id": "李榮浩-老友記",
+    "title": "老友记",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E8%80%81%E5%8F%8B%E8%A8%98.jpg",
+    "album": "麻雀",
+    "year": "2019",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E8%80%81%E5%8F%8B%E8%A8%98/1828890886?i=1828890963&uo=4"
+  },
+  {
+    "id": "李榮浩-麻雀",
+    "title": "麻雀",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E9%BA%BB%E9%9B%80.jpg",
+    "album": "麻雀",
+    "year": "2019",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%BA%BB%E9%9B%80/1828890886?i=1828890954&uo=4"
+  },
+  {
+    "id": "李榮浩-我愛你",
+    "title": "我爱你",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%88%91%E6%84%9B%E4%BD%A0.jpg",
+    "album": "麻雀",
+    "year": "2020",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%91%E6%84%9B%E4%BD%A0/1828890886?i=1828890968&uo=4"
+  },
+  {
+    "id": "李榮浩-縱橫四海",
+    "title": "纵横四海",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E7%B8%B1%E6%A9%AB%E5%9B%9B%E6%B5%B7.jpg",
+    "album": "纵横四海",
+    "year": "2021",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E7%B8%B1%E6%A9%AB%E5%9B%9B%E6%B5%B7/1655820982?i=1655820983&uo=4"
+  },
+  {
+    "id": "李榮浩-名字",
+    "title": "名字",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E5%90%8D%E5%AD%97.jpg",
+    "album": "名字 - Single",
+    "year": "2024",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%90%8D%E5%AD%97/1739648901?i=1739648904&uo=4"
+  },
+  {
+    "id": "李榮浩-黑馬",
+    "title": "黑马",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E9%BB%91%E9%A6%AC.jpg",
+    "album": "黑马",
+    "year": "2024",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E9%BB%91%E9%A6%AC/1773340386?i=1773340388&uo=4"
+  },
+  {
+    "id": "李榮浩-戀人",
+    "title": "恋人",
+    "artist": "李荣浩",
+    "lyricist": "李荣浩",
+    "composer": "李荣浩",
+    "cover": "/music/assets/%E6%9D%8E%E6%A6%AE%E6%B5%A9-%E6%88%80%E4%BA%BA.jpg",
+    "album": "恋人 - Single",
+    "year": "2024",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E6%88%80%E4%BA%BA/1752810345?i=1752810781&uo=4"
   }
 ]
