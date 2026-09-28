@@ -51,6 +51,29 @@ IMDB_ALIASES = {
         "14 Seconds in Rostov",
         "Rostov 14 Seconds",
     ],
+    "the story of vscode": [
+        "The Story of VS Code",
+        "The Story of Visual Studio Code",
+    ],
+}
+
+# 豆瓣/IMDb 都搜不到时的手动条目（常见 YouTube 官方纪录片等）
+# key 用 normalize 后的标题
+MANUAL_ENTRIES = {
+    "the story of vscode": {
+        "title": "The Story of VS Code",
+        "year": 2026,
+        "note": "",
+        "url": "https://www.youtube.com/watch?v=kHL3XzjpT5w",
+        "cover_url": "https://i.ytimg.com/vi/kHL3XzjpT5w/maxresdefault.jpg",
+    },
+    "the story of vs code": {
+        "title": "The Story of VS Code",
+        "year": 2026,
+        "note": "",
+        "url": "https://www.youtube.com/watch?v=kHL3XzjpT5w",
+        "cover_url": "https://i.ytimg.com/vi/kHL3XzjpT5w/maxresdefault.jpg",
+    },
 }
 
 
@@ -328,81 +351,187 @@ def extract_year(text):
     )
 
 
+def find_manual(title):
+    """手动目录：豆瓣没有的官方纪录片等。"""
+    key = normalize(title)
+    entry = MANUAL_ENTRIES.get(key)
+    if not entry:
+        # 宽松匹配：去掉标点后再比
+        compact = re.sub(r"[^\w\u4e00-\u9fff]+", "", key)
+        for k, v in MANUAL_ENTRIES.items():
+            if re.sub(r"[^\w\u4e00-\u9fff]+", "", k) == compact:
+                entry = v
+                break
+    return dict(entry) if entry else None
+
+
 def find_docu(title):
+    # 0) 手动条目（YouTube 等不在豆瓣的纪录片）
+    manual = find_manual(title)
+    if manual:
+        data = {
+            "title": manual.get("title") or title,
+            "cover": manual["cover_url"],
+            "year": manual.get("year") or "",
+            "note": manual.get("note") or "",
+            "url": manual.get("url") or "",
+        }
+        try:
+            data["cover"] = download_cover(
+                data["cover"],
+                data["title"],
+                referer=data["url"] or "https://www.youtube.com/",
+            )
+            return data
+        except OSError as error:
+            print(
+                "手动条目封面下载失败：{} ({})".format(title, error),
+                file=sys.stderr,
+            )
+            # 继续走后面的搜索逻辑
+
     result = find_result(title)
 
-    if not result:
-        return None
-
-    if not result.get("cover_url"):
-        return None
-
-    abstract = result.get("abstract", "")
-
-    data = {
-        "title": title,
-        "cover": result["cover_url"],
-        "year": extract_year(
-            result.get("title", "") + " " + abstract
-        ),
-        "note": "",
-        "url": result.get("url", ""),
-    }
-
-    # 第一优先：直接下载豆瓣封面
-    try:
-        data["cover"] = download_cover(
-            data["cover"],
-            title,
-            referer=data["url"],
-        )
-
-        return data
-
-    except OSError as error:
-        print(
-            "豆瓣封面下载失败：{} ({})".format(
-                title,
-                error,
+    if result and result.get("cover_url"):
+        abstract = result.get("abstract", "")
+        data = {
+            "title": title,
+            "cover": result["cover_url"],
+            "year": extract_year(
+                result.get("title", "") + " " + abstract
             ),
-            file=sys.stderr,
+            "note": "",
+            "url": result.get("url", ""),
+        }
+
+        # 第一优先：直接下载豆瓣封面
+        try:
+            data["cover"] = download_cover(
+                data["cover"],
+                title,
+                referer=data["url"],
+            )
+            return data
+        except OSError as error:
+            print(
+                "豆瓣封面下载失败：{} ({})".format(
+                    title,
+                    error,
+                ),
+                file=sys.stderr,
+            )
+
+        # 第二优先：IMDb 封面 + 豆瓣元数据
+        imdb_titles = [title]
+        imdb_titles.extend(
+            IMDB_ALIASES.get(
+                normalize(title),
+                IMDB_ALIASES.get(title, []),
+            )
         )
+        try:
+            alternative = find_imdb_cover(imdb_titles)
+            if alternative:
+                data["cover"] = download_cover(
+                    alternative,
+                    title,
+                    referer=data["url"],
+                )
+                return data
+        except (
+            OSError,
+            ValueError,
+            KeyError,
+        ) as error:
+            print(
+                "IMDb 备用封面也失败：{} ({})".format(
+                    title,
+                    error,
+                ),
+                file=sys.stderr,
+            )
 
-    # 第二优先：IMDb
+    # 3) 豆瓣没有「纪录片」条目时：纯 IMDb 回退
     imdb_titles = [title]
-
     imdb_titles.extend(
         IMDB_ALIASES.get(
             normalize(title),
             IMDB_ALIASES.get(title, []),
         )
     )
-
     try:
-        alternative = find_imdb_cover(imdb_titles)
-
-        if alternative:
-            data["cover"] = download_cover(
-                alternative,
-                title,
-                referer=data["url"],
-            )
-
-            return data
-
+        imdb_item = find_imdb_item(imdb_titles)
+        if imdb_item:
+            image = (imdb_item.get("i") or {}).get("imageUrl")
+            if image:
+                imdb_id = imdb_item.get("id") or ""
+                url = (
+                    "https://www.imdb.com/title/{}/".format(imdb_id)
+                    if imdb_id
+                    else ""
+                )
+                data = {
+                    "title": title,
+                    "cover": image,
+                    "year": imdb_item.get("y") or "",
+                    "note": "",
+                    "url": url,
+                }
+                data["cover"] = download_cover(
+                    data["cover"],
+                    title,
+                    referer=url or "https://www.imdb.com/",
+                )
+                return data
     except (
         OSError,
         ValueError,
         KeyError,
     ) as error:
         print(
-            "IMDb 备用封面也失败：{} ({})".format(
-                title,
-                error,
-            ),
+            "IMDb 整条回退失败：{} ({})".format(title, error),
             file=sys.stderr,
         )
 
+    return None
+
+
+def find_imdb_item(titles):
+    """返回完整的 IMDb suggestion 条目（不仅是封面 URL）。"""
+    if isinstance(titles, str):
+        titles = [titles]
+
+    wanted = {normalize(t) for t in titles if t}
+
+    for query_title in titles:
+        if not query_title:
+            continue
+        request = Request(
+            IMDB_SEARCH_URL.format(quote(query_title)),
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urlopen(request, timeout=20) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except (OSError, ValueError, KeyError):
+            continue
+
+        items = data.get("d") or []
+        # 优先精确标题 + 有图
+        for item in items:
+            image = item.get("i") or {}
+            if normalize(item.get("l")) in wanted and image.get("imageUrl"):
+                return item
+        # 再退一步：任意有图
+        for item in items:
+            if (item.get("i") or {}).get("imageUrl"):
+                # 仅当标题有明显重叠时才接受，避免张冠李戴
+                name = normalize(item.get("l"))
+                if any(w and (w in name or name in w) for w in wanted):
+                    return item
     return None
 
 

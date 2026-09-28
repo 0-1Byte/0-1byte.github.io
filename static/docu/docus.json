@@ -70,5 +70,21 @@
     "note": "",
     "url": "https://movie.douban.com/subject/37163615/",
     "id": "rafa"
+  },
+  {
+    "title": "Test Like You Fly",
+    "cover": "covers/test-like-you-fly.jpg",
+    "year": 2026,
+    "note": "",
+    "url": "https://movie.douban.com/subject/38489013/",
+    "id": "test-like-you-fly"
+  },
+  {
+    "title": "The Story of VS Code",
+    "cover": "covers/the-story-of-vs-code.jpg",
+    "year": 2026,
+    "note": "",
+    "url": "https://www.youtube.com/watch?v=kHL3XzjpT5w",
+    "id": "the-story-of-vs-code"
   }
 ]
