@@ -1,0 +1,59 @@
+[
+  {
+    "title": "Chen Blog",
+    "tagline": "个人博客与内容合集站",
+    "summary": "基于 Hugo 与 PaperMod 搭建的个人站点，除了文章列表，还用一套统一的静态页面模式扩展出 Music、Book、Docu、Film、TV 五个合集页。这次新增的 Works 页沿用了同一套模式：一个 JSON 数据文件 + 一份页面骨架，之后只要往 JSON 里加条目就能更新。",
+    "type": "Web",
+    "year": 2026,
+    "period": "2024 — 至今",
+    "role": "设计 & 开发",
+    "status": "已上线",
+    "tech": ["Hugo", "PaperMod", "Vanilla JS", "CSS Grid", "GitHub Pages"],
+    "cover": "assets/chen-blog.svg",
+    "highlights": [
+      "合集页统一为「JSON 数据 + 独立静态页」模式，新增内容不需要改模板",
+      "自定义 PaperMod 的暗色变量，让主题页与合集页共用一套暖黑配色",
+      "通过 GitHub Actions 自动构建并发布到 GitHub Pages"
+    ],
+    "url": "https://0-1byte.github.io/",
+    "repo": ""
+  },
+  {
+    "title": "DSH Harness",
+    "tagline": "本地运行的编码 Agent 工作台",
+    "summary": "一个跑在本地的编码 Agent 工具，带有 Web 图形界面，可以同时调度多个子 Agent 并行处理任务，并支持用脚本把大规模工作扇出成流水线。日常用它来完成代码修改、跨文件重构和资料整理。",
+    "type": "Tool",
+    "year": 2026,
+    "period": "2025 — 至今",
+    "role": "使用者 & 工作流设计",
+    "status": "使用中",
+    "tech": ["TypeScript", "Web GUI", "Multi-Agent", "Workflow Script"],
+    "cover": "assets/dsh-harness.svg",
+    "highlights": [
+      "用工作流脚本把重复性的批量任务一次跑完，而不是逐个手动触发",
+      "配合沙箱权限策略，在可控范围内让 Agent 直接改文件",
+      "把长期目标写成 goal，让会话跨轮次持续推进同一件事"
+    ],
+    "url": "",
+    "repo": ""
+  },
+  {
+    "title": "Vinyl Room",
+    "tagline": "可以「放唱片」的私人歌单房间",
+    "summary": "把收藏的歌曲做成一面唱片墙，点开任意一张唱片就切换成黑胶播放器：唱片旋转、唱臂落下、封面同步高亮。歌单同样由一个 JSON 文件驱动，加歌只需要丢一张封面图并补一行记录。",
+    "type": "Experiment",
+    "year": 2025,
+    "period": "2025",
+    "role": "设计 & 开发",
+    "status": "已上线",
+    "tech": ["Vanilla JS", "Web Audio", "CSS Animation", "JSON"],
+    "cover": "assets/vinyl-room.svg",
+    "highlights": [
+      "用 CSS keyframes 做唱片匀速旋转与唱臂落针的过渡动画",
+      "播放状态与封面高亮联动，切换歌曲时不会有跳变",
+      "整套视觉只用少量 CSS 变量，浅色 / 暗色一套代码同时适配"
+    ],
+    "url": "/music/",
+    "repo": ""
+  }
+]

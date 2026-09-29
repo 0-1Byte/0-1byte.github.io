@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/svg+xml" href="/tv/tv-favicon.svg?v=1">
-  <link rel="apple-touch-icon" href="/tv/tv-favicon.svg?v=1">
+  <link rel="icon" type="image/svg+xml" href="/works/works-favicon.svg?v=1">
+  <link rel="apple-touch-icon" href="/works/works-favicon.svg?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
       document.documentElement.dataset.theme = dark ? "dark" : "light";
     })();
   </script>
-  <link rel="stylesheet" href="/tv/style.css?v=2">
-  <title>TV — Chen</title>
+  <link rel="stylesheet" href="/works/style.css?v=1">
+  <title>Works — Chen</title>
 </head>
 <body>
   <div class="page">
@@ -39,17 +39,55 @@
         </svg>
       </button>
     </header>
+
     <main>
       <section class="hero">
-        <h1>Shows I like to watch.</h1>
-        <p class="count" id="tv-count"></p>
+        <h1>Things I made.</h1>
+        <p class="hero-sub">产品、工具与一些没忍住动手的小实验。</p>
+        <p class="hero-meta"><span id="works-count"></span><span id="works-range"></span></p>
       </section>
-      <div id="tv-grid" class="tv-grid"></div>
-      <div id="empty" class="empty" hidden>还没有添加剧集。编辑 <code>/tv/tvs.json</code> 开始记录。</div>
-      <div id="error" class="error" hidden>无法读取剧集数据，请检查 <code>/tv/tvs.json</code>。</div>
+
+      <div class="toolbar" id="toolbar" hidden>
+        <div class="filters" id="filters" role="group" aria-label="按类型筛选"></div>
+        <label class="search">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>
+          </svg>
+          <input id="search" type="search" placeholder="搜索作品、技术栈…" autocomplete="off" aria-label="搜索作品">
+        </label>
+      </div>
+
+      <div id="works-grid" class="works-grid"></div>
+
+      <div id="empty" class="empty" hidden>
+        这里还没有作品。编辑 <code>/works/works.json</code> 开始记录。
+      </div>
+      <p id="no-match" class="empty" hidden>没有匹配的作品，换个关键词或筛选试试。</p>
+      <div id="error" class="error" hidden>
+        无法读取作品数据，请检查 <code>/works/works.json</code>。
+      </div>
     </main>
-    <footer class="footer"><span>Chen</span><span id="year"></span></footer>
+
+    <footer class="footer">
+      <span>Chen</span>
+      <span id="year"></span>
+    </footer>
   </div>
-  <script src="/tv/script.js?v=1" defer></script>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+    <button class="drawer-close" id="drawer-close" type="button" aria-label="关闭详情">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" aria-hidden="true">
+        <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+      </svg>
+    </button>
+    <div class="drawer-body" id="drawer-body"></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/works/script.js?v=1" defer></script>
 </body>
 </html>

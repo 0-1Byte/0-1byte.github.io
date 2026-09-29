@@ -606,10 +606,34 @@ def repair_existing_docu(docu):
     return False
 
 
+def remove_cover_file(cover):
+    """删除本地封面文件（若存在）。"""
+    if not cover or not isinstance(cover, str):
+        return
+
+    if cover.startswith(("http://", "https://")):
+        return
+
+    path = DATA_FILE.parent / cover
+
+    if path.is_file():
+        try:
+            path.unlink()
+            print("已删除封面文件：{}".format(path.name))
+        except OSError as error:
+            print(
+                "删除封面文件失败：{} ({})".format(
+                    path.name,
+                    error,
+                ),
+                file=sys.stderr,
+            )
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Batch-add documentaries "
+            "Batch-add or remove documentaries "
             "from Douban movie search."
         )
     )
@@ -629,6 +653,15 @@ def parse_args():
         help=(
             "Read one documentary title "
             "per line from a UTF-8 file."
+        ),
+    )
+
+    parser.add_argument(
+        "--remove",
+        action="store_true",
+        help=(
+            "Remove the given titles instead of adding them. "
+            "Also deletes local cover files when present."
         ),
     )
 
@@ -695,79 +728,119 @@ def main():
 
         return 1
 
-    existing = {
-        normalize(docu.get("title"))
-        for docu in docus
-        if isinstance(docu, dict)
-    }
-
     changed = False
     added = 0
+    removed = 0
 
-    # --------------------------------------------------
-    # 第一阶段：
-    # 自动修复已有纪录片的远程封面
-    # --------------------------------------------------
-    for docu in docus:
-        if repair_existing_docu(docu):
+    if args.remove:
+        to_remove = {normalize(t) for t in titles if t}
+
+        if not to_remove:
+            print("未指定要删除的标题", file=sys.stderr)
+            return 1
+
+        original = {
+            normalize(docu.get("title"))
+            for docu in docus
+            if isinstance(docu, dict)
+        }
+
+        kept = []
+
+        for docu in docus:
+            if not isinstance(docu, dict):
+                kept.append(docu)
+                continue
+
+            title = docu.get("title", "")
+            if normalize(title) in to_remove:
+                remove_cover_file(docu.get("cover", ""))
+                print("已删除：{}".format(title))
+                removed += 1
+                changed = True
+            else:
+                kept.append(docu)
+
+        docus = kept
+
+        for title in titles:
+            n = normalize(title)
+            if n and n not in original:
+                print(
+                    "未找到：{}".format(title),
+                    file=sys.stderr,
+                )
+    else:
+        existing = {
+            normalize(docu.get("title"))
+            for docu in docus
+            if isinstance(docu, dict)
+        }
+
+        # --------------------------------------------------
+        # 第一阶段：
+        # 自动修复已有纪录片的远程封面
+        # --------------------------------------------------
+        for docu in docus:
+            if repair_existing_docu(docu):
+                changed = True
+
+        # --------------------------------------------------
+        # 第二阶段：
+        # 添加新的纪录片
+        # --------------------------------------------------
+        for title in titles:
+            normalized_title = normalize(title)
+
+            if normalized_title in existing:
+                print(
+                    "跳过（已存在）：{}".format(title)
+                )
+                continue
+
+            try:
+                docu = find_docu(title)
+
+            except (
+                OSError,
+                ValueError,
+                KeyError,
+            ) as error:
+                print(
+                    "查询失败：{} ({})".format(
+                        title,
+                        error,
+                    ),
+                    file=sys.stderr,
+                )
+                continue
+
+            if not docu:
+                print(
+                    "未找到带本地封面的纪录片：{}".format(
+                        title
+                    ),
+                    file=sys.stderr,
+                )
+                continue
+
+            docu["id"] = slug(docu["title"])
+
+            docus.append(docu)
+
+            existing.add(
+                normalize(docu["title"])
+            )
+
+            added += 1
             changed = True
 
-    # --------------------------------------------------
-    # 第二阶段：
-    # 添加新的纪录片
-    # --------------------------------------------------
-    for title in titles:
-        normalized_title = normalize(title)
-
-        if normalized_title in existing:
             print(
-                "跳过（已存在）：{}".format(title)
+                "已添加：{} — {}".format(
+                    docu["title"],
+                    docu["year"] or "年份未找到",
+                )
             )
-            continue
-
-        try:
-            docu = find_docu(title)
-
-        except (
-            OSError,
-            ValueError,
-            KeyError,
-        ) as error:
-            print(
-                "查询失败：{} ({})".format(
-                    title,
-                    error,
-                ),
-                file=sys.stderr,
-            )
-            continue
-
-        if not docu:
-            print(
-                "未找到带本地封面的纪录片：{}".format(
-                    title
-                ),
-                file=sys.stderr,
-            )
-            continue
-
-        docu["id"] = slug(docu["title"])
-
-        docus.append(docu)
-
-        existing.add(
-            normalize(docu["title"])
-        )
-
-        added += 1
-        changed = True
-
-        print(
-            "已添加：{} — {}".format(
-                docu["title"],
-                docu["year"] or "年份未找到",
-            )
-        )
 
     if changed:
         DATA_FILE.write_text(
@@ -779,12 +852,20 @@ def main():
             encoding="utf-8",
         )
 
-    print(
-        "完成：新增 {} 部，当前共 {} 部。".format(
-            added,
-            len(docus),
+    if args.remove:
+        print(
+            "完成：删除 {} 部，当前共 {} 部。".format(
+                removed,
+                len(docus),
+            )
         )
-    )
+    else:
+        print(
+            "完成：新增 {} 部，当前共 {} 部。".format(
+                added,
+                len(docus),
+            )
+        )
 
     return 0
 

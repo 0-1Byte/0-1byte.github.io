@@ -48,6 +48,12 @@ relativeURLs = false
     weight = 40
 
 [[menu.main]]
+    identifier = "works"
+    name = "Works"
+    url = "/works/"
+    weight = 45
+
+[[menu.main]]
     identifier = "docu"
     name = "Docu"
     url = "/docu/"
