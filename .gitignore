@@ -10,6 +10,23 @@ __pycache__/
 _preview/
 *.tmp
 
+# ---------------------------------------------------------------------------
+# 密钥与本地私密数据 —— 绝对不能进仓库，也就不会随 GitHub Pages 发布
+#
+#   .secrets/                 放微信读书 API Key 等凭据（只在本机存在）
+#   static/quotes/wechat.yaml 你的划线原文，属于私人阅读记录，默认不入库
+#
+# 想强制确认某个文件确实被忽略：git check-ignore -v <路径>
+# 交付出去、会被发布上线的只有 data/quotes.yaml（纯句子文本，无任何凭据）
+# ---------------------------------------------------------------------------
+# .secrets/ 下默认全部忽略 —— 注意用 `*` 逐项忽略，
+# 因为 git 不会在一个被排除的目录里再应用 `!` 反选规则。
+.secrets/*
+# 示例文件要入库：它不含真实 Key，是给你照着填的模板
+!.secrets/key.example.yaml
+static/quotes/wechat.yaml
+tools/_probe_out/
+
 # 系统文件
 .DS_Store
 Thumbs.db

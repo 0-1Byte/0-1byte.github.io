@@ -1,7 +1,32 @@
-# 首屏句子：数据来源与微信读书对接约定
+# 首屏句子：数据来源、微信读书对接、密钥安全
 
 首页首屏那句话来自 **`data/quotes.yaml`**，每次刷新随机抽一句，
 由一个字符一个字符打出来（`static/quotes.js`）。
+
+---
+
+## 0. 密钥安全（先看这个）
+
+微信读书 API Key 形如 `wrk-…`，从 <https://weread.qq.com/r/weread-skills> 创建。
+
+**Key 永远不会被发布上线**，靠四层保证：
+
+| 层 | 做法 |
+|---|---|
+| 存放 | 只放 `.secrets/key.yaml`，该目录被 `.gitignore` 忽略；不写进任何被追踪的文件 |
+| 打印 | 一律走 `redact()`，只显示 `wrk-Ab…UvWx（共 28 字符）` |
+| 落盘 | 写任何数据文件前调用 `assert_no_key_leak()`，内容里出现 Key 直接拒绝写入 |
+| 自检 | `python tools/weread_check_secrets.py` 检查 7 项，含 git 历史扫描 |
+
+原始划线（`static/quotes/wechat.yaml`）**默认也不入库** —— 那是私人阅读记录，
+没必要公开。会上线的只有 `data/quotes.yaml`，内容全是纯句子文本。
+
+想确认某个文件确实被忽略：
+
+```powershell
+git check-ignore -v .secrets/key.yaml
+# 应输出 .gitignore 里对应的规则行
+```
 
 ---
 
@@ -47,49 +72,57 @@
 
 ---
 
-## 2. 微信读书划线对接
+## 2. 从微信读书导出划线
 
-### 需要产出的东西
+**在你的电脑上运行**（导出脚本需要外网访问微信读书网关；
+这不影响安全，Key 始终只在本机）。
 
-把划线整理成一个 YAML 列表，写到 **`static/quotes/wechat.yaml`**，
-格式与 `data/quotes.yaml` 完全一致：
-
-```yaml
-- text: 划线原文
-  source: 《书名》· 作者
-```
-
-之所以单独放一个文件而不是直接写进 `data/quotes.yaml`：
-工具可以整份覆盖 `wechat.yaml`，不必解析和改写你手工维护的那份。
-
-### 合并进句子库
+### 2.1 填 Key
 
 ```powershell
-# 预览（不写文件）
-python tools/import_wechat_quotes.py --dry-run
-
-# 实际合并：去重后追加到 data/quotes.yaml
-python tools/import_wechat_quotes.py
+copy .secrets\key.example.yaml .secrets\key.yaml
+# 然后编辑 .secrets\key.yaml，把 wrk- 开头的 Key 填进去
 ```
 
-工具会：
-- 读 `static/quotes/wechat.yaml`
-- 按 `text` 去重（与 `data/quotes.yaml` 里已有的比对，含手工添加的）
-- 追加到 `data/quotes.yaml` 末尾，保持原有内容与注释不动
-- 打印新增 / 跳过的条数
+### 2.2 先探测接口（一次就够）
 
-之后正常构建发布即可。
+网关的请求形状会随版本变化，所以脚本不写死调用方式，而是先探一次：
 
-### 一条划线的推荐字段映射
+```powershell
+python tools/weread_export.py --probe
+```
+
+- 探到可用方式 → 记进 `.secrets/probe.json`（同样被忽略），之后直接复用
+- 网络不通 → 按提示设代理后重跑：
+  ```powershell
+  set HTTPS_PROXY=http://127.0.0.1:7897
+  ```
+- 都探不到 → 把输出贴回来，状态码与错误提示能定位问题
+
+### 2.3 导出并合并
+
+```powershell
+python tools/weread_export.py                        # -> static/quotes/wechat.yaml
+python tools/import_wechat_quotes.py --dry-run       # 预览会加什么
+python tools/import_wechat_quotes.py                 # 合并进 data/quotes.yaml
+hugo --minify                                        # 本地看一眼
+git add data/quotes.yaml && git commit && git push    # 只有这一份文件会上线
+```
+
+`import_wechat_quotes.py` 会按 `text` 去重（包含你手工加的句子），
+只追加、不覆盖，你写在 `data/quotes.yaml` 里的注释与手写句子都不会被动。
+
+### 2.4 一条划线的字段映射
 
 | 微信读书 | 这里的字段 |
 |---|---|
 | 划线原文 | `text` |
 | 书名 + 作者 | `source`，形如 `《书名》· 作者` |
 
-如果之后想保留更多信息（章节、时间、书 ID），先不要直接塞进 `text` ——
-当前渲染只认 `text` 与 `source`，加别的字段不会显示。需要的话告诉我，
-我再扩数据模型。
+导出脚本对网关返回的字段名做了多种兼容（`markedText` / `text` / `content`，
+`bookTitle` / `book.title`），网关字段改名时不会直接崩，会取不到内容并提示。
+想保留更多信息（章节、划线时间、书 ID），先告诉我 —— 当前渲染只认
+`text` 与 `source`，扩数据模型是小事，但需要先定要留哪些。
 
 ---
 
@@ -103,3 +136,6 @@ python tools/import_wechat_quotes.py
 | 只有一句 | 每次刷新都是它，不做「避开上一句」的尝试 |
 | `prefers-reduced-motion` | 直接显示整句，不打字 |
 | 切换标签页 | 停止打字，不会在后台继续跑 |
+| 导出时内容混入 Key | 拒绝写盘并报错，不会进仓库 |
+| 导出到 0 条划线 | 明确提示可能原因，不写空文件 |
+
