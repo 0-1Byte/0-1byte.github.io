@@ -156,7 +156,9 @@ checks = [
     ("不含文章卡片 .post-entry", "post-entry" not in home),
     ("不含文章链接 .entry-link", "entry-link" not in home),
     ("导航仍含 writing 入口", ">writing<" in home),
-    ("导航仍含 think 入口", ">think<" in home),
+    # think 已按反馈隐藏（与 random 同样处理）。
+    # 这里断言它不在首页；它的 URL 仍可用，由 verify_nav_changes.py 检查。
+    ("导航不含 think（已隐藏）", ">think<" not in home),
 ]
 for name, ok in checks:
     if not ok:

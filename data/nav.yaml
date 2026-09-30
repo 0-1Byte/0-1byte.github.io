@@ -3,15 +3,16 @@
 #
 # 这个文件同时驱动两处，改这里即全站生效：
 #   1) Hugo 生成的页面（首页 / 文章页 / 404）→ layouts/partials/site_nav.html
-#   2) static/ 下的合集页 → static/site-nav.js 读取 Hugo 注入的 window.SITE_NAV
+#   2) static/ 下的合集页 → static/site-nav.js 读取 /nav.json
 #
-# 结构：五个分组（listen / read / watch / make / think），每个分组下挂实际页面。
+# 结构：四个分组（listen / read / watch / make），每个分组下挂实际页面。
 # 旧 URL（/music/ /book/ /works/ /docu/ /film/ /tv/）全部保持原样，不新增别名。
 #
-# pending: true 的分组只写在这里、不渲染到导航里。
-#   原因：阶段 3 明确要求「不要提前实现 Random / Ocean / Timeline / About」，
-#   而 think 指向的 Fragments 页尚未创建。阶段 3 的导航只渲染「确实存在」的页面，
-#   避免产生死链。等该页建好后，把 pending 去掉即可自动出现在导航中。
+# children 的 desc 有两个用途：
+#   · 下拉菜单里 hnav-menu-desc 那行小字
+#   · title 属性（鼠标悬停提示）
+# 两者都取自同一个字段，所以「去掉那行中文」时 desc 要一起删掉。
+# 单子项分组（listen / read / make）的 desc 仍保留 —— 它只用于悬停提示。
 # ============================================================================
 
 groups:
@@ -32,15 +33,15 @@ groups:
   - key: watch
     label: watch
     children:
+      # 这三项刻意不写 desc：下拉里只留 Film / TV / Docu，
+      # 悬停提示也回落到 name（见 site_nav.html 与 site-nav.js 的
+      # `title="{{ .desc | default .name }}"`）。
       - name: Film
         href: /film/
-        desc: 看过的电影
       - name: TV
         href: /tv/
-        desc: 看过的剧集
       - name: Docu
         href: /docu/
-        desc: 看过的纪录片
 
   - key: make
     label: make
@@ -49,25 +50,32 @@ groups:
         href: /works/
         desc: 做出来的东西
 
-  - key: think
-    label: think
-    # 阶段 6：/fragments/ 已建立。分组保留在导航里，
-    # 即使还没有条目 —— 一个「零散的想法」分区本身就说明了这个站点的性格，
-    # 页面内有明确的空状态，不是死链也不是空白页。
-    children:
-      - name: Fragments
-        href: /fragments/
-        desc: 零散的想法
+  # ---------------------------------------------------------------------------
+  # think 分组按反馈隐藏（与 random 同样处理）
+  #
+  # 整个分组注释掉，因此导航里不再出现 think。
+  # 内容与 URL 都保留：
+  #   · /fragments/           页面正常，有明确的空状态
+  #   · /fragments/fragments.json  输出端点正常（random 的 adapter 仍可用）
+  #   · content/fragments/    内容目录与模板都没动
+  # 想恢复：把下面整段取消注释即可。
+  # ---------------------------------------------------------------------------
+  # - key: think
+  #   label: think
+  #   children:
+  #     - name: Fragments
+  #       href: /fragments/
+  #       desc: 零散的想法
 
 # ---------------------------------------------------------------------------
-# 独立入口（不属于五个动词分组）
+# 独立入口（不属于动词分组）
 #
 # writing：阶段 3 把首页改成极简入口后文章失去入口，需要一条常驻路径。
 #
 # 以下两个入口刻意**不在**这个列表里，即「隐藏」：
 #
 #   random —— 按反馈隐藏。/random/ 这个 URL 仍然可访问、功能完好，
-#             只是导航与首页都不再出现入口（和 ocean 一样的处理方式）。
+#             只是导航与首页都不再出现入口。
 #             想恢复：把下面注释掉的那两行加回来即可。
 #
 #   ocean  —— 隐藏的隐喻入口，从来不在导航里。

@@ -181,10 +181,14 @@ print("=" * 90)
 st, navtext = get("/nav.json")
 nav = json.loads(navtext)
 labels = [g["label"] for g in nav["groups"]]
-check("导航含 think", "think" in labels, f"实际 {labels}")
-check("think 不再是 pending", all(not g.get("pending") for g in nav["groups"]))
-check("think 指向 /fragments/",
-      any(c["href"] == "/fragments/" for g in nav["groups"] for c in g["children"]))
+# 阶段 6 建立 Fragments 时 think 是显示在导航里的；
+# 之后用户要求隐藏 think，于是改成断言「不在导航」。
+# Fragments 页面与 JSON 端点必须仍然可用 —— 下面单独检查。
+check("think 已从导航隐藏", "think" not in labels, f"实际 {labels}")
+check("导航分组仍是 listen/read/watch/make",
+      labels == ["listen", "read", "watch", "make"], f"实际 {labels}")
+check("/fragments/ 仍可访问（隐藏不等于删除）", get("/fragments/")[0] == 200)
+check("/fragments/fragments.json 仍可用", get("/fragments/fragments.json")[0] == 200)
 
 print()
 print("=" * 90)
