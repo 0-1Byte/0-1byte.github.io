@@ -142,10 +142,21 @@ def main():
     print(f"  导出 {len(data)} 字节")
 
     # 2) 替换
+    #
+    # 关键：替换串必须与 Key **字节长度完全相同**。
+    # fast-export 的数据块是带长度前缀的（data <n>），长度一变，
+    # 后面的字节流就会错位 —— fast-import 会报
+    # "Unsupported command: y" 之类莫名其妙的错。
+    # 所以这里用一个等长的纯 ASCII 占位符，长度与原 Key 对齐。
+    placeholder = b"wrk-" + b"0" * (len(key_bytes) - 4)
+    if len(placeholder) != len(key_bytes):
+        print("  内部错误：占位符长度不匹配")
+        return 5
+
     before = data.count(key_bytes)
-    data = data.replace(key_bytes, PLACEHOLDER.encode())
+    data = data.replace(key_bytes, placeholder)
     after = data.count(key_bytes)
-    print(f"  替换 {before} 处 -> 剩 {after} 处")
+    print(f"  替换 {before} 处 -> 剩 {after} 处（等长占位符，保持数据块长度不变）")
 
     # 3) 导入（同一仓库，--force 覆盖同名 ref）
     imp = subprocess.run(["git", "fast-import", "--force", "--quiet"],
@@ -157,6 +168,17 @@ def main():
 
     # 4) 让工作区跟上新提交
     git("reset", "--hard", "--quiet", check=False)
+
+    # 5) 把文件里的等长占位符换成给人看的说明文案
+    #    （等长替换只为了不破坏 fast-import 的字节流；
+    #      落盘后可以随便改内容，因为不再经过流式导入）
+    ex = ROOT / TARGET
+    if ex.exists():
+        text = ex.read_text(encoding="utf-8", errors="ignore")
+        text = re.sub(r"wrk-0{10,}", PLACEHOLDER, text)
+        ex.write_text(text, encoding="utf-8")
+        print(f"  已把 {TARGET} 里的等长占位符换成说明文案")
+
     git("reflog", "expire", "--expire=now", "--all", check=False)
     git("gc", "--prune=now", "--quiet", check=False)
 
