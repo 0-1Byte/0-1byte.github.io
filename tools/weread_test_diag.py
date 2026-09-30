@@ -43,17 +43,21 @@ def check(label, cond, detail=""):
 print("=" * 76)
 print("脏 Key 判据")
 print("=" * 76)
+# 测试用的假 Key。刻意写成 wrk- 后面接重复字符 ——
+# 既能被「脏字符」判据识破，又不会被
+# tools/weread_scrub_history.py 的清理规则误当成真实凭据。
+FAKE = "wrk-AAAAAAAAAAAAAAAAAAAAAAAA"
 CASES = [
-    ("干净的 Key", "在这里填 wrk- 开头的 Key", False),
-    ("尾部空格", "在这里填 wrk- 开头的 Key ", True),
-    ("句首空格", " 在这里填 wrk- 开头的 Key", True),
-    ("带 BOM", "\ufeff在这里填 wrk- 开头的 Key", True),
-    ("含零宽空格", "wrk-AbCd1234\u200bEfGh5678", True),
-    ("含不换行空格", "wrk-AbCd\u00a01234EfGh", True),
-    ("全角连字符", "wrk－AbCd1234EfGh", True),
-    ("全角空格", "wrk-AbCd\u30001234", True),
-    ("前缀写成 wk-", "wk-AbCd1234EfGh5678", True),
-    ("末尾换行", "在这里填 wrk- 开头的 Key\n", True),
+    ("干净的 Key", FAKE, False),
+    ("尾部空格", FAKE + " ", True),
+    ("句首空格", " " + FAKE, True),
+    ("带 BOM", "\ufeff" + FAKE, True),
+    ("含零宽空格", "wrk-AAAA\u200bAAAA", True),
+    ("含不换行空格", "wrk-AAAA\u00a0AAAA", True),
+    ("全角连字符", "wrk－AAAA", True),
+    ("全角空格", "wrk-AAAA\u3000AAAA", True),
+    ("前缀写成 wk-", "wk-AAAAAAAAAAAAAAAA", True),
+    ("末尾换行", FAKE + "\n", True),
 ]
 for label, key, should_flag in CASES:
     issues = inspect(key)

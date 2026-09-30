@@ -30,14 +30,16 @@ def check(label, ok, detail=""):
 print("=" * 80)
 print("1. 脱敏函数")
 print("=" * 80)
-fake = "在这里填 wrk- 开头的 Key"
+# 假 Key：wrk- 后面接重复字符，不会被历史清理规则误当成真实凭据。
+# 长度 28 与真实 Key 一致，这样能顺带验证「首 4 末 2」的显示格式。
+fake = "wrk-BBBBBBBBBBBBBBBBBBBBBBBB"
 r = redact(fake)
 check("不回显完整 Key", fake not in r, r)
 # redact 会附上「（共 N 字符）」后缀，所以只看遮罩部分
 masked = r.split("（")[0]
-check("保留可辨认的前后缀", masked.startswith("wrk-Ab") and masked.endswith("UvWx"), masked)
-check("中间被遮住", "CdEfGhIjKlMnOpQrSt" not in r, r)
-check("短值也被遮住", "abcd" not in redact("abcd").lower() or redact("abcd") == "ab**", redact("abcd"))
+check("只显示首 4 位与末 2 位", masked.startswith("wrk-") and masked.endswith("BB"), masked)
+check("中间被遮住", "BBBBBBBBBBBBBB" not in r, r)
+check("短值也被遮住", "abcd" not in redact("abcd").lower() or redact("abcd") == "****", redact("abcd"))
 print(f"       {r}")
 
 print()
