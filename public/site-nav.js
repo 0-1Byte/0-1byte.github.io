@@ -174,16 +174,19 @@
     const button = document.getElementById("theme-toggle");
     if (!button) return;
 
-    // Hugo 页面由 PaperMod 页脚绑定，本脚本完全不碰，避免重复触发
+    // 1) 页面自带实现：合集页在 <head> 内联了主题切换，
+    //    按钮带 data-theme-owner="page" 标记 —— 这里必须完全不插手，
+    //    否则同一个按钮会被处理两次（切过去又切回来）。
+    if (button.dataset.themeOwner === "page") return;
+
+    // 2) Hugo 页面由 PaperMod 页脚绑定（按钮固定放在 .logo-switches 内）
     if (button.closest(".logo-switches")) return;
 
-    // 幂等：本脚本被重复执行时不重复绑定（两道保险都不会叠加）
+    // 3) 幂等：本脚本被重复执行时不重复绑定
     if (button.dataset.snavBound === "1") return;
     button.dataset.snavBound = "1";
 
-    // (a) 直接绑定
     button.addEventListener("click", handleToggleClick);
-    // (b) 捕获阶段委托 —— 兜住"按钮被别的元素遮挡"导致点不到的情况
     button.addEventListener("click", handleToggleClick, true);
 
     window.addEventListener("storage", event => {

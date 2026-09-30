@@ -121,21 +121,30 @@ for kw, expect in [("elsewhere", False), ("home-index", False), ("home-posts", T
 
 print()
 print("=" * 92)
-print("问题 4b：/posts/ 列表不再用文章卡片样式")
+print("问题 4b：/posts/ 标题改为 Writing，且保留封面图卡片")
 print("=" * 92)
 st, posts_html = get("/posts/")
-for kw, expect in [("post-entry", False), ("entry-cover", False), ("entry-link", False),
-                   ("home-posts", True), ("home-post-title", True)]:
+# 标题里的 "Posts" 应换成 "Writing"
+title_m = re.search(r"<title>([^<]*)</title>", posts_html)
+title_txt = title_m.group(1) if title_m else ""
+ok = "Posts" not in title_txt and "Writing" in title_txt
+if not ok:
+    problems.append(f"/posts/ 标题仍是 {title_txt!r}，期望含 Writing 且不含 Posts")
+print(f"  {'OK ' if ok else 'FAIL'} <title> = {title_txt!r}（不应含 Posts）")
+
+# 列表仍用主题的封面图卡片（这是列表页该有的样子，不能被去掉）
+for kw, expect in [("post-entry", True), ("entry-cover", True), ("entry-link", True)]:
     found = kw in posts_html
     ok = found == expect
     if not ok:
         problems.append(f"/posts/ {kw} 存在={found}，期望={expect}")
-    print(f"  {'OK ' if ok else 'FAIL'} {kw:18} 存在={found}  期望={expect}")
-n_posts = len(re.findall(r"home-post-title", posts_html))
-ok = n_posts == 2
+    print(f"  {'OK ' if ok else 'FAIL'} {kw:14} 存在={found}  期望={expect}")
+
+n_cards = len(re.findall(r"post-entry", posts_html))
+ok = n_cards == 2
 if not ok:
-    problems.append(f"/posts/ 文章条数 {n_posts}，期望 2")
-print(f"  {'OK ' if ok else 'FAIL'} 文章条数={n_posts}（期望 2）")
+    problems.append(f"/posts/ 卡片数 {n_cards}，期望 2")
+print(f"  {'OK ' if ok else 'FAIL'} 卡片数={n_cards}（期望 2）")
 
 print()
 print("=" * 92)

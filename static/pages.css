@@ -262,12 +262,3 @@
     margin-top: 9px;
   }
 }
-/* ---------- 文章列表的数字标签 ----------
-   .home-label 默认大写并加了字距，用于 "currently" / "writing" 这类英文标签。
-   文章数（如 "2 篇"）不需要大写转换，单独去掉。 */
-.home-block .home-label:lang(zh),
-.posts-count {
-  text-transform: none;
-  letter-spacing: .04em;
-  font-size: 11px;
-}
