@@ -24,9 +24,18 @@
     link.setAttribute("aria-label", "回到顶部");
     link.setAttribute("title", "回到顶部 (Alt + G)");
 
-    /* ---------- 2. 图标（箭头朝上比原来的双箭头更好认） ---------- */
-    if (!link.querySelector("svg.top-link-arrow")) {
-      const arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    /* ---------- 2. 图标 ----------
+       PaperMod 自带的是一枚双箭头 svg，.top-link 里只应有一个图标：
+       先把非进度环的 svg 全部清掉，再补上我们自己的单箭头。
+       否则会和主题图标叠在一起（两个箭头压在同一位置上）。 */
+    let arrow = link.querySelector("svg.top-link-arrow");
+
+    if (!arrow) {
+      link.querySelectorAll("svg").forEach(svg => {
+        if (!svg.classList.contains("top-link-ring")) svg.remove();
+      });
+
+      arrow = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       arrow.setAttribute("class", "top-link-arrow");
       arrow.setAttribute("viewBox", "0 0 24 24");
       arrow.setAttribute("aria-hidden", "true");
