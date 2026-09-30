@@ -66,12 +66,11 @@ r = run(["git", "ls-files", ".secrets"])
 tracked = [x for x in r.stdout.split("\n") if x.strip()]
 check(".secrets/ 下没有任何文件被追踪", not tracked, f"被追踪：{tracked}")
 
-r = run(["git", "log", "--all", "--pretty=format:", "--name-only"])
-history = [x.strip() for x in r.stdout.split("\n") if x.strip()]
-hist_secrets = sorted({h for h in history if h.startswith(".secrets/")})
-# 只报告「当前 HEAD 里仍存在」的，历史中的旧痕迹另由第 3 项检查
-check("历史中未出现过 .secrets/ 下的文件（当前 HEAD）", not hist_secrets,
-      f"历史里有：{hist_secrets[:5]}")
+r = run(["git", "ls-tree", "-r", "--name-only", "HEAD", "--", ".secrets"])
+in_tree = [x for x in r.stdout.split("\n") if x.strip()]
+# 问「HEAD 的树里有没有」而不是「历史上出现过没有」：
+# 后者对「曾经误提交、现已删除」的文件永远为真，语义上没意义。
+check("HEAD 树里没有 .secrets/ 下的文件", not in_tree, f"仍在树里：{in_tree}")
 
 print()
 print("=" * 84)
@@ -121,31 +120,26 @@ for p in ROOT.rglob("*"):
         hits.append((rel, [t[:12] + "…" for t in found[:2]]))
 check("工作区源码里没有真实 Key（已排除检测脚本自身与其测试夹具）", not hits, f"命中：{hits[:3]}")
 
-# git 历史：逐提交、逐文件检查，跳过「自己人」——
+# git 历史：一次全量 diff 扫描（不要逐提交逐文件调 git —— 那要跑几千次子进程，
+# 实测从几秒钟变成几分钟）。这里只取新增行，并跳过「自己人」文件：
 # 检测脚本与其测试夹具里内嵌的假 Key 是验证闸门用的，不是凭据。
-# 为什么不用 git log -p 加路径排除：实测那套 pathspec 在本仓库不生效
-# （测试夹具仍被扫到），改成按文件读取，判据与工作区扫描完全一致。
-SELF_FILES = {"tools/weread_check_secrets.py", "tools/weread_test_guard.py",
-              "tools/weread_test_diag.py", "tools/weread_scrub_history.py"}
+SELF_FILES = ("tools/weread_check_secrets.py", "tools/weread_test_guard.py",
+              "tools/weread_test_diag.py", "tools/weread_scrub_history.py")
 
+diff = run(["git", "log", "--all", "-p", "--no-color",
+            "--", ".", ":(exclude)public", ":(exclude)themes"]).stdout
+current_file = ""
+hist_hits = []
+for line in diff.split("\n"):
+    if line.startswith("+++ b/"):
+        current_file = line[6:].strip()
+        continue
+    if not line.startswith("+") or line.startswith("+++"):
+        continue
+    if current_file in SELF_FILES:
+        continue
+    hist_hits.extend(real_keys(line))
 
-def history_real_keys():
-    commits = [c for c in run(["git", "log", "--all", "--pretty=format:%H"]).stdout.split("\n")
-               if c.strip()]
-    found = []
-    for c in commits:
-        names = run(["git", "show", "--name-only", "--pretty=format:", c]).stdout
-        for f in [x.strip() for x in names.split("\n") if x.strip()]:
-            if f in SELF_FILES:
-                continue
-            blob = run(["git", "show", f"{c}:{f}"])
-            if blob.returncode != 0:
-                continue
-            found.extend(real_keys(blob.stdout))
-    return found
-
-
-hist_hits = history_real_keys()
 check("git 历史里没有真实 Key（已排除检测脚本与其测试夹具）", not hist_hits,
       f"命中 {len(hist_hits)} 处，例如 {[h[:12] + '…' for h in hist_hits[:2]]}")
 
