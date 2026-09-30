@@ -125,16 +125,32 @@ for p in ROOT.rglob("*"):
         hits.append((rel, [t[:12] + "…" for t in found[:2]]))
 check("工作区源码里没有真实 Key（已排除检测脚本自身与其测试夹具）", not hits, f"命中：{hits[:3]}")
 
-# git 历史：只看新增行（+ 开头）并排除自己人 ——
+# git 历史：逐提交、逐文件检查，跳过「自己人」——
 # 检测脚本与其测试夹具里内嵌的假 Key 是验证闸门用的，不是凭据。
-hist = run(["git", "log", "--all", "-p", "--",
-            ".", ":(exclude)public", ":(exclude)themes",
-            ":(exclude)tools/weread_check_secrets.py",
-            ":(exclude)tools/weread_test_guard.py"])
-hist_lines = [ln[1:] for ln in hist.stdout.split("\n")
-              if ln.startswith("+") and not ln.startswith("+++")]
-hist_hits = real_keys("\n".join(hist_lines))
-check("git 历史里没有真实 Key", not hist_hits,
+# 为什么不用 git log -p 加路径排除：实测那套 pathspec 在本仓库不生效
+# （测试夹具仍被扫到），改成按文件读取，判据与工作区扫描完全一致。
+SELF_FILES = {"tools/weread_check_secrets.py", "tools/weread_test_guard.py",
+              "tools/weread_test_diag.py", "tools/weread_scrub_history.py"}
+
+
+def history_real_keys():
+    commits = [c for c in run(["git", "log", "--all", "--pretty=format:%H"]).stdout.split("\n")
+               if c.strip()]
+    found = []
+    for c in commits:
+        names = run(["git", "show", "--name-only", "--pretty=format:", c]).stdout
+        for f in [x.strip() for x in names.split("\n") if x.strip()]:
+            if f in SELF_FILES:
+                continue
+            blob = run(["git", "show", f"{c}:{f}"])
+            if blob.returncode != 0:
+                continue
+            found.extend(real_keys(blob.stdout))
+    return found
+
+
+hist_hits = history_real_keys()
+check("git 历史里没有真实 Key（已排除检测脚本与其测试夹具）", not hist_hits,
       f"命中 {len(hist_hits)} 处，例如 {[h[:12] + '…' for h in hist_hits[:2]]}")
 
 print()
