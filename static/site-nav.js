@@ -73,7 +73,14 @@
       return;
     }
     const groups = (nav.groups || []).filter(g => !g.pending);
-    host.innerHTML = `<ul class="hnav-list">${groups.map(buildGroup).join("")}</ul>`;
+    const standalone = nav.standalone || [];
+    const standaloneHtml = standalone.map(s => `
+      <li class="hnav-item">
+        <a class="hnav-link" href="${esc(s.href)}" title="${esc(s.desc || s.name)}">
+          <span>${esc(s.name)}</span>
+        </a>
+      </li>`).join("");
+    host.innerHTML = `<ul class="hnav-list">${groups.map(buildGroup).join("")}${standaloneHtml}</ul>`;
     host.classList.add("hnav");
     bindToggles(host);
   }
@@ -127,12 +134,28 @@
 
   /* ------------------------------------------------------------------
      主题切换
-     Hugo 页面由 PaperMod 的 footer.html 负责绑定，合集页需要自己来。
-     判据：PaperMod 的 header 有 #menu，合集页没有 —— 用这个区分，不重复绑定。
+
+     需要判断「这个按钮是否已经由 PaperMod 的页脚脚本绑定了」，否则
+     同一个按钮上会有两个监听器：点一次切换两次、看起来像没反应。
+
+     可靠的判据不是 #menu（Hugo 页面已不再有它），而是 DOM 归属：
+       Hugo 页面   —— 按钮在 .logo-switches 里（PaperMod header 的结构），
+                      页脚的 inline script 已经绑好 → 本脚本跳过
+       合集页      —— 按钮直接在 .header-nav 里，没有 .logo-switches
+                      → 由本脚本绑定
+
+     再叠加 dataset 幂等标记，防止本脚本被引入两次时重复绑定。
      ------------------------------------------------------------------ */
   function bindThemeToggle() {
     const button = document.getElementById("theme-toggle");
-    if (!button || document.getElementById("menu")) return;   // Hugo 页面交给主题
+    if (!button) return;
+
+    // 已由 PaperMod 页脚绑定（它的按钮固定放在 .logo-switches 内）
+    if (button.closest(".logo-switches")) return;
+
+    // 幂等：本脚本重复执行时不重复绑定
+    if (button.dataset.snavBound === "1") return;
+    button.dataset.snavBound = "1";
 
     button.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -181,10 +204,16 @@
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => { loadAndRender(); bindThemeToggle(); }, { once: true });
-  } else {
-    loadAndRender();
+  /* 先绑主题按钮，再做任何异步工作 ——
+     这样即使 /nav.json 拉取失败或超时，主题切换依然可用。 */
+  function boot() {
     bindThemeToggle();
+    loadAndRender();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  } else {
+    boot();
   }
 })();

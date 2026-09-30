@@ -135,13 +135,11 @@
 
 /* 导航字体/尺寸由 static/site-nav.css（.hnav-*）统一负责 ——
    阶段 3 起顶层导航是 listen/read/watch/make 分组，不再是 #menu 扁平菜单。
-   这里只保留 header 的布局逻辑，确保 logo / 导航 / 主题按钮三者对齐。 */
 
-/* 将导航放到 Chen 右侧，与正文左边缘对齐 */
-header.header {
-    position: relative;
-    z-index: 2;
-}
+   header 的布局同理收敛到了 site-nav.css（.header / .header-nav / .logo /
+   .theme-toggle），Hugo 页面与 static/ 合集页共用同一份，
+   因此这里不再重复定义，避免两处实现打架。
+   仅保留 PaperMod 自身 nav 容器的宽度约束。 */
 
 nav {
     position: relative;
@@ -152,43 +150,9 @@ nav {
     z-index: 2;
 }
 
-.header-nav {
-    justify-content: flex-start !important;
-    /* 与 .hnav-list 的 gap 对齐，避免 logo 与首个分组贴在一起 */
-    gap: 26px !important;
-    padding-right: 64px;
-}
-
-.header-nav .logo {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.logo-switches {
-    position: absolute;
-    top: 0;
-    right: var(--gap);
-    height: var(--header-height);
-    z-index: 3;
-}
-
-.logo {
-    height: 60px;
-}
-
 @media screen and (max-width: 767px) {
     nav {
         min-height: 76px !important;
-    }
-
-    .header-nav {
-        gap: 16px !important;
-        padding-right: 52px;
-    }
-
-    .logo a {
-        font-size: 28px !important;
     }
 }
 

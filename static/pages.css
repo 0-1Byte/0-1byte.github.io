@@ -196,3 +196,69 @@
     font-size: 23px;
   }
 }
+/* ---------- writing（最近文章） ---------- */
+
+.home-posts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-posts li + li {
+  margin-top: 11px;
+}
+
+.home-posts a {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: color var(--motion-fast) ease;
+}
+
+.home-posts a:hover,
+.home-posts a:focus-visible {
+  color: var(--muted);
+}
+
+.home-post-title {
+  min-width: 0;
+}
+
+/* 日期用等宽数字并压低对比度，避免与标题抢视线 */
+.home-post-date {
+  flex: none;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: .75;
+}
+
+.home-more {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.home-more a {
+  color: var(--muted);
+  transition: color var(--motion-fast) ease;
+}
+
+.home-more a:hover,
+.home-more a:focus-visible {
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .home-posts a {
+    font-size: 13px;
+  }
+
+  .home-posts li + li {
+    margin-top: 9px;
+  }
+}

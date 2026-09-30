@@ -28,22 +28,6 @@ a { color: inherit; text-decoration: none; }
   justify-content: flex-start;
 }
 
-.theme-toggle {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  padding: 0 .4rem;
-  border: 0;
-  margin: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-}
 [data-theme="dark"] .theme-toggle .moon { display: none; }
 [data-theme="light"] .theme-toggle .sun { display: none; }
 /* 标题 */

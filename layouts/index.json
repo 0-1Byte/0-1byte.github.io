@@ -19,4 +19,8 @@
   {{- $groups = $groups | append (dict "key" .key "label" .label "children" $children) }}
   {{- end }}
 {{- end }}
-{{- dict "groups" $groups | jsonify }}
+{{- $standalone := slice }}
+{{- range site.Data.nav.standalone }}
+  {{- $standalone = $standalone | append (dict "name" .name "href" .href "desc" (.desc | default "")) }}
+{{- end }}
+{{- dict "groups" $groups "standalone" $standalone | jsonify }}

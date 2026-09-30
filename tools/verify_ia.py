@@ -18,7 +18,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-BASE = "http://127.0.0.1:1350"
+BASE = "http://127.0.0.1:1356"
 ROOT = Path(__file__).resolve().parents[1]
 NAV = (ROOT / "data" / "nav.yaml").read_text(encoding="utf-8")
 
@@ -143,7 +143,9 @@ checks = [
     ("使用 .home 结构", has_class(home, "home")),
     ("含 focus 文案", "home-focus" in home),
     ("含 currently", "home-currently" in home),
-    ("含分组入口", "home-index" in home),
+    # elsewhere 块（home-index）已按要求移除 —— 它与顶部导航重复
+    ("不含重复的 elsewhere", "home-index" not in home and "elsewhere" not in home),
+    ("含文章入口", "home-posts" in home and "/posts/" in home),
     ("不含文章卡片 .post-entry", "post-entry" not in home),
     ("不含文章链接 .entry-link", "entry-link" not in home),
     ("含 Now 入口", "/now/" in home),

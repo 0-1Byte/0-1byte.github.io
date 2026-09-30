@@ -1,14 +1,11 @@
 {{- /*
   首页 —— 极简入口，不是 dashboard。
 
-  职责只有一个：给人一个入口。
-  所以这里不列文章、不列数据、不展开任何内容，只有四块：
-    名字/focus 文案  ·  currently  ·  分组入口  ·  Now
+  结构（四块，克制）：
+    名字/focus 文案  ·  currently  ·  writing（最近文章）  ·  now
 
-  分组入口的映射（与顶部导航同源，均取自 data/nav.yaml）：
-    listen→Music  read→Book  watch→Film  make→Works
-    watch 有 3 个子页，文档结构不便于一屏平铺，因此首页只给一个入口，
-    子页（Film/TV/Docu）由顶部导航的下拉承担。
+  关于 writing：文章仍然存在，但阶段 3 把首页改成入口后丢了入口。
+  这里给「最近 3 篇 + 全部文章链接」，既恢复可达性，又不把首页变成列表墙。
 
   文案修改位置（都不用碰模板）：
     focus / currently  → content/_index.md 的 front matter
@@ -19,7 +16,9 @@
 
 {{- $focus := .Params.focus | default (slice "building small things," "thinking about large things.") }}
 {{- $currently := .Params.currently | default (slice "AI" "Product" "Music" "Writing") }}
-{{- $groups := where site.Data.nav.groups "pending" "!=" true }}
+{{- $limit := .Params.recentPosts | default 3 }}
+{{- $posts := where site.RegularPages "Type" "posts" }}
+{{- $recent := first $limit $posts }}
 
 <article class="home">
 
@@ -41,15 +40,24 @@
   </section>
   {{- end }}
 
+  {{- with $recent }}
   <section class="home-block">
-    <h2 class="home-label">elsewhere</h2>
-    <ul class="home-index">
-      {{- range $groups }}
-      {{- $only := index .children 0 }}
-      <li><a href="{{ $only.href | relURL }}">{{ .label }}</a></li>
+    <h2 class="home-label">writing</h2>
+    <ul class="home-posts">
+      {{- range . }}
+      <li>
+        <a href="{{ .RelPermalink }}">
+          <span class="home-post-title">{{ .Title }}</span>
+          <time class="home-post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01" }}</time>
+        </a>
+      </li>
       {{- end }}
     </ul>
+    {{- if gt (len $posts) (len $recent) }}
+    <p class="home-more"><a href="{{ "/posts/" | relURL }}">全部文章 →</a></p>
+    {{- end }}
   </section>
+  {{- end }}
 
   <section class="home-block">
     <h2 class="home-label">now</h2>

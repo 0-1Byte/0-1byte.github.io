@@ -47,5 +47,13 @@
     </li>
     {{- end }}
     {{- end }}
+    {{- /* 独立入口（不属于五个动词分组），例如 writing -> /posts/ */}}
+    {{- range site.Data.nav.standalone }}
+    <li class="hnav-item">
+      <a class="hnav-link" href="{{ .href | relURL }}" title="{{ .desc | default .name }}">
+        <span>{{ .name }}</span>
+      </a>
+    </li>
+    {{- end }}
   </ul>
 </nav>

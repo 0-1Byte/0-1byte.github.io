@@ -1,14 +1,98 @@
 /* ==========================================================================
-   全站导航样式 —— 同时服务 Hugo 页面与 static/ 合集页
-   只使用 :-based 类选择器（hnav-*），不影响 PaperMod 的其它逻辑。
+   全站导航 + header 样式 —— 同时服务 Hugo 页面与 static/ 合集页
+   只使用类选择器（hnav-* / header-*），不改 PaperMod 的其它逻辑。
    颜色 / 圆角 / 动效全部取自 static/theme.css 的统一变量。
+
+   结构（两种页面现在完全一致）：
+     <header class="header">
+       <div class="logo"><a href="/">Chen</a></div>
+       <div class="header-nav">
+         <nav class="hnav">…</nav>   ← Hugo 页面由模板服务端渲染
+         <button id="theme-toggle">  ← 合集页由 site-nav.js 渲染同一 structure
+       </div>
+     </header>
    ========================================================================== */
+
+/* ---------- header 布局 ----------
+   合集页原先在各自 style.css 里放了一份 .header/.theme-toggle，
+   现已收敛到这里，避免 6 份实现漂移。 */
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 26px;
+  height: 68px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* 给右上角的主题按钮留出位置，避免导航压在它下面 */
+  padding-right: 44px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 60px;
+}
+
+.logo a {
+  font-family: 'Dancing Script', cursive;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-decoration: none;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: opacity var(--motion-fast) ease;
+}
+
+.logo a:hover {
+  opacity: .8;
+}
+
+/* ---------- 主题切换按钮 ----------
+   关键：显式 z-index。合集页的 .hnav 会 flex 伸展，
+   若不加层级，会盖在绝对定位的按钮上，导致"点了没反应"。 */
+
+.theme-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 3;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  padding: 0 .4rem;
+  border: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+[data-theme="dark"] .theme-toggle .moon,
+[data-theme="light"] .theme-toggle .sun {
+  display: none;
+}
 
 /* ---------- 容器 ---------- */
 
 .hnav {
   flex: 1 1 auto;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .hnav-list {
@@ -107,6 +191,13 @@
   transform: rotate(180deg);
 }
 
+/* ---------- 下拉项字体 ----------
+   顶层是手写体 Dancing Script，下拉项若回落成默认无衬线会明显断裂。
+   Dancing Script 只有拉丁字形，中文会由后续字体兜底 ——
+   所以这里显式给出「Dancing Script + 正文无衬线」的组合：
+   拉丁文字（Film / TV / Docu）保持手写体，中文描述走正文无衬线，
+   两级之间不再出现第三种字体。 */
+
 .hnav-menu a {
   display: block;
   padding: 7px 11px;
@@ -123,25 +214,48 @@
   color: var(--text);
 }
 
-.hnav-menu-name {
+.hnav-menu-name,
+.hnav-menu-desc {
   display: block;
+  /* 与顶层导航同一套字体族：拉丁走手写体，CJK 由 sans 兜底 */
+  font-family: 'Dancing Script', Inter, ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.hnav-menu-name {
   color: var(--text);
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1.35;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .hnav-menu-desc {
-  display: block;
-  margin-top: 1px;
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 /* ---------- 移动端 ---------- */
 
 @media (max-width: 600px) {
+  .header {
+    gap: 16px;
+  }
+
+  .header-nav {
+    padding-right: 38px;
+  }
+
+  .logo {
+    height: 48px;
+  }
+
+  .logo a {
+    font-size: 28px;
+  }
+
   .hnav {
     /* 让导航可以横向滑动，而不是挤成两行把 header 撑高 */
     overflow-x: auto;
@@ -167,6 +281,10 @@
     left: auto;
     right: auto;
     min-width: 170px;
+  }
+
+  .hnav-menu-name {
+    font-size: 15px;
   }
 }
 
