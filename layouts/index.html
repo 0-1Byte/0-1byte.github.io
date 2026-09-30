@@ -2,19 +2,38 @@
   首页 —— 极简入口，不是 dashboard。
 
   结构（四块，克制）：
-    名字/focus 文案  ·  currently  ·  writing（最近文章）  ·  now
+    首屏句子  ·  currently  ·  writing（最近文章）  ·  now
+
+  关于首屏句子（打字机）：
+    句子不再写死在模板里，改为从 data/quotes.yaml 随机抽一句，
+    由 static/quotes.js 在运行时一个字一个字打出来。
+    这里只输出一个空容器 + 静态兜底文案：
+      · 服务端先渲染第一句，JS 未加载或失败时页面也不是空的
+      · JS 就绪后用 data-quote-* 接管，重新选一句并打字
 
   关于 writing：文章仍然存在，但阶段 3 把首页改成入口后丢了入口。
   这里给「最近 3 篇 + 全部文章链接」，既恢复可达性，又不把首页变成列表墙。
 
-  文案修改位置（都不用碰模板）：
-    focus / currently  → content/_index.md 的 front matter
-    note（正文段落）    → content/_index.md 的正文
+  文案修改位置：
+    currently  → content/_index.md 的 front matter
+    note（正文段落） → content/_index.md 的正文
+    首屏句子   → data/quotes.yaml
 */ -}}
 
 {{- define "main" }}
 
-{{- $focus := .Params.focus | default (slice "building small things," "thinking about large things.") }}
+{{- $quotes := site.Data.quotes | default slice }}
+{{- $fallback := "building small things, thinking about large things." }}
+{{- $first := dict "text" $fallback "source" "" }}
+{{- range $q := $quotes }}
+  {{- if reflect.IsMap $q }}
+    {{- if $q.text }}{{ $first = dict "text" $q.text "source" ($q.source | default "") }}{{ end }}
+  {{- else if $q }}
+    {{- $first = dict "text" $q "source" "" }}
+  {{- end }}
+  {{- break }}
+{{- end }}
+
 {{- $currently := .Params.currently | default (slice "AI" "Product" "Music" "Writing") }}
 {{- $limit := .Params.recentPosts | default 3 }}
 {{- $posts := where site.RegularPages "Type" "posts" }}
@@ -23,9 +42,10 @@
 <article class="home">
 
   <header class="home-hero">
-    <h1 class="home-focus">
-      {{- range $focus }}<span>{{ . }}</span>{{ end }}
+    <h1 class="home-focus" id="home-focus">
+      <span class="home-focus-text" data-quote-text>{{ $first.text }}</span><span class="home-focus-caret" aria-hidden="true"></span>
     </h1>
+    <p class="home-focus-source" data-quote-source{{ if not $first.source }} hidden{{ end }}>{{ $first.source }}</p>
     {{- with .Content }}
     <div class="home-note">{{ . }}</div>
     {{- end }}

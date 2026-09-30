@@ -1,14 +1,23 @@
 {{- /*
-  导航数据 —— 输出到 /nav.json
+  站点运行时数据 —— 输出到 /nav.json
 
   为什么需要这个文件：
-    data/nav.yaml 是信息架构的唯一来源，但 static/ 下的合集页是「原样复制」的
+    data/ 下是信息架构与文案的唯一来源，但 static/ 下的合集页是「原样复制」的
     静态文件，不经过 Hugo 模板，因此 extend_head.html 的注入对它们无效。
-    所以这里把同一份数据渲染成 JSON，供 static/site-nav.js 在运行时 fetch。
-    Hugo 页面仍由 site_nav.html 服务端渲染（首屏即有导航，不依赖 JS）。
+    所以这里把同一份数据渲染成 JSON，供运行时 fetch。
+    Hugo 页面仍由模板服务端渲染（首屏即有内容，不依赖 JS）。
 
-  输出位置由 hugo.toml 的 [outputs] home = ["HTML","JSON"] + mediaTypes 决定。
+  为什么导航和句子共用一个端点：
+    实测 Hugo 会把首页的多个自定义输出格式都交给同一个模板文件
+    （按 kind 找模板，baseName 只决定文件名），所以拆成两个端点做不到。
+    共用一个反而更好：site-nav.js 已经会拉这个文件，
+    quotes.js 复用它就不用再发一个请求。
+
+  当前包含两块：
+    groups / standalone  导航结构    -> static/site-nav.js、ocean/script.js
+    quotes               首屏句子库  -> static/quotes.js
 */ -}}
+
 {{- $groups := slice }}
 {{- range site.Data.nav.groups }}
   {{- if not .pending }}
@@ -19,8 +28,27 @@
   {{- $groups = $groups | append (dict "key" .key "label" .label "children" $children) }}
   {{- end }}
 {{- end }}
+
 {{- $standalone := slice }}
 {{- range site.Data.nav.standalone }}
   {{- $standalone = $standalone | append (dict "name" .name "href" .href "desc" (.desc | default "")) }}
 {{- end }}
-{{- dict "groups" $groups "standalone" $standalone | jsonify }}
+
+{{- /* 首屏句子：支持 { text, source } 与「纯字符串」两种写法；空条目丢弃 */}}
+{{- $quotes := slice }}
+{{- range $q := site.Data.quotes }}
+  {{- $text := "" }}
+  {{- $source := "" }}
+  {{- if reflect.IsMap $q }}
+    {{- $text = $q.text | default "" }}
+    {{- $source = $q.source | default "" }}
+  {{- else }}
+    {{- $text = $q }}
+  {{- end }}
+  {{- $text = $text | strings.TrimSpace }}
+  {{- if $text }}
+    {{- $quotes = $quotes | append (dict "text" $text "source" ($source | strings.TrimSpace)) }}
+  {{- end }}
+{{- end }}
+
+{{- dict "groups" $groups "standalone" $standalone "quotes" $quotes | jsonify }}

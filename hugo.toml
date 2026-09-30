@@ -20,8 +20,16 @@ relativeURLs = false
 #
 # 说明：输出格式取名 NavIndex，避免与 Hugo 内置的 JSON 输出格式冲突
 # （内置的那个会固定写成 index.json，baseName 不生效）。
-# 注意：/index.json 现为导航数据。当前站点未启用搜索（无 content/search.md），
-# 若日后要启用 PaperMod 搜索，需另开一个输出格式，不要复用 index.json。
+#
+# 实测结论（重要）：首页的多个自定义输出格式会共用同一个模板文件
+# layouts/index.json —— Hugo 按 kind 而不是格式名找模板，baseName 只决定文件名。
+# 所以 /nav.json 现在是「站点运行时数据」这一个端点，里面同时包含
+#   · groups / standalone  导航结构       -> static/site-nav.js、ocean/script.js
+#   · quotes               首屏句子库     -> static/quotes.js
+# 这样只发一个请求，也避免再造一个只是为了名字好看的端点。
+#
+# 当前站点未启用搜索（无 content/search.md）；若日后要启用 PaperMod 搜索，
+# 需另开一个输出格式，不要复用 nav 这个 baseName。
 [mediaTypes."application/json"]
     suffixes = ["json"]
 
@@ -43,6 +51,13 @@ relativeURLs = false
     isPlainText = true
     isHTML = false
     rel = "alternate"
+
+# 实测结论：首页的多个自定义输出格式会共用同一个模板文件 layouts/index.json，
+# 因为 Hugo 按 kind 找模板、baseName 只决定文件名。
+# 所以不再为句子库单开一个格式 —— 它并进 /nav.json，
+# 与导航数据同一个端点，只发一个请求。
+# 详见 layouts/index.json 顶部说明。
+
 
 [outputs]
     home = ["HTML", "NavIndex"]
