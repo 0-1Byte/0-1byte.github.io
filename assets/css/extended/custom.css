@@ -255,3 +255,15 @@ html[data-theme="dark"] .post-entry {
     border-color: rgba(255, 255, 255, 0.06);
     background: var(--entry);
 }
+
+/* ========== 回到顶部按钮：无 JS 时的兜底 ==========
+   正常外观由 static/back-to-top.css 统一负责（合集页同样引用它）。
+   但 PaperMod 的 <noscript> 里写着 .top-link { display:none }，
+   万一浏览器禁用了 JS，按钮就永远出不来 —— 这里把它放回来。
+   注意：必须排在主题样式之后才生效，custom.css 满足这个条件。 */
+@media all {
+    .top-link {
+        display: grid !important;
+    }
+}
+
