@@ -17,27 +17,38 @@
     })();
   </script>
 
-  <!-- 主题切换（自带实现）
-       刻意内联在 <head>：同步执行、无外部依赖、无加载顺序问题。
-       点击走 document 捕获阶段，因此按钮即使被其它元素遮挡也能响应。
-       data-theme-owner="page" 告诉 site-nav.js 不要重复处理。 -->
+  <!-- 主题切换
+       具名全局函数 + 按钮 onclick 属性直接调用（最原始的绑定，
+       不依赖脚本加载顺序）；另留一条 document 捕获委托作为兜底。
+
+       两条路径可能被同一次点击同时触发，因此按「事件时间戳」去重：
+       同一次点击的所有事件共享 event.timeStamp，两次真实点击则必然不同。
+       这样一次点击只切换一次，快速连点也各自生效。 -->
   <script>
     (() => {
       const KEY = "pref-theme";
       const root = document.documentElement;
+      let lastStamp = null;
 
       function apply(theme) {
         root.dataset.theme = theme;
         try { localStorage.setItem(KEY, theme); } catch (e) { /* 隐私模式忽略 */ }
       }
 
-      // 捕获阶段委托：不依赖按钮此刻是否已存在，也不怕被遮挡
-      document.addEventListener("click", (event) => {
-        const target = event.target;
-        if (!target || !target.closest) return;
-        if (!target.closest("#theme-toggle")) return;
-        event.preventDefault();
+      // force=true 用于控制台手动验证（跳过事件去重）
+      window.toggleSiteTheme = (force, stamp) => {
+        if (!force) {
+          if (stamp !== undefined && stamp === lastStamp) return;   // 同一次点击的重复触发
+          if (stamp !== undefined) lastStamp = stamp;
+        }
         apply(root.dataset.theme === "dark" ? "light" : "dark");
+      };
+
+      document.addEventListener("click", (event) => {
+        const t = event.target;
+        if (!t || !t.closest || !t.closest("#theme-toggle")) return;
+        if (event.preventDefault) event.preventDefault();
+        window.toggleSiteTheme(false, event.timeStamp);
       }, true);
     })();
   </script>
@@ -59,7 +70,7 @@
       <div class="header-nav">
         <div class="site-nav" data-site-nav></div>
       <button id="theme-toggle" class="theme-toggle" data-theme-owner="page" accesskey="t" type="button"
-              aria-label="切换主题" title="切换主题">
+              aria-label="切换主题" title="切换主题" onclick="toggleSiteTheme(false,event.timeStamp)">
         <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>

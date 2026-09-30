@@ -1,6 +1,6 @@
 /* ==========================================================================
-   独立内容页样式 —— 首页（/）与 Now 页（/now/）
-   两者共用同一套排版节奏（.home / .home-block / .home-label），
+   独立内容页样式 —— 首页（/）/ Now（/now/）/ 文章列表（/posts/）
+   共用同一套排版节奏（.home / .home-block / .home-label）。
    只用 :root 里的统一变量（static/theme.css）。
    刻意保持克制：无卡片、无边框、无阴影、无大字号标题。
    ========================================================================== */
@@ -260,5 +260,55 @@
 
   .home-posts li + li {
     margin-top: 9px;
+  }
+}
+/* ==========================================================================
+   文章列表页头（/posts/）
+   PaperMod 的 .page-header h1 与 .post-description 用的是主题默认无衬线，
+   而导航 listen/writing 与首页 focus 都是手写体 —— 放一起明显违和。
+   这里把页头对齐到与首页 .home-focus / .home-label 完全相同的排版。
+   ========================================================================== */
+
+.page-header {
+  margin: 0;
+  padding: 74px 0 0;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-family: 'Dancing Script', cursive;
+  font-size: 30px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--text);
+}
+
+/* 与首页 .home-note 一致：中文说明走正文无衬线、压低对比度 */
+.page-header .post-description {
+  margin: 12px 0 0;
+  max-width: 34em;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.page-header .post-description p {
+  margin: 0;
+}
+
+/* 页头与卡片列表之间留出与首页相同的节奏 */
+.page-header + .post-entry,
+.page-header ~ .post-entry:first-of-type {
+  margin-top: 34px;
+}
+
+@media (max-width: 600px) {
+  .page-header {
+    padding-top: 48px;
+  }
+
+  .page-header h1 {
+    font-size: 26px;
   }
 }
