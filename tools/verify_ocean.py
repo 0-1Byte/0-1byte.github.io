@@ -1,9 +1,12 @@
-"""阶段 5 验证：/ocean/ 页面、资源、入口生成与回退路径。
+"""阶段 5（重做后）验证：/ocean/ 作为隐藏的隐喻入口。
 
-另外在 Node 里跑真实的 ocean/script.js，验证：
-  A. 底部入口从 /nav.json 正确生成
-  B. nav.json 失败时给出明确错误而不是静默留白
-  C. WebGL 不可用时不抛未捕获异常，且显示 fallback 说明
+检查：
+  A. 页面与资源 200
+  B. 场景结构：只有海、天、Chen，以及一个装东西的容器
+  C. 隐藏性：不在导航、不在首页、页面标了 noindex
+  D. 隐喻入口：从 /nav.json 生成，指向真实分区（不是硬编码）
+  E. 时段色板与三态钩子在页面/脚本中确实存在
+  F. URL 未被删除
 """
 import json
 import re
@@ -26,101 +29,113 @@ def get(path):
         return None, str(e)
 
 
+def check(label, cond, detail=""):
+    if not cond:
+        problems.append(f"{label} {detail}".strip())
+        print(f"  FAIL {label}" + (f"  ← {detail}" if detail else ""))
+    else:
+        print(f"  OK   {label}")
+
+
 print("=" * 88)
 print("A. 页面与资源")
 print("=" * 88)
-for p in ["/ocean/", "/ocean/style.css", "/ocean/script.js", "/ocean/ocean-favicon.svg",
-          "/theme.css", "/site-nav.css", "/site-nav.js", "/collection-common.js", "/nav.json"]:
+for p in ["/ocean/", "/ocean/style.css", "/ocean/script.js", "/ocean/ocean-favicon.svg", "/nav.json"]:
     st, _ = get(p)
-    ok = st == 200
-    if not ok:
-        problems.append(f"{p} -> {st}")
-    print(f"  {'OK ' if ok else 'FAIL'} {p:30} {st}")
+    check(f"{p} 200", st == 200, f"HTTP {st}")
 
 print()
 print("=" * 88)
-print("B. 页面结构：三个状态钩子 + 唯一主动入口")
+print("B. 场景结构：只有海、天、Chen")
 print("=" * 88)
 st, page = get("/ocean/")
-checks = [
-    ("canvas#ocean 存在", 'id="ocean"' in page),
-    ("静态 fallback 层存在", "ocean-fallback" in page),
-    ("出口 #ocean-links 存在", 'id="ocean-links"' in page),
-    ("错误提示 #ocean-note 存在且默认隐藏", 'id="ocean-note"' in page and "hidden" in page),
-    ("冷启动 #ocean-links 带 is-loading", False),   # 由 JS 添加，HTML 里没有是对的
-    ("光点指向 /random/", "/random/" in page),
-    ("光点带无障碍标签", 'aria-label="something random' in page),
-]
-for label, ok in checks:
-    if label == "冷启动 #ocean-links 带 is-loading":
-        print(f"  --   {label}: 由 JS 运行时添加（预期不在 HTML 中）")
-        continue
-    if not ok:
-        problems.append(f"页面缺少：{label}")
-    print(f"  {'OK ' if ok else 'FAIL'} {label}")
+check("canvas#ocean 存在", 'id="ocean"' in page)
+check("静态 fallback 层存在", "ocean-fallback" in page)
+check("雾气层存在", "ocean-haze" in page)
+check("名字 Chen 存在", 'class="ocean-name"' in page and ">Chen<" in page)
+check("名字点回首页", re.search(r'class="ocean-name"[^>]*href="/"', page) is not None
+      or re.search(r'href="/"[^>]*class="ocean-name"', page) is not None)
+check("东西的容器存在", 'id="ocean-objects"' in page)
+check("说明元素存在且默认隐藏", 'id="ocean-note"' in page and "hidden" in page)
 
-# 页面不应有大量按钮：统计 <button> 与 <a> 数量
+# 「没有卡片，没有按钮堆砌」
 n_btn = len(re.findall(r"<button", page))
+n_card = len(re.findall(r"class=\"[^\"]*card", page))
+n_nav = len(re.findall(r"data-site-nav|site-nav\.js", page))
+check("没有按钮", n_btn == 0, f"实际 {n_btn} 个")
+check("没有卡片", n_card == 0, f"实际 {n_card} 个")
+check("没有网站导航栏", n_nav == 0, f"实际 {n_nav} 处")
 n_a = len(re.findall(r"<a\s", page))
-print(f"      页面按钮 {n_btn} 个（应仅主题切换 1 个）、链接 {n_a} 个（导航 + 光点）")
-if n_btn > 1:
-    problems.append(f"页面有 {n_btn} 个按钮，超出预期（仅主题切换）")
+check("链接只有名字一处（东西由 JS 生成）", n_a == 1, f"实际 {n_a} 个")
 
 print()
 print("=" * 88)
-print("C. 底部入口应由 nav.json 生成（预期内容）")
+print("C. 隐藏性")
 print("=" * 88)
 st, navjson = get("/nav.json")
 nav = json.loads(navjson)
-expect = []
-for g in nav["groups"]:
-    if not g.get("pending") and g.get("children"):
-        expect.append(g["label"])
-for s in nav.get("standalone", []):
-    expect.append(s["name"])
-print(f"  nav.json 可生成的入口: {expect}")
-ok = "ocean" in [s["name"] for s in nav.get("standalone", [])]
-if not ok:
-    problems.append("导航里没有 ocean 入口")
-print(f"  {'OK ' if ok else 'FAIL'} ocean 已加入 standalone")
-
+names = [s["name"] for s in nav.get("standalone", [])]
+check("导航 standalone 不含 ocean", "ocean" not in names, f"实际 {names}")
+check("导航分组不含 ocean",
+      not any(c.get("href") == "/ocean/" for g in nav["groups"] for c in g.get("children", [])))
 st, home = get("/")
-ok = "/ocean/" in home
-if not ok:
-    problems.append("首页导航未出现 ocean")
-print(f"  {'OK ' if ok else 'FAIL'} 首页导航含 /ocean/ = {ok}")
+check("首页不含 /ocean/ 链接", "/ocean/" not in home)
+check("页面标了 noindex", 'name="robots"' in page and "noindex" in page)
+
+# 其它页面也不该引用它
+refs = []
+for p in ["/music/", "/book/", "/works/", "/docu/", "/film/", "/tv/", "/random/", "/posts/", "/now/", "/fragments/"]:
+    st2, body = get(p)
+    if st2 == 200 and "/ocean/" in body.replace('href="/ocean/"', ""):
+        refs.append(p)
+check("其它页面都不链接到 /ocean/", not refs, f"出现在 {refs}")
 
 print()
 print("=" * 88)
-print("D. 着色器与回退（静态检查）")
+print("D. 隐喻入口（由 nav.json 生成，指向真实分区）")
 print("=" * 88)
 st, js = get("/ocean/script.js")
-for label, cond in [
-    ("包含顶点着色器", "gl_Position" in js),
-    ("包含片元着色器", "gl_FragColor" in js),
-    ("未出现 JS 函数被 GLSL 调用（rippleseed 已移除）", "rippleseed" not in js),
-    ("WebGL 不可用时隐藏画布", "canvas.style.display" in js),
-    ("提供静态回退说明", "回退到静态海面" in js),
-    ("尊重 prefers-reduced-motion", "prefers-reduced-motion" in js),
-    ("后台时停止渲染", "visibilitychange" in js),
-    ("限制像素比以省电", "devicePixelRatio" in js),
-]:
-    if not cond:
-        problems.append(f"script.js 缺少：{label}")
-    print(f"  {'OK ' if cond else 'FAIL'} {label}")
+check("从 /nav.json 取数据", 'fetch("/nav.json"' in js)
+check("每个东西都取分区第一个子项", "g.children[0].href" in js)
+check("pending 分组被跳过", "if (g.pending" in js)
+# 期望的映射
+for group, href in [("listen", "/music/"), ("read", "/book/"),
+                    ("watch", "/film/"), ("make", "/works/"), ("think", "/fragments/")]:
+    check(f"CAST 里有 {group}", f'group: "{group}"' in js)
+# 形状各异
+kinds = re.findall(r'kind: "(\w+)"', js)
+check("五种不同的形状", len(set(kinds)) == 5 and len(kinds) == 5, f"实际 {kinds}")
+check("形状用 CSS 而非 emoji", "sh-boat" in js and "⛵" not in js)
+check("每个东西有 aria-label", "aria-label=" in js and "—— 去" in js)
 
-st, css = get("/ocean/style.css")
+print()
+print("=" * 88)
+print("E. 时段色板 / 三态 / 克制动效")
+print("=" * 88)
+css = get("/ocean/style.css")[1]
 for label, cond in [
-    ("静态海面 .ocean-fallback", ".ocean-fallback" in css),
-    ("雾气层 .ocean-haze", ".ocean-haze" in css),
-    ("海平线变量与 shader 共用", "--ocean-horizon" in css),
-    ("无卡通/网格感的大面积纯蓝渐变", "repeating-linear-gradient" not in css),
-    ("移动端断点", "max-width: 600px" in css),
-    ("减少动效断点", "prefers-reduced-motion" in css),
+    ("三套色板已定义", 'day:' in js and 'dusk:' in js and 'night:' in js),
+    ("按权重混合（非硬切）", "function phaseWeights" in js and "blendedPalette" in js),
+    ("黄昏地平线偏暖", "0.88, 0.62, 0.38" in js),
+    ("夜晚有星光", "uStars" in js and "uStars > 0.01" in js),
+    ("夜间海面偏蓝", "0.026, 0.052, 0.084" in js),
+    ("加载失败给说明", "入口加载失败" in js),
+    ("无可用分区给说明", "海面上暂时没有可以辨认的东西" in js),
+    ("WebGL 失败回退", "canvas.style.display" in js),
+    ("尊重减少动效", "prefers-reduced-motion" in js and "prefers-reduced-motion" in css),
+    ("后台停止渲染", "visibilitychange" in js),
+    ("限制像素比", "devicePixelRatio" in js),
+    ("周期统一（保证最多两个可见）", "period: 75, dur: 30" in js),
+    ("名字颜色随时段变化", "--ocean-name" in css and "setProperty" in js),
 ]:
-    if not cond:
-        problems.append(f"style.css 缺少：{label}")
-    print(f"  {'OK ' if cond else 'FAIL'} {label}")
+    check(label, cond)
+
+print()
+print("=" * 88)
+print("F. URL 未被删除")
+print("=" * 88)
+check("public/ocean/index.html 存在", (ROOT / "public" / "ocean" / "index.html").exists())
+check("/ocean/ 可访问（虽然隐藏）", get("/ocean/")[0] == 200)
 
 print()
 print("=" * 88)

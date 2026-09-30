@@ -133,18 +133,33 @@ print()
 print("=" * 84)
 print("JS 侧 uniform 赋值")
 print("=" * 84)
-assigned = set(re.findall(r'getUniformLocation\(\s*program\s*,\s*"(\w+)"\s*\)', src))
-used = set(re.findall(r"uniform1f\(\s*(u\w+)", src)) | set(re.findall(r"uniform2f\(\s*(u\w+)", src))
-print(f"  取到的 location: {sorted(assigned)}")
+
+# 现在的写法是：UNIFORMS 数组 + forEach(getUniformLocation)，
+# 所以不能只找零散的 getUniformLocation 调用，要把数组内容也读出来。
+array = re.search(r"const UNIFORMS = \[(.*?)\];", src, re.S)
+from_array = set(re.findall(r'"(\w+)"', array.group(1))) if array else set()
+from_calls = set(re.findall(r'getUniformLocation\(\s*program\s*,\s*"(\w+)"\s*\)', src))
+assigned = from_array | from_calls
+used = set(re.findall(r"uniform1f\(\s*loc\.(\w+)", src)) | set(re.findall(r"uniform2f\(\s*loc\.(\w+)", src)) \
+    | set(re.findall(r"uniform3fv\(\s*loc\.(\w+)", src))
+
+print(f"  UNIFORMS 数组: {sorted(from_array)}")
 print(f"  实际赋值用到: {sorted(used)}")
-if len(shaders) == 2:
-    declared = set(re.findall(r"uniform\s+\w+\s+(\w+)", shaders["FRAG"]))
-else:
-    declared = set()
+
+declared = set()
+for name, code in shaders.items():
+    body = re.sub(r"/\*.*?\*/", "", code, flags=re.S)
+    declared |= set(re.findall(r"uniform\s+\w+\s+(\w+)", body))
+
 missing_assign = declared - assigned
 if missing_assign:
     problems.append(f"着色器声明但 JS 未取 location: {sorted(missing_assign)}")
 print(f"  {'OK ' if not missing_assign else 'FAIL'} 声明与取值一致: 缺 {sorted(missing_assign) or '无'}")
+
+never_used = assigned - used
+if never_used:
+    problems.append(f"取了 location 但从未赋值: {sorted(never_used)}")
+print(f"  {'OK ' if not never_used else 'FAIL'} 取值后都有赋值: 未用 {sorted(never_used) or '无'}")
 
 # 回退路径是否真的存在
 print()

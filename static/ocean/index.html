@@ -2,14 +2,17 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/svg+xml" href="/ocean/ocean-favicon.svg?v=1">
   <link rel="apple-touch-icon" href="/ocean/ocean-favicon.svg?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 
-  <!-- 防止主题切换时出现白屏闪烁 -->
+  <meta name="robots" content="noindex">
+  <title>Ocean — Chen</title>
+
+  <!-- 主题：这一页不跟随 light/dark 的底色，但要在本地存一个值给别的页面用 -->
   <script>
     (() => {
       const saved = localStorage.getItem("pref-theme") || localStorage.getItem("music-theme");
@@ -22,88 +25,30 @@
     })();
   </script>
 
-  <!-- 主题切换（与合集页同一套：onclick + 捕获委托，按 event.timeStamp 去重） -->
-  <script>
-    (() => {
-      const KEY = "pref-theme";
-      const root = document.documentElement;
-      let lastStamp = null;
-
-      function apply(theme) {
-        root.dataset.theme = theme;
-        try { localStorage.setItem(KEY, theme); } catch (e) { /* 隐私模式忽略 */ }
-      }
-
-      window.toggleSiteTheme = (force, stamp) => {
-        if (!force) {
-          if (stamp !== undefined && stamp === lastStamp) return;
-          if (stamp !== undefined) lastStamp = stamp;
-        }
-        apply(root.dataset.theme === "dark" ? "light" : "dark");
-      };
-
-      document.addEventListener("click", (event) => {
-        const t = event.target;
-        if (!t || !t.closest || !t.closest("#theme-toggle")) return;
-        if (event.preventDefault) event.preventDefault();
-        window.toggleSiteTheme(false, event.timeStamp);
-      }, true);
-    })();
-  </script>
-
-  <link rel="stylesheet" href="/theme.css?v=1">
-  <link rel="stylesheet" href="/site-nav.css?v=4">
-  <link rel="stylesheet" href="/ocean/style.css?v=1">
-  <title>Ocean — Chen</title>
+  <link rel="stylesheet" href="/ocean/style.css?v=2">
 </head>
 
 <body class="ocean-body">
-  <!-- 海面画布。WebGL 可用时由 shader 绘制；
-       不可用时画布保持透明，露出下层 .ocean-fallback 的静态 CSS 海面。 -->
+
+  <!-- 海面：WebGL 可用时由 shader 画；不可用时画布隐藏，露出下层静态 CSS 海面 -->
   <canvas id="ocean" aria-hidden="true"></canvas>
   <div class="ocean-fallback" aria-hidden="true"></div>
   <div class="ocean-haze" aria-hidden="true"></div>
 
-  <div class="page ocean-page">
-    <header class="header">
-      <div class="logo">
-        <a href="/" accesskey="h" title="Chen (Alt + H)">Chen</a>
-      </div>
-      <div class="header-nav">
-        <div class="site-nav" data-site-nav></div>
-        <button id="theme-toggle" class="theme-toggle" data-theme-owner="page" accesskey="t" type="button"
-                aria-label="切换主题" title="切换主题" onclick="toggleSiteTheme(false,event.timeStamp)">
-          <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
-          <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </button>
-      </div>
-    </header>
+  <main class="ocean-stage">
 
-    <main class="ocean-main">
-      <!-- 远处一个微弱光点：唯一的主要入口，指向 Random -->
-      <a class="light-point" id="light-point" href="/random/" aria-label="something random from Chen's universe">
-        <span class="light-point-dot" aria-hidden="true"></span>
-        <span class="light-point-label">something random</span>
-      </a>
+    <!-- 唯一的固定文字：名字。点它回主页 -->
+    <a class="ocean-name" href="/" aria-label="Chen —— 回到首页">Chen</a>
 
-      <!-- 海面底部极小的入口；由 nav.json 生成，失败时另行提示 -->
-      <nav class="ocean-links" id="ocean-links" aria-label="分区入口"></nav>
-      <p class="ocean-note" id="ocean-note" hidden></p>
-    </main>
-  </div>
+    <!-- 海面上偶尔出现的东西。由 /ocean/script.js 依据 /nav.json 生成，
+         每一个都指向一个真实分区；没有可辨认的东西时不留空白，给出说明。 -->
+    <div class="ocean-objects" id="ocean-objects"></div>
 
-  <script src="/site-nav.js?v=4" defer></script>
-  <script src="/collection-common.js?v=1" defer></script>
-  <script src="/ocean/script.js?v=1" defer></script>
+    <!-- 失败 / 空状态说明。默认隐藏，出问题时才出现 -->
+    <p class="ocean-note" id="ocean-note" hidden></p>
+
+  </main>
+
+  <script src="/ocean/script.js?v=2" defer></script>
 </body>
 </html>

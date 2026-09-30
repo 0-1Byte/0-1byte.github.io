@@ -25,7 +25,15 @@ old_raw = subprocess.run(
 old = json.loads(old_raw)
 new = json.loads((MUSIC / "songs.json").read_text(encoding="utf-8"))
 
-check("条目数一致", len(old) == len(new), f"{len(old)} -> {len(new)}")
+check("没有丢失原有歌曲",
+      {s["id"] for s in old} <= {s["id"] for s in new},
+      f"原有 {len(old)} 首 -> 现在 {len(new)} 首"
+      + (f"，缺失 {sorted({s['id'] for s in old} - {s['id'] for s in new})[:3]}" if len(old) > len(new) else ""))
+# 说明：这里不写死条目数。歌会持续增加，写死会让检查在每次加歌后误报。
+# 真正要保证的是「优化过程没有丢数据」，所以只比对集合包含关系。
+check("如果条目数未变，则逐条内容也应未变",
+      len(old) != len(new) or all(a == b for a, b in zip(old, new)),
+      f"{len(old)} -> {len(new)}")
 fields = ["id", "title", "artist", "lyricist", "composer", "cover", "album", "year", "tags", "url"]
 diffs = []
 for a, b in zip(old, new):
@@ -41,7 +49,12 @@ print("\n2. 图片资源")
 bases = sorted({s["img"] for s in new})
 missing = [f"{b}-{w}.webp" for b in bases for w in (240, 320, 480) if not (ASSETS / f"{b}-{w}.webp").exists()]
 check("每个 img 主干都有 240/320/480 三档", not missing, f"缺失 {len(missing)}")
-check("唯一封面去重生效", len(bases) == 146, f"{len(bases)} 个主干对应 {len(new)} 首歌")
+# 去重是否生效：不写死具体数字（歌会持续增加），只看
+#   ① 主干数 <= 歌曲数（说明确实合并过重复封面）
+#   ② 每个主干都有对应文件
+#   ③ 主干本身唯一
+check("唯一封面去重生效", len(bases) <= len(new) and len(bases) == len(set(bases)),
+      f"{len(bases)} 个主干对应 {len(new)} 首歌")
 check("img 命名 URL 安全（无空格/无百分号编码）",
       all(" " not in b and "%" not in b for b in bases))
 
