@@ -22,6 +22,10 @@
     })();
   </script>
 
+  <!-- 并行预取歌曲数据：与 script.js 同时开始下载，避免
+       HTML → script.js → songs.json 的串行等待。MIME 必须匹配，否则浏览器会重复请求。 -->
+  <link rel="preload" href="/music/songs.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+
 <link rel="stylesheet" href="/back-to-top.css?v=1">
   <link rel="stylesheet" href="/music/style.css?v=7">
   <title>Music — Chen</title>
@@ -77,7 +81,7 @@
     </footer>
   </div>
 
-  <script src="/music/script.js" defer></script>
+  <script src="/music/script.js?v=8" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>
