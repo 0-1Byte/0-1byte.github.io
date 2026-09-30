@@ -2458,6 +2458,38 @@ def remove_unused_covers(removed, remaining):
             print("本地封面删除失败：{} ({})".format(cover_path, error), file=sys.stderr)
 
 
+def optimize_cover_derivatives():
+    """新增/删除歌曲后，自动补齐封面下载尺寸的 WebP 衍生图。
+
+    复用 tools/optimize_music_covers.py（增量执行，只处理新封面，
+    通常 1~2 秒）。这一步是幂等的，失败也只是一条警告 —— 不能因为
+    图片优化出问题就影响加歌本身，所以整体 catch 住。
+    """
+    try:
+        import importlib.util
+
+        module_path = Path(__file__).resolve().parent / "optimize_music_covers.py"
+        spec = importlib.util.spec_from_file_location("optimize_music_covers", module_path)
+        if spec is None or spec.loader is None:
+            return
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        print()
+        print("正在生成封面 WebP 衍生图 ...")
+        result = module.optimize(verbose=False)
+        if result.get("ok"):
+            print("封面衍生图已就绪：生成 {} 个，跳过 {} 个，img 字段更新 {} 条。".format(
+                result["generated"], result["skipped"], result["changed"]
+            ))
+        else:
+            print("封面衍生图未全部生成，可手动运行 "
+                  "python tools/optimize_music_covers.py 排查。", file=sys.stderr)
+    except Exception as error:  # noqa: BLE001 - 图片优化不应影响加歌主流程
+        print("封面衍生图生成失败（不影响本次加歌）：{}".format(error), file=sys.stderr)
+        print("可手动运行 python tools/optimize_music_covers.py 重试。", file=sys.stderr)
+
+
 def main():
     args = parse_args()
     remove_references_list, readable = remove_references(args)
@@ -2491,6 +2523,7 @@ def main():
                 song.get("artist", ""),
             ))
         print("完成：删除 {} 首，当前共 {} 首。".format(len(removed), len(songs)))
+        optimize_cover_derivatives()
         return 0
 
     credits_changed = enrich_missing_credits(
@@ -2551,6 +2584,7 @@ def main():
             encoding="utf-8",
         )
     print("完成：新增 {} 首，当前共 {} 首。".format(added, len(songs)))
+    optimize_cover_derivatives()
     return 0
 
 
