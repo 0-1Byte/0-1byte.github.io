@@ -1,0 +1,323 @@
+/* ==========================================================================
+   /ocean/ —— 望向远处海平线
+
+   目标气质：广阔、平静、深邃。一张真实的、安静的深蓝海面，
+   不是卡通海面 / 低模海洋 / 蓝色渐变背景 / 网格波浪 / 游戏场景。
+
+   因此：
+     · 只用一个全屏 canvas + 低频起伏，没有网格线、没有卡通浪花
+     · 颜色低饱和深蓝，天空与海面都留大量空白
+     · 动效极慢（十年尺度上也几乎看不出在动）
+     · 文字极少：一个微弱光点 + 底部极小的分区入口
+
+   注意：这一页是网站里唯一的功能性例外 —— 它不跟随 light/dark 的底色，
+   始终是深蓝海面；但页面文字会按主题调整明暗以保证可读性。
+   ========================================================================== */
+
+/* 海平线位置：视口高度的比例（0.58 = 58%）。
+   用「无单位数字」是为了让 shader 与 DOM 共用同一个值 ——
+   CSS 里用 calc(var(…) * 100%)，JS 直接读出来当浮点数用。 */
+:root {
+  --ocean-horizon: 0.58;
+}
+
+@media (max-width: 600px) {
+  :root {
+    /* 手机上把海平线抬高一些，给天空更多空间，避免文字压在海面上 */
+    --ocean-horizon: 0.5;
+  }
+}
+
+.ocean-body {
+  margin: 0;
+  background: #0a1016;
+  /* 场景是固定的，页面本身不滚动 —— 视线不会被推走 */
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+/* ---------- 静态海面（fallback + 首帧底衬） ----------
+   即使 WebGL 完全不可用，这一层也已经是「安静的海平线」，
+   不是空白色块。颜色刻意低饱和、深蓝。 */
+
+.ocean-fallback {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* 海平线附近的一层薄雾 */
+    linear-gradient(to bottom,
+      hsla(205, 22%, 78%, 0) calc(var(--ocean-horizon) * 100% - 7%),
+      hsla(205, 22%, 80%, .5) calc(var(--ocean-horizon) * 100% - 1%),
+      hsla(205, 22%, 78%, 0) calc(var(--ocean-horizon) * 100% + 4%)),
+    /* 海面：由地平线的雾蓝逐渐压深 */
+    linear-gradient(to bottom,
+      hsl(207, 20%, 62%) 0%,
+      hsl(207, 24%, 45%) calc(var(--ocean-horizon) * 100% - 2%),
+      hsl(210, 34%, 22%) calc(var(--ocean-horizon) * 100% + 6%),
+      hsl(212, 42%, 12%) 78%,
+      hsl(213, 45%, 8%) 100%);
+}
+
+/* 天空单独一层，保证海平线是一条干净的、有雾的过渡，而不是硬边 */
+.ocean-fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(var(--ocean-horizon) * 100%);
+  background: linear-gradient(to bottom,
+    hsl(210, 32%, 10%) 0%,
+    hsl(209, 28%, 17%) 34%,
+    hsl(208, 24%, 28%) 68%,
+    hsl(207, 22%, 45%) 90%,
+    hsl(206, 20%, 58%) 100%);
+}
+
+/* ---------- canvas ---------- */
+
+#ocean {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 整幅画面再压一层极淡的雾，让远处更柔、更远 */
+.ocean-haze {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 55% at 50% calc(var(--ocean-horizon) * 100% + 2%),
+      hsla(205, 25%, 70%, .11) 0%,
+      hsla(205, 25%, 70%, 0) 62%),
+    /* 四角轻微压暗，像镜头暗角，视线自然收到中央 */
+    radial-gradient(130% 100% at 50% 45%,
+      hsla(212, 40%, 6%, 0) 55%,
+      hsla(212, 40%, 6%, .28) 100%);
+}
+
+/* ---------- 页面容器 ---------- */
+
+.ocean-page {
+  position: relative;
+  z-index: 3;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* header 覆盖在海面上，保持与其他页一致的左右留白 */
+.ocean-page .header {
+  color: hsl(205, 25%, 88%);
+}
+
+/* 海面是深色的，导航与 logo 必须用浅色，否则在 light 主题下几乎看不见 */
+.ocean-page .logo a {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: hsl(205, 30%, 92%);
+  opacity: .92;
+}
+
+.ocean-page .logo a:hover {
+  opacity: 1;
+}
+
+.ocean-page .hnav-link {
+  color: hsl(205, 22%, 78%);
+  opacity: .75;
+}
+
+.ocean-page .hnav-link:hover,
+.ocean-page .hnav-link:focus-visible,
+.ocean-page .hnav-item.is-active > .hnav-link {
+  color: hsl(205, 30%, 94%);
+  opacity: 1;
+}
+
+.ocean-page .hnav-menu {
+  background: hsla(212, 40%, 10%, .92);
+  border-color: hsla(205, 30%, 70%, .22);
+  backdrop-filter: blur(8px);
+}
+
+.ocean-page .hnav-menu-desc {
+  color: hsl(205, 18%, 68%);
+}
+
+.ocean-page .hnav-link--toggle .hnav-caret {
+  color: hsl(205, 22%, 70%);
+}
+
+.ocean-page .theme-toggle {
+  color: hsl(205, 25%, 84%);
+}
+
+/* 导航数据加载失败的提示也要在深色海面上可读 */
+.ocean-page .hnav-error {
+  color: hsl(205, 20%, 76%);
+  border-color: hsla(205, 30%, 70%, .3);
+}
+
+/* ---------- 主体 ---------- */
+
+.ocean-main {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 var(--page-gutter) 40px;
+  max-width: var(--content-width);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ---------- 远处那一点微光 ----------
+   唯一的主动入口，指向 Random。位置贴着海平线，像远处的灯光。 */
+
+.light-point {
+  position: absolute;
+  top: calc(var(--ocean-horizon) + 4.5%);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.light-point-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsla(200, 40%, 96%, .95);
+  box-shadow:
+    0 0 6px 1px hsla(200, 60%, 92%, .55),
+    0 0 20px 4px hsla(200, 60%, 90%, .22),
+    0 0 46px 10px hsla(200, 60%, 88%, .1);
+}
+
+/* 极慢、极弱的呼吸（9 秒）。用户看 10 秒也只是隐约觉得「有一点亮」 */
+.light-point-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: hsla(200, 50%, 96%, .22);
+  animation: light-breathe 9s ease-in-out infinite;
+}
+
+@keyframes light-breathe {
+  0%, 100% { opacity: .30; transform: scale(1); }
+  50%      { opacity: .70; transform: scale(1.45); }
+}
+
+.light-point-label {
+  color: hsla(205, 25%, 88%, .5);
+  font-size: 11px;
+  letter-spacing: .16em;
+  white-space: nowrap;
+  transition: color var(--motion-slow) ease, letter-spacing var(--motion-slow) ease;
+}
+
+.light-point:hover .light-point-label,
+.light-point:focus-visible .light-point-label {
+  color: hsla(205, 25%, 94%, .92);
+  letter-spacing: .2em;
+}
+
+/* ---------- 海面底部的分区入口（很小） ---------- */
+
+.ocean-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 22px;
+  padding: 0 0 22px;
+  min-height: 20px;
+}
+
+.ocean-links a {
+  color: hsla(205, 22%, 80%, .46);
+  font-family: 'Dancing Script', cursive;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-decoration: none;
+  transition: color var(--motion-slow) ease, opacity var(--motion-slow) ease;
+}
+
+.ocean-links a:hover,
+.ocean-links a:focus-visible {
+  color: hsla(205, 30%, 95%, .95);
+}
+
+/* 加载中：占位，避免入口「先空后跳」 */
+.ocean-links.is-loading::before {
+  content: "";
+  width: 132px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: hsla(205, 25%, 80%, .14);
+}
+
+/* 失败提示：极小的一行，说明原因而不是静默留白 */
+.ocean-note {
+  margin: 0 0 18px;
+  color: hsla(205, 20%, 82%, .5);
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+.ocean-note code {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: hsla(205, 30%, 80%, .12);
+  font-size: 10px;
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 600px) {
+  .ocean-main {
+    padding: 0 var(--gutter-mobile) 28px;
+  }
+
+  .light-point {
+    gap: 9px;
+  }
+
+  .light-point-label {
+    font-size: 10px;
+    letter-spacing: .12em;
+  }
+
+  .ocean-links {
+    gap: 4px 16px;
+    padding-bottom: 16px;
+  }
+
+  .ocean-links a {
+    font-size: 15px;
+  }
+}
+
+/* ---------- 减少动效 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .light-point-dot::after {
+    animation: none;
+    opacity: .5;
+  }
+}
