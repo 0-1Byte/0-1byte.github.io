@@ -1,23 +1,23 @@
 {{- /*
   首页 —— 极简入口，不是 dashboard。
 
-  结构（四块，克制）：
-    首屏句子  ·  currently  ·  writing（最近文章）  ·  now
+  结构：只有那句随机句子（+ 可选的一段说明）。
 
   关于首屏句子（打字机）：
-    句子不再写死在模板里，改为从 data/quotes.yaml 随机抽一句，
+    句子不写死在模板里，改为从 data/quotes.yaml 随机抽一句，
     由 static/quotes.js 在运行时一个字一个字打出来。
-    这里只输出一个空容器 + 静态兜底文案：
-      · 服务端先渲染第一句，JS 未加载或失败时页面也不是空的
+    这里先渲染第一句作为兜底：
+      · JS 未加载或请求失败时页面也不是空的
       · JS 就绪后用 data-quote-* 接管，重新选一句并打字
 
-  关于 writing：文章仍然存在，但阶段 3 把首页改成入口后丢了入口。
-  这里给「最近 3 篇 + 全部文章链接」，既恢复可达性，又不把首页变成列表墙。
+  曾经的 currently 与 writing 两块已按反馈移除（首页太乱）：
+    · currently 的数据仍在 content/_index.md 的 front matter 里
+    · 文章仍在 /posts/，顶部导航与 writing 入口都能到达
+    · 只是不在首页重复一遍
 
   文案修改位置：
-    currently  → content/_index.md 的 front matter
     note（正文段落） → content/_index.md 的正文
-    首屏句子   → data/quotes.yaml
+    首屏句子        → data/quotes.yaml
 */ -}}
 
 {{- define "main" }}
@@ -34,11 +34,6 @@
   {{- break }}
 {{- end }}
 
-{{- $currently := .Params.currently | default (slice "AI" "Product" "Music" "Writing") }}
-{{- $limit := .Params.recentPosts | default 3 }}
-{{- $posts := where site.RegularPages "Type" "posts" }}
-{{- $recent := first $limit $posts }}
-
 <article class="home">
 
   <header class="home-hero">
@@ -51,38 +46,16 @@
     {{- end }}
   </header>
 
-  {{- with $currently }}
-  <section class="home-block">
-    <h2 class="home-label">currently</h2>
-    <ul class="home-currently">
-      {{- range . }}<li>{{ . }}</li>{{ end }}
-    </ul>
-  </section>
-  {{- end }}
+  {{- /*
+    首页到此为止：只有那句随机句子（+ 可选的一段说明）。
 
-  {{- with $recent }}
-  <section class="home-block">
-    <h2 class="home-label">writing</h2>
-    <ul class="home-posts">
-      {{- range . }}
-      <li>
-        <a href="{{ .RelPermalink }}">
-          <span class="home-post-title">{{ .Title }}</span>
-          <time class="home-post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01" }}</time>
-        </a>
-      </li>
-      {{- end }}
-    </ul>
-    {{- if gt (len $posts) (len $recent) }}
-    <p class="home-more"><a href="{{ "/posts/" | relURL }}">全部文章 →</a></p>
-    {{- end }}
-  </section>
-  {{- end }}
+    曾经还有 currently 与 writing 两块，按反馈去掉了 ——
+    首页看起来太乱，而这两块的内容都能在顶部导航里一步到达
+    （listen / read / watch / make / think + writing），不需要在首页重复一遍。
 
-  <section class="home-block">
-    <h2 class="home-label">now</h2>
-    <p class="home-now"><a href="{{ "/now/" | relURL }}">此刻在做什么 →</a></p>
-  </section>
+    保留语句、不删数据：currently 仍在 content/_index.md 的 front matter 里，
+    文章仍在 /posts/，URL 与数据都没有丢失。
+  */ -}}
 
 </article>
 

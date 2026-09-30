@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -8,52 +8,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <!-- 主题固定为深色
+       主题切换按钮已移除，所以这里不再读取 localStorage 或系统偏好 ——
+       否则一个遗留的 "light" 偏好会让访客看到浅色，而他已经无法切回。
+       保留写入是为了别的脚本/以后恢复按钮时仍有一致的键名。 -->
   <script>
     (() => {
-      const saved = localStorage.getItem("pref-theme") || localStorage.getItem("music-theme");
-      if (saved && !localStorage.getItem("pref-theme")) localStorage.setItem("pref-theme", saved);
-      const dark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.documentElement.dataset.theme = "dark";
+      try { localStorage.setItem("pref-theme", "dark"); } catch (e) { /* 隐私模式忽略 */ }
     })();
   </script>
 
-  <!-- 主题切换
-       具名全局函数 + 按钮 onclick 属性直接调用（最原始的绑定，
-       不依赖脚本加载顺序）；另留一条 document 捕获委托作为兜底。
-
-       两条路径可能被同一次点击同时触发，因此按「事件时间戳」去重：
-       同一次点击的所有事件共享 event.timeStamp，两次真实点击则必然不同。
-       这样一次点击只切换一次，快速连点也各自生效。 -->
-  <script>
-    (() => {
-      const KEY = "pref-theme";
-      const root = document.documentElement;
-      let lastStamp = null;
-
-      function apply(theme) {
-        root.dataset.theme = theme;
-        try { localStorage.setItem(KEY, theme); } catch (e) { /* 隐私模式忽略 */ }
-      }
-
-      // force=true 用于控制台手动验证（跳过事件去重）
-      window.toggleSiteTheme = (force, stamp) => {
-        if (!force) {
-          if (stamp !== undefined && stamp === lastStamp) return;   // 同一次点击的重复触发
-          if (stamp !== undefined) lastStamp = stamp;
-        }
-        apply(root.dataset.theme === "dark" ? "light" : "dark");
-      };
-
-      document.addEventListener("click", (event) => {
-        const t = event.target;
-        if (!t || !t.closest || !t.closest("#theme-toggle")) return;
-        if (event.preventDefault) event.preventDefault();
-        window.toggleSiteTheme(false, event.timeStamp);
-      }, true);
-    })();
-  </script>
 <link rel="stylesheet" href="/theme.css?v=1">
-  <link rel="stylesheet" href="/site-nav.css?v=4">
+  <link rel="stylesheet" href="/site-nav.css?v=5">
   <link rel="stylesheet" href="/collection-states.css?v=2">
   <link rel="stylesheet" href="/back-to-top.css?v=1">
   <!-- 并行预取数据：与 script.js 同时开始，避免串行等待 -->
@@ -69,19 +36,6 @@
         </div>
       <div class="header-nav">
         <div class="site-nav" data-site-nav></div>
-      <button id="theme-toggle" class="theme-toggle" data-theme-owner="page" accesskey="t" type="button"
-              aria-label="切换主题" title="切换主题" onclick="toggleSiteTheme(false,event.timeStamp)">
-        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-      </button>
         </div>
       </header>
     <main>
@@ -95,7 +49,7 @@
     </main>
     <footer class="footer"><span>Chen</span><span id="year"></span></footer>
   </div>
-  <script src="/site-nav.js?v=4" defer></script>
+  <script src="/site-nav.js?v=5" defer></script>
   <script src="/collection-common.js?v=1" defer></script>
   <script src="/covers.js?v=1" defer></script>
   <script src="/tv/script.js?v=4" defer></script>

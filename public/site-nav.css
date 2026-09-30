@@ -8,9 +8,11 @@
        <div class="logo"><a href="/">Chen</a></div>
        <div class="header-nav">
          <nav class="hnav">…</nav>   ← Hugo 页面由模板服务端渲染
-         <button id="theme-toggle">  ← 合集页由 site-nav.js 渲染同一 structure
        </div>
      </header>
+
+   主题切换按钮已从所有页面移除，全站固定深色；
+   这里原先的 .theme-toggle 规则已删（详见文件中部说明）。
    ========================================================================== */
 
 /* ---------- header 布局 ----------
@@ -31,8 +33,9 @@
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-  /* 给右上角的主题按钮留出位置，避免导航压在它下面 */
-  padding-right: 44px;
+  /* 原先这里是 padding-right: 44px，给右上角的主题切换按钮让位。
+     按钮已从所有页面移除，这段留白不再需要 —— 去掉它，
+     导航重新占满可用宽度，窄屏也不那么容易触发横向滚动。 */
 }
 
 .logo {
@@ -59,32 +62,18 @@
   opacity: .8;
 }
 
-/* ---------- 主题切换按钮 ----------
-   关键：显式 z-index。合集页的 .hnav 会 flex 伸展，
-   若不加层级，会盖在绝对定位的按钮上，导致"点了没反应"。 */
+/* ---------- 主题切换按钮：已移除 ----------
+   全站固定深色（见 extend_head.html 与各合集页 <head>），
+   按钮从 Hugo header 与六个合集页里都删掉了。
 
-.theme-toggle {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  z-index: 3;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  padding: 0 .4rem;
-  border: 0;
-  margin: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-}
+   这里原本有一条 .theme-toggle 定位规则与两条
+   [data-theme] .moon/.sun 显示切换规则，现在没有元素会命中它们，
+   属于死代码 —— 一并删掉，避免以后有人误以为按钮还在。
 
-[data-theme="dark"] .theme-toggle .moon,
-[data-theme="light"] .theme-toggle .sun {
-  display: none;
-}
+   如果以后要恢复主题切换：
+     1. 在 header.html 与六个合集页里加回按钮（可用 git 历史找回）
+     2. 把 extend_head.html 里的固定深色改回读 localStorage
+     3. 重新加回这里的三条规则 */
 
 /* ---------- 容器 ---------- */
 
@@ -244,9 +233,8 @@
     gap: 16px;
   }
 
-  .header-nav {
-    padding-right: 38px;
-  }
+  /* 原先这里有 .header-nav { padding-right: 38px }，为移动端的主题按钮让位。
+     按钮已移除，留白也去掉，导航可以多用 38px。 */
 
   .logo {
     height: 48px;

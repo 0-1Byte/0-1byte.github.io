@@ -67,6 +67,26 @@ relativeURLs = false
 
     author = "Chen"
 
+    # ---------------------------------------------------------------------------
+    # 主题：固定深色，全站不再提供切换（阶段 7）
+    #
+    # disableThemeToggle = true 会同时抑制 PaperMod 的两段脚本：
+    #   · head.html 里按 localStorage / 系统偏好选主题的那段
+    #   · footer.html 里给 #theme-toggle 绑点击的那段
+    # 后者尤其重要：按钮删掉之后 getElementById 返回 null，
+    # 不加这个开关会在每个 Hugo 页面上抛 TypeError（console 报红）。
+    #
+    # defaultTheme 必须一起设成 "dark"：关掉开关后 head.html 走
+    # 「disabled 且非 dark/light」那个分支，会按系统偏好选主题，
+    # 于是浅色系统的访客会看到浅色页。
+    #
+    # 实际把 dataset.theme 设成 dark 的是 layouts/partials/extend_head.html，
+    # 这两项只是让主题自己那套初始化闭嘴。
+    # /ocean/ 不加载 extend_head.html，有自己的按时间配色，不受影响。
+    # ---------------------------------------------------------------------------
+    disableThemeToggle = true
+    defaultTheme = "dark"
+
     ShowFullTextContent = false
     disableSpecialFirstPost = true
 

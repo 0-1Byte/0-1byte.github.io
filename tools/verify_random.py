@@ -151,20 +151,28 @@ print(f"  合计校验 {total} 个主图 URL（其中 {remote} 个为远程，�
 
 print()
 print("=" * 90)
-print("D. 导航入口")
+print("D. 入口状态（阶段 7：random 已隐藏，但 URL 与功能必须仍可用）")
 print("=" * 90)
 st, navjson = get("/nav.json")
 nav = json.loads(navjson)
 names = [s["name"] for s in nav.get("standalone", [])]
-ok = "random" in names
+ok = "random" not in names
 if not ok:
-    problems.append("导航缺少 random 入口")
-print(f"  {'OK ' if ok else 'FAIL'} standalone = {names}")
+    problems.append("random 仍在导航里（应已隐藏）")
+print(f"  {'OK ' if ok else 'FAIL'} 导航 standalone 不含 random（={names}）")
+
 st, home = get("/")
-ok = "random" in home and "/random/" in home
+ok = "/random/" not in home
 if not ok:
-    problems.append("首页导航未出现 random")
-print(f"  {'OK ' if ok else 'FAIL'} 首页含 random 链接 = {ok}")
+    problems.append("首页仍链接到 /random/")
+print(f"  {'OK ' if ok else 'FAIL'} 首页不链接 /random/（={ok}）")
+
+# 隐藏 ≠ 删除：直接访问仍须可用
+st, _ = get("/random/")
+ok = st == 200
+if not ok:
+    problems.append(f"/random/ 直接访问 -> {st}（隐藏不应删除 URL）")
+print(f"  {'OK ' if ok else 'FAIL'} /random/ 直接访问仍可用（{st}）")
 
 print()
 print("=" * 90)

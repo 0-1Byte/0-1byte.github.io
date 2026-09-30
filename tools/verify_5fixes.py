@@ -42,38 +42,43 @@ for p in PAGES:
 
 print()
 print("=" * 92)
-print("问题 2：主题按钮的可点击性")
+print("问题 2（阶段 7 已改）：主题切换按钮应已从全站移除，且固定深色")
 print("=" * 92)
 for path in ["/"] + [f"/{p}/" for p in PAGES]:
     st, html = get(path)
     h = header_of(html)
-    has_toggle = "theme-toggle" in h
-    # 按钮必须在 header 内、且 site-nav.css 给了 z-index
-    print(f"  {'OK ' if has_toggle else 'FAIL'} {path:10} header 内含 theme-toggle={has_toggle}")
-    if not has_toggle:
-        problems.append(f"{path} header 内无 theme-toggle")
+    has_btn = re.search(r"<button[^>]*id=[\"']?theme-toggle", h) is not None
+    has_bind = re.search(r"getElementById\([\"']theme-toggle[\"']\)\s*\.\s*addEventListener", html) is not None
+    fixed_dark = re.search(r"dataset\.theme\s*=\s*[\"']dark[\"']", html) is not None
+    ok = (not has_btn) and (not has_bind) and fixed_dark
+    if not ok:
+        problems.append(f"{path} 按钮={has_btn} 绑定={has_bind} 固定深色={fixed_dark}")
+    print(f"  {'OK ' if ok else 'FAIL'} {path:10} 无按钮={not has_btn} 无绑定={not has_bind} 固定深色={fixed_dark}")
 
 css_st, nav_css = get("/site-nav.css")
+# 断言前先去掉 CSS 注释：文件里刻意写了「原先这里是 padding-right: 44px…」
+# 这类说明，直接匹配会命中自己的注释，产生假失败。
+nav_css_code = re.sub(r"/\*.*?\*/", "", nav_css, flags=re.S)
 checks = [
-    ("site-nav.css 给 .theme-toggle 设了 z-index", re.search(r"\.theme-toggle\s*\{[^}]*z-index", nav_css, re.S) is not None),
-    ("site-nav.css 给了 .theme-toggle 绝对定位", re.search(r"\.theme-toggle\s*\{[^}]*position:\s*absolute", nav_css, re.S) is not None),
-    (".header 有 position:relative", re.search(r"\.header\s*\{[^}]*position:\s*relative", nav_css, re.S) is not None),
-    (".hnav 有 z-index（低于按钮）", re.search(r"\.hnav\s*\{[^}]*z-index", nav_css, re.S) is not None),
-    (".header-nav 有 padding-right 给按钮让位", re.search(r"\.header-nav\s*\{[^}]*padding-right", nav_css, re.S) is not None),
+    (".header 有 position:relative（布局仍需要）", re.search(r"\.header\s*\{[^}]*position:\s*relative", nav_css_code, re.S) is not None),
+    (".hnav 有 z-index（下拉层级仍需要）", re.search(r"\.hnav\s*\{[^}]*z-index", nav_css_code, re.S) is not None),
+    ("site-nav.css 已无 .theme-toggle 规则（按钮删了就是死代码）",
+     re.search(r"^\.theme-toggle\s*\{", nav_css_code, re.M) is None),
+    (".header-nav 已不再为按钮留白",
+     re.search(r"\.header-nav\s*\{[^}]*padding-right", nav_css_code, re.S) is None),
 ]
 for name, ok in checks:
     if not ok:
-        problems.append(f"CSS 缺失: {name}")
+        problems.append(f"CSS 检查失败: {name}")
     print(f"  {'OK ' if ok else 'FAIL'} {name}")
 
-# 合集页是否还残留各自一份 .theme-toggle（应已删除，避免与共用样式打架）
 for p in PAGES:
     st, css = get(f"/{p}/style.css")
     leftover = re.search(r"\.theme-toggle\s*\{", css)
     ok = leftover is None
     if not ok:
         problems.append(f"{p}/style.css 仍有自己的 .theme-toggle 规则")
-    print(f"  {'OK ' if ok else 'FAIL'} {p}/style.css 无重复 .theme-toggle={leftover is None}")
+    print(f"  {'OK ' if ok else 'FAIL'} {p}/style.css 无重复 .theme-toggle={ok}")
 
 print()
 print("=" * 92)
@@ -112,7 +117,11 @@ print()
 print("=" * 92)
 print("问题 4：首页 elsewhere 是否已移除")
 print("=" * 92)
-for kw, expect in [("elsewhere", False), ("home-index", False), ("home-posts", True), ("home-currently", True), ("home-focus", True)]:
+# 阶段 7：currently / writing 两块已按反馈从首页移除。
+# 这里断言它们**不在**首页，同时确认句子与导航仍在。
+for kw, expect in [("elsewhere", False), ("home-index", False),
+                   ("home-posts", False), ("home-currently", False),
+                   ("home-focus", True)]:
     found = kw in home
     ok = found == expect
     if not ok:

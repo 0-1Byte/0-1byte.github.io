@@ -133,69 +133,26 @@
   }
 
   /* ------------------------------------------------------------------
-     主题切换
+     主题：本脚本不再处理
 
-     这里同时装两道保险，因为"点了没反应"可能来自两个完全不同的原因：
+     这里原先有一整套「主题切换」绑定（直接绑定 + 捕获委托 + 时间戳去重），
+     是前几轮反复修「点了没反应」留下的。现在主题切换按钮已从所有页面移除，
+     全站固定深色（见 extend_head.html 与各合集页 <head>），
+     那套逻辑永远找不到 #theme-toggle，成了死代码。
 
-       a) 没有绑定成功
-          → 用 DOM 归属判断：Hugo 页面的按钮固定在 .logo-switches 内，
-            PaperMod 页脚已经绑好，本脚本跳过；合集页没有这层，由本脚本负责。
-
-       b) 绑定成功了，但点击被别的东西挡掉
-          （导航会 flex 伸展、下拉菜单有层级、绝对定位元素可能叠在按钮上）
-          → 用「捕获阶段的事件委托」直接挂在 document 上：
-            捕获阶段先于任何冒泡处理器执行，也不受目标元素被遮挡的影响，
-            只要事件落在按钮或其内部（svg 图标）就能命中。
-
-     两者用 event.__snavToggle 标记互斥：
-       · 委托先跑  → 打标记，直接绑定不再切换
-       · 直接绑定先跑 → 打标记，委托跳过
-     所以不会出现"切两次又切回来"。
+     按「不顺手重构」的要求，这里只删掉确实不再被需要的部分，
+     并留下这段说明，避免以后有人以为按钮是被漏掉的。
      ------------------------------------------------------------------ */
-  const THEME_FLAG = "__snavToggleHandled";
 
-  function toggleTheme() {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem("pref-theme", next);
-    } catch (error) {
-      console.warn("[site-nav] 无法写入 localStorage，主题偏好不会被记住：", error);
+  /* 保留 storage 同步：同一浏览器多标签时，
+     若将来重新加回主题切换，这个键的语义仍然一致。
+     现在它只会在别的标签写入 pref-theme 时跟随，不主动改主题。 */
+  window.addEventListener("storage", event => {
+    if (event.key === "pref-theme"
+      && (event.newValue === "light" || event.newValue === "dark")) {
+      document.documentElement.dataset.theme = event.newValue;
     }
-  }
-
-  function handleToggleClick(event) {
-    if (event[THEME_FLAG]) return;
-    event[THEME_FLAG] = true;
-    toggleTheme();
-  }
-
-  function bindThemeToggle() {
-    const button = document.getElementById("theme-toggle");
-    if (!button) return;
-
-    // 1) 页面自带实现：合集页在 <head> 内联了主题切换，
-    //    按钮带 data-theme-owner="page" 标记 —— 这里必须完全不插手，
-    //    否则同一个按钮会被处理两次（切过去又切回来）。
-    if (button.dataset.themeOwner === "page") return;
-
-    // 2) Hugo 页面由 PaperMod 页脚绑定（按钮固定放在 .logo-switches 内）
-    if (button.closest(".logo-switches")) return;
-
-    // 3) 幂等：本脚本被重复执行时不重复绑定
-    if (button.dataset.snavBound === "1") return;
-    button.dataset.snavBound = "1";
-
-    button.addEventListener("click", handleToggleClick);
-    button.addEventListener("click", handleToggleClick, true);
-
-    window.addEventListener("storage", event => {
-      if (event.key === "pref-theme"
-        && (event.newValue === "light" || event.newValue === "dark")) {
-        document.documentElement.dataset.theme = event.newValue;
-      }
-    });
-  }
+  });
 
   /* 拉取导航数据并渲染。带超时，失败时明确提示而不是留一个空导航。 */
   async function loadAndRender() {
@@ -230,16 +187,9 @@
     }
   }
 
-  /* 先绑主题按钮，再做任何异步工作 ——
-     这样即使 /nav.json 拉取失败或超时，主题切换依然可用。 */
-  function boot() {
-    bindThemeToggle();
-    loadAndRender();
-  }
-
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
+    document.addEventListener("DOMContentLoaded", loadAndRender, { once: true });
   } else {
-    boot();
+    loadAndRender();
   }
 })();

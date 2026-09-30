@@ -125,6 +125,10 @@ for line in NAV.splitlines():
     if m_href:
         (pending_hrefs if current_group_pending else live_hrefs).append(m_href.group(1))
 
+# 阶段 7：random 已隐藏，不在导航渲染列表里 —— 从死链检查中排除，
+# 但它的 URL 仍由 verify_phase7.py 单独确认可用。
+live_hrefs = [h for h in live_hrefs if h != "/random/"]
+
 for h in sorted(set(live_hrefs)):
     st, _ = get(h)
     ok = st == 200
@@ -142,13 +146,17 @@ st, home = get("/")
 checks = [
     ("使用 .home 结构", has_class(home, "home")),
     ("含 focus 文案", "home-focus" in home),
-    ("含 currently", "home-currently" in home),
-    # elsewhere 块（home-index）已按要求移除 —— 它与顶部导航重复
+    # 阶段 7：currently / writing / now 三块已按反馈从首页移除，避免首页杂乱。
+    # 它们的内容与 URL 都还在（/posts/、/now/、content/_index.md），
+    # 只是不在首页重复一遍 —— 所以这里断言「不在首页」。
+    ("不含 currently", "home-currently" not in home),
     ("不含重复的 elsewhere", "home-index" not in home and "elsewhere" not in home),
-    ("含文章入口", "home-posts" in home and "/posts/" in home),
+    ("不含文章列表块", "home-posts" not in home),
+    ("不含 Now 区块", not re.search(r'class="home-label">now<', home)),
     ("不含文章卡片 .post-entry", "post-entry" not in home),
     ("不含文章链接 .entry-link", "entry-link" not in home),
-    ("含 Now 入口", "/now/" in home),
+    ("导航仍含 writing 入口", ">writing<" in home),
+    ("导航仍含 think 入口", ">think<" in home),
 ]
 for name, ok in checks:
     if not ok:

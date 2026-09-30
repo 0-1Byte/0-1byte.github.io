@@ -6,7 +6,7 @@
        这样后续文件可以直接消费 --bg / --text / --border / --radius 等。 */ -}}
 <link rel="stylesheet" href="{{ "theme.css" | relURL }}?v=1">
 {{- /* 全站导航样式（阶段 3）：Hugo 页面与 static/ 合集页共用同一份。 */ -}}
-<link rel="stylesheet" href="{{ "site-nav.css" | relURL }}?v=3">
+<link rel="stylesheet" href="{{ "site-nav.css" | relURL }}?v=4">
 {{- /* 独立内容页样式（阶段 3）：首页 / Now 页 / 文章列表 / 碎片共用同一份排版节奏。
        只含 .home-* / .now-* / .frag-* 规则，不影响文章正文页与合集页。 */ -}}
 {{- if or .IsHome (eq .Section "now") (eq .Section "posts") (eq .Section "fragments") }}
@@ -23,11 +23,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <link href="https://fonts.loli.net/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <script>
-  window.addEventListener("storage", event => {
-    if (event.key === "pref-theme" && (event.newValue === "light" || event.newValue === "dark")) {
-      document.documentElement.dataset.theme = event.newValue;
-    }
-  });
+  /* 全站固定深色主题（阶段 7）
+     ——
+     主题切换按钮已从所有页面移除，因此这里直接写死 dark，
+     不再读取 localStorage 或系统偏好：
+     一个遗留的 "light" 偏好会让访客看到浅色，而他已经无法切回。
+
+     同时把 localStorage 的键写成 dark，保证与可能存在的旧值一致。
+
+     例外：/ocean/ 不加载本文件 —— 它有自己的按时间变化的配色，
+     从来不跟随主题，因此那一页不需要也不应该被这里影响。 */
+  (function () {
+    document.documentElement.dataset.theme = "dark";
+    try { localStorage.setItem("pref-theme", "dark"); } catch (e) { /* 隐私模式忽略 */ }
+  })();
 </script>
 {{- /* 导航数据不再内联注入：static/ 下的合集页不经过 Hugo 模板，注入对它们无效。
        改为由 layouts/index.json 生成 /nav.json，供 static/site-nav.js 运行时读取；
