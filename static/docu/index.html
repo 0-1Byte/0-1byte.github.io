@@ -19,7 +19,8 @@
       document.documentElement.dataset.theme = dark ? "dark" : "light";
     })();
   </script>
-<link rel="stylesheet" href="/back-to-top.css?v=1">
+<link rel="stylesheet" href="/collection-states.css?v=1">
+  <link rel="stylesheet" href="/back-to-top.css?v=1">
     <link rel="preload" href="/docu/docus.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
   <link rel="stylesheet" href="/docu/style.css?v=7">
   <title>Docu — Chen</title>
@@ -53,14 +54,13 @@
       <div id="empty" class="empty" hidden>
         还没有添加纪录片。编辑 <code>/docu/docus.json</code> 开始记录。
       </div>
-      <div id="error" class="error" hidden>
-        无法读取纪录片数据，请检查 <code>/docu/docus.json</code>。
-      </div>
+      <div id="error" class="collection-state" hidden></div>
     </main>
     <footer class="footer"><span>Chen</span><span id="year"></span></footer>
   </div>
+  <script src="/collection-common.js?v=1" defer></script>
   <script src="/covers.js?v=1" defer></script>
-  <script src="/docu/script.js?v=5" defer></script>
+  <script src="/docu/script.js?v=6" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>

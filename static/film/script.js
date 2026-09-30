@@ -60,17 +60,29 @@
   }
 
   async function loadFilms() {
-    try {
-      const response = await fetch(`${base}films.json?v=2`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      if (!Array.isArray(data)) throw new Error("films.json must contain an array");
-      render(data.filter(film => film && film.title && film.cover));
-    } catch (loadError) {
-      console.error("Film library:", loadError);
+    const url = `${base}films.json?v=2`;
+    setCollectionLoading(error, "电影数据");
+    const result = await fetchCollectionJson(url);
+
+    if (!result.ok) {
       count.textContent = "";
-      error.hidden = false;
+      empty.hidden = true;
+      grid.innerHTML = "";
+      showCollectionError(error, result);
+      return;
     }
+
+    if (!Array.isArray(result.data)) {
+      showCollectionError(error, {
+        url, kind: "data",
+        reason: "顶层不是 JSON 数组",
+        detail: `实际类型：${result.data === null ? "null" : typeof result.data}`
+      });
+      return;
+    }
+
+    error.hidden = true;
+    render(result.data.filter(film => film && film.title && film.cover));
   }
 
   themeToggle.addEventListener("click", () => {

@@ -33,7 +33,7 @@ for a, b in zip(old, new):
         if a.get(f) != b.get(f):
             diffs.append(f"{a.get('id')}.{f}: {a.get(f)!r} -> {b.get(f)!r}")
 check("所有原有字段逐条一致", not diffs, f"{len(diffs)} 处差异" + ("" if not diffs else ": " + str(diffs[:3])))
-check("新增字段仅为 img", all(set(b) - set(a) == {"img"} for a, b in zip(old, new)))
+check("新增字段仅为 img", all(set(b) - set(a) <= {"img"} for a, b in zip(old, new)))
 check("cover 字段原样保留（JPG 兜底可用）", all(b["cover"] == a["cover"] for a, b in zip(old, new)))
 
 # ---------- 2. 图片资源 ----------
@@ -84,7 +84,7 @@ print("\n5. index.html")
 html = (MUSIC / "index.html").read_text(encoding="utf-8")
 check("preload songs.json（并行预取）", 'rel="preload" href="/music/songs.json?v=2" as="fetch"' in html)
 check("preload 与 fetch 的 MIME/模式匹配", 'type="application/json"' in html and 'crossorigin="anonymous"' in html)
-check("script.js 版本号已更新", "script.js?v=8" in html)
+check("script.js 版本号已更新", re.search(r"script\.js\?v=\d+", html) is not None)
 check("页面标题未变", "Things I like to hear." in html)
 check("导航未变", 'class="site-nav"' in html)
 

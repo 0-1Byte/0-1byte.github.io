@@ -55,6 +55,10 @@
     const fallback = resolveAsset(options.cover);
     const base = String(options.img ?? "").trim();
     const alt = escape(options.alt);
+    /* 显式尺寸：封面容器已用 aspect-ratio 固定比例，这里再声明 width/height
+       有两个好处 —— 浏览器可提前算出宽高比、并按目标渲染尺寸选择解码分辨率。
+       合集页封面是 2:3 竖版，用 480x720 作基准值（仅比例有意义）。 */
+    const dims = `width="480" height="720"`;
     /* 额外属性：传 { name: value } 形式，例如 book 页的 data-fallback */
     const extra = Object.entries(options.extraAttrs || {})
       .filter(([, v]) => v)
@@ -63,7 +67,7 @@
 
     /* 没有衍生图信息（远程封面或数据尚未优化）：直接用原图，行为与旧版一致 */
     if (!base || isRemote(options.cover)) {
-      return `<img class="cover" src="${escape(fallback)}" alt="${alt}" ${loading} decoding="async"${extra ? ` ${extra}` : ""}>`;
+      return `<img class="cover" src="${escape(fallback)}" alt="${alt}" ${dims} ${loading} decoding="async"${extra ? ` ${extra}` : ""}>`;
     }
 
     const dir = opt.assetDir || "covers/opt";
@@ -77,6 +81,7 @@
           srcset="${escape(srcset)}"
           sizes="${escape(sizes)}"
           alt="${alt}"
+          ${dims}
           data-jpg="${escape(fallback)}"
           ${loading}
           decoding="async"${extra ? ` ${extra}` : ""}

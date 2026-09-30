@@ -136,29 +136,31 @@
   }
 
   async function loadSongs() {
-    try {
-      // 固定版本号 + 默认缓存：浏览器可以正常复用 songs.json。
-      // 首页的 <link rel="preload" as="fetch"> 已经在并行拉取同一 URL。
-      const response = await fetch(`${MUSIC_BASE}songs.json?v=${DATA_VERSION}`, {
-        credentials: "same-origin"
-      });
+    const url = `${MUSIC_BASE}songs.json?v=${DATA_VERSION}`;
+    setCollectionLoading(error, "歌曲数据");
+    // 固定版本号 + 默认缓存：浏览器可以正常复用 songs.json。
+    // 首页的 <link rel="preload" as="fetch"> 已经在并行拉取同一 URL。
+    const result = await fetchCollectionJson(url);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error("songs.json must contain an array");
-      }
-
-      render(data.filter(song => song && song.title && song.cover));
-    } catch (err) {
-      console.error("Music library:", err);
+    if (!result.ok) {
       count.textContent = "";
-      error.hidden = false;
+      grid.innerHTML = "";
+      showCollectionError(error, result);
+      return;
     }
+
+    if (!Array.isArray(result.data)) {
+      showCollectionError(error, {
+        url,
+        kind: "data",
+        reason: "顶层不是 JSON 数组",
+        detail: `实际类型：${result.data === null ? "null" : typeof result.data}`
+      });
+      return;
+    }
+
+    error.hidden = true;
+    render(result.data.filter(song => song && song.title && song.cover));
   }
 
   function setTheme(theme) {

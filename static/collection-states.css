@@ -1,0 +1,91 @@
+/* ==========================================================================
+   合集页共用的「加载 / 空 / 失败」状态样式 — 六个页面都引用本文件。
+   只负责状态展示，不触碰各页原有的网格、卡片、overlay 样式。
+   沿用各页已有的 CSS 变量（--muted / --line / --text），深浅色自动适配。
+   ========================================================================== */
+
+.collection-state {
+  padding: 46px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+/* ---------- 加载中 ---------- */
+
+.collection-state[data-state="loading"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.state-spinner {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--line, rgba(128, 128, 128, .28));
+  border-top-color: var(--muted);
+  border-radius: 50%;
+  animation: state-spin .7s linear infinite;
+}
+
+@keyframes state-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state-spinner { animation: none; }
+}
+
+/* ---------- 失败诊断 ---------- */
+
+.collection-state[data-state="error"] {
+  padding: 30px 0 46px;
+}
+
+.state-title {
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.state-title::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #ff4b2b;
+  vertical-align: middle;
+}
+
+.state-row {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 7px;
+  align-items: flex-start;
+}
+
+.state-label {
+  flex: none;
+  width: 4.5em;
+  color: var(--muted);
+  opacity: .75;
+  letter-spacing: .04em;
+}
+
+.state-row code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--line, rgba(128, 128, 128, .14));
+  color: var(--text);
+  font-size: 11px;
+  word-break: break-all;
+}
+
+@media (max-width: 600px) {
+  .state-row { flex-direction: column; gap: 3px; }
+  .state-label { width: auto; }
+}

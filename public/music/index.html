@@ -26,7 +26,8 @@
        HTML → script.js → songs.json 的串行等待。MIME 必须匹配，否则浏览器会重复请求。 -->
   <link rel="preload" href="/music/songs.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
 
-<link rel="stylesheet" href="/back-to-top.css?v=1">
+<link rel="stylesheet" href="/collection-states.css?v=1">
+  <link rel="stylesheet" href="/back-to-top.css?v=1">
   <link rel="stylesheet" href="/music/style.css?v=7">
   <title>Music — Chen</title>
 </head>
@@ -70,9 +71,7 @@
 
       <div id="song-grid" class="song-grid"></div>
 
-      <div id="error" class="error" hidden>
-        无法读取歌曲数据，请检查 <code>/music/songs.json</code>。
-      </div>
+      <div id="error" class="collection-state" hidden></div>
     </main>
 
     <footer class="footer">
@@ -81,7 +80,8 @@
     </footer>
   </div>
 
-  <script src="/music/script.js?v=8" defer></script>
+  <script src="/collection-common.js?v=1" defer></script>
+  <script src="/music/script.js?v=9" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>

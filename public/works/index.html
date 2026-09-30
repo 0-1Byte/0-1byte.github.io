@@ -16,8 +16,12 @@
       document.documentElement.dataset.theme = dark ? "dark" : "light";
     })();
   </script>
-<link rel="stylesheet" href="/back-to-top.css?v=1">
-  <link rel="stylesheet" href="/works/style.css?v=1">
+  <!-- 站点部署在 origin 根（0-1byte.github.io），因此统一使用根绝对路径。
+       若将来改为子目录部署，需同步调整这些引用与 baseURL。 -->
+  <link rel="preload" href="/works/works.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+  <link rel="stylesheet" href="/collection-states.css?v=1">
+  <link rel="stylesheet" href="/back-to-top.css?v=1">
+  <link rel="stylesheet" href="/works/style.css?v=2">
   <title>Works — Chen</title>
 </head>
 <body>
@@ -65,9 +69,7 @@
         这里还没有作品。编辑 <code>/works/works.json</code> 开始记录。
       </div>
       <p id="no-match" class="empty" hidden>没有匹配的作品，换个关键词或筛选试试。</p>
-      <div id="error" class="error" hidden>
-        无法读取作品数据，请检查 <code>/works/works.json</code>。
-      </div>
+      <div id="error" class="collection-state" hidden></div>
     </main>
 
     <footer class="footer">
@@ -89,7 +91,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="/works/script.js?v=1" defer></script>
+  <script src="/collection-common.js?v=1" defer></script>
+  <script src="/works/script.js?v=2" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>

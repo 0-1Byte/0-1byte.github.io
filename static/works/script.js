@@ -1,7 +1,15 @@
 (() => {
   "use strict";
 
-  const base = "/works/";
+  /* 目录前缀由脚本自身 URL 推导（见 collection-common.js），
+     这样根路径部署与 /sub/ 子目录部署都成立。
+     注意两点：
+       1. defer 脚本执行时 document.currentScript 为 null，只能反查 script 标签
+       2. 用 getAttribute("src") 而不是 .src —— 后者依赖属性反射，取值更稳 */
+  const selfScript = document.querySelector('script[src$="/works/script.js?v=2"]')
+    || document.querySelector('script[src*="/works/script.js"]');
+  const base = derivePageBase(selfScript && selfScript.getAttribute("src"));
+  const DATA_VERSION = "2";        // works.json 有更新时改这个数字即可破缓存
   const grid = document.getElementById("works-grid");
   const count = document.getElementById("works-count");
   const range = document.getElementById("works-range");
@@ -256,22 +264,35 @@
 
   /* ---------- loading ---------- */
   async function load() {
-    try {
-      const response = await fetch(`${base}works.json?v=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      if (!Array.isArray(data)) throw new Error("works.json must contain an array");
-      works = data.filter(work => work && (work.title || work.cover)).map(normalize);
-      renderSummary();
-      renderFilters();
-      render();
-    } catch (loadError) {
-      console.error("Works:", loadError);
+    const url = `${base}works.json?v=${DATA_VERSION}`;
+    setCollectionLoading(error, "作品数据");
+    const result = await fetchCollectionJson(url);
+
+    if (!result.ok) {
       count.textContent = "";
       range.textContent = "";
       toolbar.hidden = true;
-      error.hidden = false;
+      noMatch.hidden = true;
+      grid.innerHTML = "";
+      showCollectionError(error, result);
+      return;
     }
+
+    if (!Array.isArray(result.data)) {
+      showCollectionError(error, {
+        url,
+        kind: "data",
+        reason: "顶层不是 JSON 数组",
+        detail: `实际类型：${result.data === null ? "null" : typeof result.data}`
+      });
+      return;
+    }
+
+    error.hidden = true;
+    works = result.data.filter(work => work && (work.title || work.cover)).map(normalize);
+    renderSummary();
+    renderFilters();
+    render();
   }
 
   /* ---------- events ---------- */
