@@ -1,0 +1,303 @@
+/* ==========================================================================
+   /random/ —— 随机抽屉
+   颜色 / 圆角 / 动效全部取自 static/theme.css（统一设计系统）。
+   气质目标：打开一个陌生人的抽屉，不是数据库随机查询器。
+   因此：居中的单件物品、克制的类型标签、克制的揭晓动效（只做淡入 + 8px 位移）。
+   ========================================================================== */
+
+.hero h1 {
+  max-width: 650px;
+}
+
+/* ---------- 类型筛选 ---------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: color var(--motion-fast) ease,
+              border-color var(--motion-fast) ease,
+              background-color var(--motion-fast) ease;
+}
+
+.chip:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.chip b {
+  font-weight: 600;
+  font-size: 10px;
+  opacity: .55;
+}
+
+.chip[aria-pressed="true"] {
+  color: var(--text);
+  border-color: var(--muted);
+  background: var(--surface-2);
+}
+
+.chip[aria-pressed="true"] b {
+  opacity: .75;
+}
+
+/* ---------- 抽屉（当前抽取到的那一件） ---------- */
+
+.drawer {
+  padding: 44px 0 0;
+}
+
+/* 揭晓动效：只做淡入 + 轻微上移，不做缩放/旋转 */
+.drawer-slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 34px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--motion-fade) ease, transform var(--motion-slow) var(--ease-out);
+}
+
+.drawer-slot.is-shown {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.drawer-thumb {
+  flex: none;
+  width: 172px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.drawer-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* 竖版封面（书/影/剧/纪录片）保持 2:3 */
+.drawer-thumb.is-portrait img {
+  aspect-ratio: 2 / 3;
+  object-fit: contain;
+  padding: 8px;
+}
+
+/* 作品封面是 16:10 示意 */
+.drawer-thumb.is-wide img {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.drawer-body {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.drawer-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.drawer-type .drawer-emoji {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.35;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.drawer-sub {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.drawer-desc {
+  margin: 18px 0 0;
+  max-width: 34em;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.drawer-meta {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.drawer-link {
+  display: inline-block;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  transition: color var(--motion-fast) ease;
+}
+
+.drawer-link:hover,
+.drawer-link:focus-visible {
+  color: var(--text);
+}
+
+/* ---------- another ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 0 0;
+}
+
+.another {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-family: 'Dancing Script', cursive;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease, background-color var(--motion-fast) ease;
+}
+
+.another:hover,
+.another:focus-visible {
+  border-color: var(--muted);
+  background: var(--surface-2);
+}
+
+.another:active .another-icon {
+  transform: rotate(-180deg);
+}
+
+.another-icon {
+  display: inline-block;
+  font-size: 15px;
+  transition: transform var(--motion-slow) var(--ease-out);
+}
+
+.actions-hint {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  font-family: inherit;
+  font-size: 10px;
+}
+
+/* ---------- 空 / 错误状态（复用 collection-states 的观感） ---------- */
+
+.drawer-empty {
+  padding: 46px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.drawer-empty .state-title {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.drawer-empty .state-title::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+
+.drawer-empty .state-row {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 6px;
+  align-items: flex-start;
+}
+
+.drawer-empty .state-label {
+  flex: none;
+  width: 4.5em;
+  opacity: .75;
+}
+
+.drawer-empty code {
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 11px;
+  word-break: break-all;
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 600px) {
+  .drawer {
+    padding-top: 30px;
+  }
+
+  .drawer-slot {
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .drawer-thumb {
+    width: 132px;
+  }
+
+  .drawer-title {
+    font-size: 19px;
+  }
+
+  .actions {
+    padding-top: 30px;
+  }
+}
