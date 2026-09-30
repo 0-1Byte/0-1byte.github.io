@@ -94,6 +94,16 @@ def load_key(required=True):
             "  请确认复制完整（不要带多余空格或引号）。"
         )
 
+    # 防呆：Key 必须放在 .secrets/key.yaml。
+    # 之前有人把真实 Key 填进了「示例文件」，而那个文件是入库的 ——
+    # 于是完整 Key 进了 git 历史。这里主动拦一下。
+    if KEY_FILE.name.endswith(".example.yaml") or "example" in KEY_FILE.name:
+        raise KeyError_(
+            f"看起来你把 Key 填进了示例文件：{KEY_FILE.name}\n"
+            "  那个文件是给人看的模板，会被提交、会被发布。\n"
+            "  请改成填 .secrets/key.yaml（该文件被 .gitignore 忽略）。"
+        )
+
     return key, endpoint
 
 

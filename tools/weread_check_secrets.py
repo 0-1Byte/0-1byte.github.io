@@ -50,32 +50,28 @@ check(".gitignore 存在", bool(gi))
 for pattern in [".secrets/", "static/quotes/wechat.yaml"]:
     check(f".gitignore 含 {pattern}", pattern in gi)
 
-# 用 git 自己判断，比字符串匹配可靠
-for path in [".secrets/key.yaml", ".secrets/key.example.yaml", "static/quotes/wechat.yaml"]:
+# 用 git 自己判断，比字符串匹配可靠。
+# 注意：现在 .secrets/ 下**没有任何例外** —— 之前给示例文件开了反选，
+# 结果真 Key 被填进示例文件并提交，泄露进了历史。教训已写进 .gitignore 注释。
+for path in [".secrets/key.yaml", ".secrets/key.example.yaml",
+             ".secrets/anything.yaml", "static/quotes/wechat.yaml"]:
     r = run(["git", "check-ignore", "-q", path])
-    ignored = r.returncode == 0
-    if path.endswith("key.example.yaml"):
-        # 示例文件应当可以被提交（它不含真实 Key）
-        check(f"{path} 未被忽略（示例文件需要入库）", not ignored,
-              "被忽略了 —— 示例文件应该入库，方便照着填")
-    else:
-        check(f"{path} 被 git 忽略", ignored, "未被忽略！这个文件可能被提交")
+    check(f"{path} 被 git 忽略", r.returncode == 0, "未被忽略！这个文件可能被提交")
 
 print()
 print("=" * 84)
 print("2. Key 文件是否曾进入 git 追踪")
 print("=" * 84)
 r = run(["git", "ls-files", ".secrets"])
-tracked = [x for x in r.stdout.split("\n")
-           if x.strip() and not x.strip().endswith("key.example.yaml")]
-check("没有真实凭据文件被追踪（示例模板除外）", not tracked, f"被追踪：{tracked}")
+tracked = [x for x in r.stdout.split("\n") if x.strip()]
+check(".secrets/ 下没有任何文件被追踪", not tracked, f"被追踪：{tracked}")
 
 r = run(["git", "log", "--all", "--pretty=format:", "--name-only"])
 history = [x.strip() for x in r.stdout.split("\n") if x.strip()]
-# key.example.yaml 是刻意入库的模板（不含真实 Key），不算问题
-hist_secrets = sorted({h for h in history
-                       if h.startswith(".secrets/") and not h.endswith("key.example.yaml")})
-check("历史中从未出现过真实凭据文件", not hist_secrets, f"历史里有：{hist_secrets[:5]}")
+hist_secrets = sorted({h for h in history if h.startswith(".secrets/")})
+# 只报告「当前 HEAD 里仍存在」的，历史中的旧痕迹另由第 3 项检查
+check("历史中未出现过 .secrets/ 下的文件（当前 HEAD）", not hist_secrets,
+      f"历史里有：{hist_secrets[:5]}")
 
 print()
 print("=" * 84)

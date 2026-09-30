@@ -16,14 +16,18 @@ _preview/
 #   .secrets/                 放微信读书 API Key 等凭据（只在本机存在）
 #   static/quotes/wechat.yaml 你的划线原文，属于私人阅读记录，默认不入库
 #
+# ⚠ 这里**刻意不做**「示例文件例外」。
+#   之前写过 `!.secrets/key.example.yaml`，本意是让模板入库方便照填，
+#   结果真 Key 被填进了那个文件、又被提交，于是泄露进了 git 历史。
+#   教训：任何在 .secrets/ 下、可能被填值的文件，一律不入库。
+#   模板改为放在 docs/ 下（见 docs/weread-key.example.yaml），
+#   它离「会被填写的文件」有一步距离，不容易误填。
+#
 # 想强制确认某个文件确实被忽略：git check-ignore -v <路径>
 # 交付出去、会被发布上线的只有 data/quotes.yaml（纯句子文本，无任何凭据）
 # ---------------------------------------------------------------------------
-# .secrets/ 下默认全部忽略 —— 注意用 `*` 逐项忽略，
-# 因为 git 不会在一个被排除的目录里再应用 `!` 反选规则。
-.secrets/*
-# 示例文件要入库：它不含真实 Key，是给你照着填的模板
-!.secrets/key.example.yaml
+.secrets/
+docs/weread-key.local.yaml
 static/quotes/wechat.yaml
 tools/_probe_out/
 
