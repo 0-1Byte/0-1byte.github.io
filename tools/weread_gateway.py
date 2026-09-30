@@ -26,10 +26,14 @@ SKILL_VERSION = "1.0.4"
 
 DEFAULT_ENDPOINT = "https://i.weread.qq.com/api/agent/gateway"
 
-# 已知接口（文档里出现过的）
-API_LIST = "/_list"
-API_NOTEBOOKS = "/user/notebooks"
-API_NOTES = "/book/bookmarklist"     # 具体名字以 /_list 返回为准
+# 官方文档（Tencent/WeChatReading skills/notes.md）明确的接口
+API_LIST = "/_list"                      # 文档示例里出现过，但未正式说明
+API_NOTEBOOKS = "/user/notebooks"        # 笔记本概览：有笔记的书 + 计数
+API_BOOKMARKLIST = "/book/bookmarklist"  # 单本书的划线内容（markText）
+API_BOOK_UNDERLINES = "/book/underlines"  # 章节划线热度统计（不含文本）
+API_BEST_BOOKMARKS = "/book/bestbookmarks"  # 全书热门划线（含原文）
+API_BOOK_REVIEWS = "/book/readreviews"   # 划线下的想法/评论
+API_REVIEW_SINGLE = "/review/single"     # 单条想法详情
 API_SHELF_SYNC = "/shelf/sync"
 API_SEARCH = "/store/search"
 

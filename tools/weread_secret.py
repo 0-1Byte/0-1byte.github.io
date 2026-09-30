@@ -30,13 +30,20 @@ class KeyError_(RuntimeError):
 
 
 def redact(value):
-    """把 Key 变成可安全打印的形式。"""
+    """把 Key 变成可安全打印的形式。
+
+    刻意只显示**首 4 位 + 末 2 位**：
+    之前显示首 6 末 4 时，用户把探针输出粘进对话/提交信息，
+    这些片段就进了日志与 git 历史 —— 前缀越长，被拼出来的风险越大。
+    4+2 位（都是 "wrk-" 之后的部分）足够你自己确认「是不是这把」，
+    又不足以还原任何东西。
+    """
     if not value:
         return "(空)"
     v = str(value)
-    if len(v) <= 10:
-        return v[:2] + "*" * (len(v) - 2)
-    return f"{v[:6]}…{v[-4:]}（共 {len(v)} 字符）"
+    if len(v) <= 8:
+        return "*" * len(v)
+    return f"{v[:4]}…{v[-2:]}（共 {len(v)} 字符）"
 
 
 def _parse_simple_yaml(text):

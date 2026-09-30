@@ -30,7 +30,7 @@ def check(label, ok, detail=""):
 print("=" * 80)
 print("1. 脱敏函数")
 print("=" * 80)
-fake = "wrk-AbCdEfGhIjKlMnOpQrStUvWx"
+fake = "在这里填 wrk- 开头的 Key"
 r = redact(fake)
 check("不回显完整 Key", fake not in r, r)
 # redact 会附上「（共 N 字符）」后缀，所以只看遮罩部分
