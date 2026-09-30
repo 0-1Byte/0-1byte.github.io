@@ -511,3 +511,77 @@ a { color:inherit; text-decoration:none; }
     font-size:19px;
   }
 }
+
+/* ==========================================================================
+   状态（阶段 6）—— Idea / Building / Ongoing / Paused / Shipped / Abandoned
+   统一词表，各自一个低饱和的颜色；用一个圆点 + 小字标签表示。
+   颜色刻意压得很低（L≈55%），避免变成 SaaS 卡片墙上的彩色徽章。
+   未识别的取值走 [data-status="unknown"]，仍是中性灰，不会漏样式。
+   ========================================================================== */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: .04em;
+  line-height: 1.4;
+  /* 颜色由下方的 data-status 规则统一设置 */
+  color: var(--muted);
+}
+
+.status-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  /* 微微一圈光晕，让圆点在浅色底上也能看清 */
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.status-label {
+  white-space: nowrap;
+}
+
+/* 卡片里：状态紧跟在标题/说明之后，自成一行 */
+.card-body .status {
+  margin-top: 9px;
+}
+
+/* 详情里：比卡片稍大一点，位置更靠前 */
+.detail-status {
+  margin: 0 0 14px;
+}
+
+.detail-status .status {
+  font-size: 12px;
+  gap: 7px;
+}
+
+.detail-status .status-dot {
+  width: 6px;
+  height: 6px;
+}
+
+[data-status="idea"]      { color: hsl(210, 16%, 55%); }
+[data-status="building"]  { color: hsl(199, 42%, 48%); }
+[data-status="ongoing"]   { color: hsl(178, 30%, 42%); }
+[data-status="paused"]    { color: hsl(35, 38%, 48%); }
+[data-status="shipped"]   { color: hsl(140, 26%, 40%); }
+[data-status="abandoned"] { color: hsl(8, 32%, 48%); }
+[data-status="unknown"]   { color: var(--muted); }
+
+/* 暂停与废弃的条目，整体压低一点存在感 —— 它们仍在档案里，但不抢注意力 */
+.works-card[data-status="paused"] .card-title,
+.works-card[data-status="abandoned"] .card-title {
+  opacity: .82;
+}
+
+/* 不支持 color-mix 的浏览器：去掉光晕，圆点本身仍然可见 */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .status-dot {
+    box-shadow: none;
+    outline: 2px solid color-mix(in srgb, currentColor 16%, transparent);
+  }
+}

@@ -1,0 +1,70 @@
+{{- /*
+  /fragments/ —— 持续增长的个人思想碎片档案
+
+  刻意不做成传统博客列表：
+    · 没有卡片、没有封面、没有摘要截断
+    · 按日期倒序，日期是唯一的分隔，像一本档案的页边
+    · 一条可以只有一句话 —— 排版按「内容长度自适应」，短句不会被撑开
+    · 标签极小、低对比度，不抢正文
+
+  空状态：一页都没有时给出明确说明，而不是留一个空白列表。
+*/ -}}
+
+{{- define "main" }}
+
+{{- /* 只要写了正文的条目；没有正文的不显示，不生成占位 */ -}}
+{{- $items := slice }}
+{{- range (where site.RegularPages "Section" "fragments") }}
+  {{- if .Content }}{{ $items = $items | append . }}{{ end }}
+{{- end }}
+{{- $items = sort $items "Date" "desc" }}
+
+<article class="home fragments">
+
+  <header class="home-hero">
+    <h1 class="home-focus"><span>{{ .Title | default "Fragments" }}</span></h1>
+    {{- with .Description }}
+    <p class="home-note">{{ . }}</p>
+    {{- end }}
+  </header>
+
+  {{- if $items }}
+  <ol class="frag-list">
+    {{- range $items }}
+    <li class="frag">
+      <div class="frag-side">
+        <time class="frag-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006.01.02" }}</time>
+        {{- with .Params.tags }}
+        <ul class="frag-tags">
+          {{- range . }}<li>{{ . }}</li>{{ end }}
+        </ul>
+        {{- end }}
+      </div>
+      <div class="frag-body">
+        {{ .Content }}
+      </div>
+    </li>
+    {{- end }}
+  </ol>
+  {{- else }}
+  {{- /* 空状态 */}}
+  <section class="home-block">
+    <p class="home-note">这里还没有记录。它不追求篇数，想到了才会写一条。</p>
+  </section>
+  {{- end }}
+
+  {{- with .Content }}
+  <section class="home-block">
+    <div class="home-note">{{ . }}</div>
+  </section>
+  {{- end }}
+
+  {{- if $items }}
+  <footer class="home-block">
+    <p class="now-updated">{{ len $items }} 条记录</p>
+  </footer>
+  {{- end }}
+
+</article>
+
+{{- end }}

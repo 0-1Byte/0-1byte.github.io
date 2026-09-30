@@ -1,25 +1,38 @@
 {{- /*
   /now/ 页排版。
 
-  用 layouts/page/now.html：content/now.md 的 front matter 里写 layout: now，
-  Hugo 便会找 layouts/page/now.html（找不到才回落到主题的 single.html），
-  因此不会影响其它单页。
+  数据全部来自 data/now.yaml（不是 front matter）——
+  这样以后只改数据文件，模板不用动。
 
-  所有内容都来自 content/now.md 的 front matter，这里不硬编码任何文案。
+  分区顺序按「当下状态 → 正在做 → 在想」排列：
+    reading / listening / watching  当下在消费什么
+    building                        正在做什么
+    thinking                        在想什么
+    obsessed                        最近特别在意的
+
+  空分区自动不渲染（with 会对空列表跳过），所以不需要在模板里判断。
+  新增分区只要在 $sections 里加一行，并在 data/now.yaml 里加同名列表。
 */ -}}
 
 {{- define "main" }}
 
+{{- $now := site.Data.now | default dict }}
+
 {{- $sections := slice
-      (dict "label" "building"  "items" .Params.building)
-      (dict "label" "reading"   "items" .Params.reading)
-      (dict "label" "listening" "items" .Params.listening)
-      (dict "label" "watching"  "items" .Params.watching) -}}
+      (dict "label" "reading"   "items" $now.reading)
+      (dict "label" "listening" "items" $now.listening)
+      (dict "label" "watching"  "items" $now.watching)
+      (dict "label" "building"  "items" $now.building)
+      (dict "label" "thinking"  "items" $now.thinking)
+      (dict "label" "obsessed"  "items" $now.obsessed) -}}
+
+{{- $hasAny := false }}
+{{- range $sections }}{{ if .items }}{{ $hasAny = true }}{{ end }}{{ end }}
 
 <article class="home now">
 
   <header class="home-hero">
-    <h1 class="home-focus"><span>{{ .Title }}</span></h1>
+    <h1 class="home-focus"><span>{{ .Title | default "Now" }}</span></h1>
     {{- with .Description }}
     <p class="home-note">{{ . }}</p>
     {{- end }}
@@ -36,13 +49,20 @@
   {{- end }}
   {{- end }}
 
+  {{- if not $hasAny }}
+  {{- /* 空状态：明确说明，而不是留一个只有标题的页面 */}}
+  <section class="home-block">
+    <p class="home-note">这一页还没有内容。它记录的是此刻的状态，等有想写的时候再来。</p>
+  </section>
+  {{- end }}
+
   {{- with .Content }}
   <section class="home-block">
     <div class="home-note">{{ . }}</div>
   </section>
   {{- end }}
 
-  {{- with .Params.updated }}
+  {{- with $now.updated }}
   <footer class="home-block">
     <p class="now-updated">最后更新 {{ . }}</p>
   </footer>

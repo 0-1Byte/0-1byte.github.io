@@ -32,6 +32,18 @@ relativeURLs = false
     isHTML = false
     rel = "alternate"
 
+# 阶段 6：把 content/fragments/ 的内容输出成 /fragments/fragments.json，
+# 供 static/random/ 抽取碎片用。
+# 为什么不用内置 JSON：内置的会固定写成 index.json，baseName 不生效。
+# 为什么不复用 NavIndex：两者 mediaType 相同但 baseName 不同，
+# 复用会导致文件名相同而互相覆盖。
+[outputFormats.FragmentsIndex]
+    mediaType = "application/json"
+    baseName = "fragments"
+    isPlainText = true
+    isHTML = false
+    rel = "alternate"
+
 [outputs]
     home = ["HTML", "NavIndex"]
 

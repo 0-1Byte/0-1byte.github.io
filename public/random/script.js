@@ -273,8 +273,14 @@
       ? `<a class="drawer-link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">查看 ↗</a>`
       : "";
 
+    /* 没有封面的内容（如 Fragments）不渲染缩略图占位 ——
+       空图框比没有图框更像出错。 */
+    const thumb = item.image
+      ? `<div class="drawer-thumb${shapeClass}">${img}</div>`
+      : "";
+
     setSlot(`
-      <div class="drawer-thumb${shapeClass}">${img}</div>
+      ${thumb}
       <div class="drawer-body">
         <p class="drawer-type"><span class="drawer-emoji" aria-hidden="true">${esc(item.emoji)}</span>${esc(item.kind)}</p>
         <h2 class="drawer-title">${esc(item.title)}</h2>

@@ -6,10 +6,10 @@
      注意两点：
        1. defer 脚本执行时 document.currentScript 为 null，只能反查 script 标签
        2. 用 getAttribute("src") 而不是 .src —— 后者依赖属性反射，取值更稳 */
-  const selfScript = document.querySelector('script[src$="/works/script.js?v=2"]')
+  const selfScript = document.querySelector('script[src$="/works/script.js?v=3"]')
     || document.querySelector('script[src*="/works/script.js"]');
   const base = derivePageBase(selfScript && selfScript.getAttribute("src"));
-  const DATA_VERSION = "2";        // works.json 有更新时改这个数字即可破缓存
+  const DATA_VERSION = "3";        // works.json 有更新时改这个数字即可破缓存
   const grid = document.getElementById("works-grid");
   const count = document.getElementById("works-count");
   const range = document.getElementById("works-range");
@@ -39,6 +39,29 @@
   let keyword = "";
   let lastFocus = null;
 
+  /* ---------- 状态（阶段 6） ----------
+     统一词表：Idea / Building / Paused / Shipped / Abandoned / Ongoing
+     数据里可能写中文（如「已上线」），此时 statusLabel 会保留原文并优先显示，
+     颜色按归类后的 canonical 值取。两种写法都能工作。 */
+  const STATUS_ORDER = ["Idea", "Building", "Ongoing", "Paused", "Shipped", "Abandoned"];
+
+  const statusKey = work => {
+    const canon = text(work.status);
+    const hit = STATUS_ORDER.find(v => v.toLowerCase() === canon.toLowerCase());
+    return hit ? hit.toLowerCase() : "unknown";
+  };
+
+  const statusText = work => text(work.statusLabel) || text(work.status);
+
+  function statusMarkup(work) {
+    const label = statusText(work);
+    if (!label) return "";
+    return `<span class="status" data-status="${statusKey(work)}">`
+      + `<span class="status-dot" aria-hidden="true"></span>`
+      + `<span class="status-label">${escape(label)}</span>`
+      + `</span>`;
+  }
+
   const normalize = work => ({
     title: text(work.title),
     tagline: text(work.tagline),
@@ -48,10 +71,16 @@
     period: text(work.period),
     role: text(work.role),
     status: text(work.status),
+    statusLabel: text(work.statusLabel),
+    started: text(work.started),
+    problem: text(work.problem),
+    learned: text(work.learned),
+    demo: text(work.demo),
     tech: list(work.tech),
     highlights: list(work.highlights),
     cover: text(work.cover),
-    url: text(work.url),
+    // url 与 demo 等价（spec 里叫 Demo）；两个都填时优先 url
+    url: text(work.url) || text(work.demo),
     repo: text(work.repo),
     note: text(work.note)
   });
@@ -87,10 +116,17 @@
 
   /* ---------- rendering ---------- */
   function cardMarkup(work, index) {
-    const meta = [work.role, work.year || work.period].filter(Boolean);
+    /* 像一份 project archive 条目：
+         标题
+         一句话说明
+         ● Building
+         Chrome Extension · JavaScript · Started 2026.09
+       状态单独一行并用圆点标示，不与类型/时间混在一起。 */
+    const meta = [work.type, ...work.tech.slice(0, 2)].filter(Boolean);
+    const started = work.started || work.period;
     const peek = work.tagline || work.summary;
     return [
-      `<article class="works-card" data-index="${index}">`,
+      `<article class="works-card" data-index="${index}" data-status="${statusKey(work)}">`,
       `<button class="card-head" type="button" aria-label="查看 ${escape(work.title)} 详情">`,
       `<span class="thumb">`,
       coverMarkup(work),
@@ -102,8 +138,12 @@
       `<div class="card-body">`,
       `<h2 class="card-title">${escape(work.title)}</h2>`,
       work.tagline ? `<p class="card-tagline">${escape(work.tagline)}</p>` : "",
-      meta.length
-        ? `<p class="card-meta">${meta.map(item => `<span>${escape(item)}</span>`).join("")}</p>`
+      statusMarkup(work),
+      meta.length || started
+        ? `<p class="card-meta">`
+          + meta.map(item => `<span>${escape(item)}</span>`).join("")
+          + (started ? `<span>${escape(/^\d{4}/.test(started) ? `Started ${started}` : started)}</span>` : "")
+          + `</p>`
         : "",
       `</div>`,
       `</article>`
@@ -178,7 +218,7 @@
   const linkAttrs = value => value.startsWith("/") ? "" : ' target="_blank" rel="noopener noreferrer"';
 
   function drawerMarkup(work) {
-    const meta = [work.status, work.role, work.period || work.year].filter(Boolean);
+    const meta = [work.role, work.started || work.period || work.year].filter(Boolean);
     return [
       work.cover
         ? `<div class="detail-hero">${coverMarkup(work)}</div>`
@@ -186,6 +226,8 @@
       `<span class="detail-tag">${escape(work.type)}</span>`,
       `<h2 class="detail-title" id="drawer-title">${escape(work.title)}</h2>`,
       work.tagline ? `<p class="detail-tagline">${escape(work.tagline)}</p>` : "",
+      /* 状态单独放，比混在 meta 里更容易一眼看到 */
+      statusMarkup(work) ? `<p class="detail-status">${statusMarkup(work)}</p>` : "",
       meta.length
         ? `<ul class="detail-meta">${meta.map(item => `<li>${escape(item)}</li>`).join("")}</ul>`
         : "",
@@ -193,8 +235,15 @@
         ? `<ul class="detail-stack">${work.tech.map(item => `<li>${escape(item)}</li>`).join("")}</ul>`
         : "",
       work.summary ? `<p class="detail-body">${escape(work.summary)}</p>` : "",
+      /* 阶段 6 新增字段：有值才显示，不编造也不留空标题 */
+      work.problem
+        ? `<h3 class="detail-h">要解决的问题</h3><p class="detail-body">${escape(work.problem)}</p>`
+        : "",
       work.highlights.length
         ? `<h3 class="detail-h">做了什么</h3><ul class="detail-list">${work.highlights.map(item => `<li>${escape(item)}</li>`).join("")}</ul>`
+        : "",
+      work.learned
+        ? `<h3 class="detail-h">学到什么</h3><p class="detail-body">${escape(work.learned)}</p>`
         : "",
       work.note ? `<p class="detail-note">${escape(work.note)}</p>` : "",
       `<div class="detail-links">`,

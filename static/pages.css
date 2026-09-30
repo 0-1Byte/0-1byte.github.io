@@ -312,3 +312,127 @@
     font-size: 26px;
   }
 }
+/* ==========================================================================
+   Fragments（/fragments/）—— 思想碎片档案
+   刻意不做成博客列表：没有卡片、没有封面、没有摘要截断。
+   左侧是日期与标签（像档案的页边），右侧是正文。
+   短句不会被撑开，长句也不会挤成一行。
+   ========================================================================== */
+
+.frag-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.frag {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 28px;
+  padding: 26px 0;
+  border-top: 1px solid var(--border);
+}
+
+.frag:first-child {
+  border-top: 0;
+  padding-top: 8px;
+}
+
+.frag-side {
+  padding-top: 2px;
+}
+
+.frag-date {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.frag-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 9px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.frag-tags li {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .04em;
+  opacity: .8;
+}
+
+.frag-tags li::before {
+  content: "#";
+  opacity: .5;
+}
+
+.frag-body {
+  min-width: 0;
+  max-width: 38em;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.frag-body > :first-child {
+  margin-top: 0;
+}
+
+.frag-body > :last-child {
+  margin-bottom: 0;
+}
+
+.frag-body p {
+  margin: 0 0 1em;
+}
+
+/* 一条只有一句话时，不要看起来像「缺失内容」 */
+.frag-body p:only-child {
+  margin-bottom: 0;
+}
+
+.frag-body blockquote {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+  color: var(--muted);
+}
+
+.frag-body a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border);
+}
+
+.frag-body a:hover {
+  text-decoration-color: var(--muted);
+}
+
+.frag-body code {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .frag {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 22px 0;
+  }
+
+  .frag-tags {
+    margin-top: 6px;
+  }
+
+  .frag-body {
+    font-size: 13.5px;
+    line-height: 1.85;
+  }
+}

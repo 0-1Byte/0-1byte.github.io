@@ -51,7 +51,9 @@ groups:
 
   - key: think
     label: think
-    pending: true          # Fragments 页尚未创建，暂不渲染，避免死链
+    # 阶段 6：/fragments/ 已建立。分组保留在导航里，
+    # 即使还没有条目 —— 一个「零散的想法」分区本身就说明了这个站点的性格，
+    # 页面内有明确的空状态，不是死链也不是空白页。
     children:
       - name: Fragments
         href: /fragments/

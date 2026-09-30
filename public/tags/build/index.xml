@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Build on Chen</title>
+    <link>https://0-1byte.github.io/tags/build/</link>
+    <description>Recent content in Build on Chen</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 23 Sep 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://0-1byte.github.io/tags/build/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title></title>
+      <link>https://0-1byte.github.io/fragments/_tmp_verify_b/</link>
+      <pubDate>Wed, 23 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://0-1byte.github.io/fragments/_tmp_verify_b/</guid>
+      <description>&lt;p&gt;一个只有一句话的碎片。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

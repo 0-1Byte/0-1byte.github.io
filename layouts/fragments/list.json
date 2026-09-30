@@ -1,0 +1,24 @@
+{{- /*
+  /fragments/fragments.json —— 供 static/random/script.js 抽取碎片用。
+
+  为什么需要它：static/ 下的页面不经过 Hugo 模板，拿不到 content/ 里的内容，
+  而 fragments 是 markdown 而不是 JSON。所以这里把同一份内容渲染成 JSON。
+
+  字段与 random 的 fragments adapter 对齐：
+    title / subtitle / body / date / url / tags
+  正文取纯文本摘要（去掉标签、折叠空白），适合在抽屉里显示。
+*/ -}}
+{{- $out := slice }}
+{{- range (where site.RegularPages "Section" "fragments") }}
+  {{- if .Content }}
+  {{- $plain := .Plain | replaceRE `\s+` " " | strings.TrimSpace }}
+  {{- $out = $out | append (dict
+        "title" (cond (ne .Title "") .Title ($plain | truncate 40 ""))
+        "subtitle" (delimit (.Params.tags | default slice) " · ")
+        "body" $plain
+        "date" (.Date.Format "2006.01.02")
+        "url" .RelPermalink
+        "tags" (.Params.tags | default slice)) }}
+  {{- end }}
+{{- end }}
+{{- sort $out "date" "desc" | jsonify }}
