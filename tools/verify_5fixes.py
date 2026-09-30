@@ -121,6 +121,24 @@ for kw, expect in [("elsewhere", False), ("home-index", False), ("home-posts", T
 
 print()
 print("=" * 92)
+print("问题 4b：/posts/ 列表不再用文章卡片样式")
+print("=" * 92)
+st, posts_html = get("/posts/")
+for kw, expect in [("post-entry", False), ("entry-cover", False), ("entry-link", False),
+                   ("home-posts", True), ("home-post-title", True)]:
+    found = kw in posts_html
+    ok = found == expect
+    if not ok:
+        problems.append(f"/posts/ {kw} 存在={found}，期望={expect}")
+    print(f"  {'OK ' if ok else 'FAIL'} {kw:18} 存在={found}  期望={expect}")
+n_posts = len(re.findall(r"home-post-title", posts_html))
+ok = n_posts == 2
+if not ok:
+    problems.append(f"/posts/ 文章条数 {n_posts}，期望 2")
+print(f"  {'OK ' if ok else 'FAIL'} 文章条数={n_posts}（期望 2）")
+
+print()
+print("=" * 92)
 print("问题 5：下拉字体统一")
 print("=" * 92)
 name_rule = re.search(r"\.hnav-menu-name,\s*\.hnav-menu-desc\s*\{([^}]*)\}", nav_css, re.S)

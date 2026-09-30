@@ -6,11 +6,11 @@
        这样后续文件可以直接消费 --bg / --text / --border / --radius 等。 */ -}}
 <link rel="stylesheet" href="{{ "theme.css" | relURL }}?v=1">
 {{- /* 全站导航样式（阶段 3）：Hugo 页面与 static/ 合集页共用同一份。 */ -}}
-<link rel="stylesheet" href="{{ "site-nav.css" | relURL }}?v=2">
-{{- /* 独立内容页样式（阶段 3）：首页与 Now 页共用同一份排版节奏。
-       只含 .home-* / .now-* 规则，不影响文章页与合集页。 */ -}}
-{{- if or .IsHome (eq .Section "now") }}
-<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=1">
+<link rel="stylesheet" href="{{ "site-nav.css" | relURL }}?v=3">
+{{- /* 独立内容页样式（阶段 3）：首页 / Now 页 / 文章列表共用同一份排版节奏。
+       只含 .home-* / .now-* 规则，不影响文章正文页与合集页。 */ -}}
+{{- if or .IsHome (eq .Section "now") (eq .Section "posts") }}
+<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=2">
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">
