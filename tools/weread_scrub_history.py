@@ -57,9 +57,14 @@ def count_in_history(key_bytes):
 
 
 def working_tree_clean():
-    r = git("status", "--porcelain")
-    lines = [x for x in out(r).split("\n") if x.strip()]
-    return lines
+    """列出会妨碍重写的改动。
+
+    刻意忽略 submodule（themes/PaperMod）：
+    它有自己的仓库，父仓库的 fast-export/import 不会碰它，
+    而它长期有未提交改动（历史遗留，与本流程无关）。
+    """
+    r = git("status", "--porcelain", "--ignore-submodules=all")
+    return [x for x in out(r).split("\n") if x.strip()]
 
 
 def main():
