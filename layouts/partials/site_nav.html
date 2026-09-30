@@ -1,0 +1,51 @@
+{{- /*
+  全站导航 —— 由 data/nav.yaml 驱动（唯一来源）。
+
+  这一份 partial 同时服务两类页面：
+    · Hugo 页面：PaperMod 的 header.html 会调用它，服务端渲染出 HTML
+    · static/ 合集页：static/site-nav.js 用同一份数据在客户端渲染出
+      完全相同的 class 结构（hnav-*），样式来自 static/site-nav.css
+
+  因此导航在任何页面上的外观与行为都一致，且只需维护 data/nav.yaml 一处。
+*/ -}}
+
+{{- $groups := site.Data.nav.groups -}}
+
+<nav class="hnav" aria-label="站点导航">
+  <ul class="hnav-list">
+    {{- range $groups }}
+    {{- if not .pending }}
+    {{- $children := .children }}
+    {{- $only := index $children 0 }}
+    {{- $multi := gt (len $children) 1 }}
+    <li class="hnav-item{{ if $multi }} hnav-item--has-menu{{ end }}"
+        data-group="{{ .key }}">
+      {{- if $multi }}
+      {{- /* 多子项：可展开（桌面悬停 / 键盘聚焦 / 移动端点击） */}}
+      <button class="hnav-link hnav-link--toggle" type="button"
+              aria-expanded="false" aria-haspopup="true">
+        <span>{{ .label }}</span>
+        <svg class="hnav-caret" viewBox="0 0 24 24" width="10" height="10" fill="none"
+             stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <ul class="hnav-menu">
+        {{- range $children }}
+        <li>
+          <a href="{{ .href | relURL }}">
+            <span class="hnav-menu-name">{{ .name }}</span>
+            {{- with .desc }}<span class="hnav-menu-desc">{{ . }}</span>{{ end }}
+          </a>
+        </li>
+        {{- end }}
+      </ul>
+      {{- else }}
+      {{- /* 单子项：分组标签直接指向该页 */}}
+      <a class="hnav-link" href="{{ $only.href | relURL }}"
+         title="{{ $only.desc | default $only.name }}"><span>{{ .label }}</span></a>
+      {{- end }}
+    </li>
+    {{- end }}
+    {{- end }}
+  </ul>
+</nav>

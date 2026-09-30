@@ -1,0 +1,58 @@
+# ============================================================================
+# 导航 / 信息架构 —— 单一来源
+#
+# 这个文件同时驱动两处，改这里即全站生效：
+#   1) Hugo 生成的页面（首页 / 文章页 / 404）→ layouts/partials/site_nav.html
+#   2) static/ 下的合集页 → static/site-nav.js 读取 Hugo 注入的 window.SITE_NAV
+#
+# 结构：五个分组（listen / read / watch / make / think），每个分组下挂实际页面。
+# 旧 URL（/music/ /book/ /works/ /docu/ /film/ /tv/）全部保持原样，不新增别名。
+#
+# pending: true 的分组只写在这里、不渲染到导航里。
+#   原因：阶段 3 明确要求「不要提前实现 Random / Ocean / Timeline / About」，
+#   而 think 指向的 Fragments 页尚未创建。阶段 3 的导航只渲染「确实存在」的页面，
+#   避免产生死链。等该页建好后，把 pending 去掉即可自动出现在导航中。
+# ============================================================================
+
+groups:
+  - key: listen
+    label: listen
+    children:
+      - name: Music
+        href: /music/
+        desc: 在听的歌
+
+  - key: read
+    label: read
+    children:
+      - name: Book
+        href: /book/
+        desc: 在读的书
+
+  - key: watch
+    label: watch
+    children:
+      - name: Film
+        href: /film/
+        desc: 看过的电影
+      - name: TV
+        href: /tv/
+        desc: 看过的剧集
+      - name: Docu
+        href: /docu/
+        desc: 看过的纪录片
+
+  - key: make
+    label: make
+    children:
+      - name: Works
+        href: /works/
+        desc: 做出来的东西
+
+  - key: think
+    label: think
+    pending: true          # Fragments 页尚未创建，暂不渲染，避免死链
+    children:
+      - name: Fragments
+        href: /fragments/
+        desc: 零散的想法

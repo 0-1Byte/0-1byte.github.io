@@ -1,0 +1,198 @@
+/* ==========================================================================
+   独立内容页样式 —— 首页（/）与 Now 页（/now/）
+   两者共用同一套排版节奏（.home / .home-block / .home-label），
+   只用 :root 里的统一变量（static/theme.css）。
+   刻意保持克制：无卡片、无边框、无阴影、无大字号标题。
+   ========================================================================== */
+
+.home {
+  /* 明确覆写主题 list.html 默认的边距，避免继承 PaperMod 的文章列表间距 */
+  margin: 0;
+  padding: 0;
+  max-width: var(--content-width);
+}
+
+/* ---------- 首屏文案 ---------- */
+
+.home-hero {
+  padding: 74px 0 0;
+}
+
+.home-focus {
+  margin: 0;
+  font-family: 'Dancing Script', cursive;
+  font-size: 30px;
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--text);
+}
+
+.home-focus span {
+  display: block;
+}
+
+/* 首行稍重、次行渐弱，形成安静的层次 */
+.home-focus span:last-child:not(:only-child) {
+  color: var(--muted);
+}
+
+.home-note {
+  margin: 20px 0 0;
+  max-width: 34em;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+/* ---------- 区块 ---------- */
+
+.home-block {
+  margin: 0;
+  padding: 46px 0 0;
+}
+
+.home-label {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: .8;
+}
+
+/* ---------- currently ---------- */
+
+.home-currently {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 用中圆点分隔，而不是药丸底色 —— 少一层视觉噪声 */
+.home-currently li + li::before {
+  content: "·";
+  margin-right: 20px;
+  color: var(--muted);
+  opacity: .6;
+}
+
+/* ---------- 分组入口 ---------- */
+
+.home-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-index a {
+  color: var(--muted);
+  font-family: 'Dancing Script', cursive;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  transition: color var(--motion-fast) ease;
+}
+
+.home-index a:hover,
+.home-index a:focus-visible {
+  color: var(--text);
+}
+
+/* ---------- Now ---------- */
+
+.home-now {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.home-now a {
+  color: var(--muted);
+  transition: color var(--motion-fast) ease;
+}
+
+.home-now a:hover,
+.home-now a:focus-visible {
+  color: var(--text);
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 600px) {
+  .home-hero {
+    padding-top: 48px;
+  }
+
+  .home-focus {
+    font-size: 26px;
+  }
+
+  .home-block {
+    padding-top: 34px;
+  }
+
+  .home-currently {
+    gap: 7px 14px;
+  }
+
+  .home-currently li + li::before {
+    margin-right: 14px;
+  }
+
+  .home-index {
+    gap: 10px 20px;
+  }
+
+  .home-index a {
+    font-size: 21px;
+  }
+}
+
+/* ---------- Now 页专有 ---------- */
+
+/* Now 的列表是纵向条目，与首页 currently 的横向排布不同 */
+.now-list {
+  display: block;
+}
+
+.now-list li {
+  margin: 0 0 7px;
+  color: var(--text);
+}
+
+/* 纵向列表不需要中圆点分隔符 */
+.now-list li + li::before {
+  content: none;
+  margin: 0;
+}
+
+.now-updated {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  opacity: .8;
+}
+
+/* Now 页标题只用常规字号，避免与 focus 那句抢视线 */
+.now .home-focus {
+  font-size: 26px;
+}
+
+@media (max-width: 600px) {
+  .now .home-focus {
+    font-size: 23px;
+  }
+}

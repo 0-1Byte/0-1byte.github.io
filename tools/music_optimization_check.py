@@ -69,15 +69,28 @@ check("保留主题切换", "pref-theme" in js)
 check("EAGER_COUNT 在 4~8 之间", 4 <= int(re.search(r"EAGER_COUNT = (\d+)", js).group(1)) <= 8)
 
 # ---------- 4. CSS 布局未变 ----------
+# 注意：阶段 2 起调色板与圆角取值统一收敛到 static/theme.css，
+# 本文件只消费变量。所以这两项改为检查「变量是否存在且被引用」，
+# 以及「theme.css 里的取值是否仍是原来的 7px」。
 print("\n4. style.css 布局")
 css = (MUSIC / "style.css").read_text(encoding="utf-8")
-check("桌面四列", "repeat(4, minmax(0, 1fr))" in css)
-check("平板三列", "repeat(3, minmax(0, 1fr))" in css)
-check("手机两列", "repeat(2, minmax(0, 1fr))" in css)
-check("封面 1:1 比例", "aspect-ratio: 1" in css)
-check("圆角 7px", "border-radius: 7px" in css)
+theme_css = (ROOT / "static" / "theme.css").read_text(encoding="utf-8")
+
+
+def has_grid_cols(text, n):
+    """匹配 grid-template-columns: repeat(n, minmax(0,1fr))，容忍空格差异。"""
+    return re.search(r"repeat\(\s*%d\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)" % n, text) is not None
+
+
+check("桌面四列", has_grid_cols(css, 4))
+check("平板三列", has_grid_cols(css, 3))
+check("手机两列", has_grid_cols(css, 2))
+check("封面 1:1 比例", re.search(r"aspect-ratio\s*:\s*1\b", css) is not None)
+check("圆角走统一变量且取值为 7px",
+      "border-radius: var(--radius)" in css and "--radius: 7px" in theme_css)
 check("hover 缩放/透明效果", "scale(1.025)" in css and "opacity: .72" in css)
-check("深浅色变量齐全", ':root[data-theme="dark"]' in css)
+check("深浅色变量齐全（已收敛到 theme.css）",
+      ':root[data-theme="dark"]' in theme_css and "--muted" in theme_css and "--surface" in theme_css)
 
 # ---------- 5. index.html ----------
 print("\n5. index.html")

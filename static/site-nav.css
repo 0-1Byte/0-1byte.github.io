@@ -1,0 +1,195 @@
+/* ==========================================================================
+   全站导航样式 —— 同时服务 Hugo 页面与 static/ 合集页
+   只使用 :-based 类选择器（hnav-*），不影响 PaperMod 的其它逻辑。
+   颜色 / 圆角 / 动效全部取自 static/theme.css 的统一变量。
+   ========================================================================== */
+
+/* ---------- 容器 ---------- */
+
+.hnav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.hnav-list {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hnav-item {
+  position: relative;
+}
+
+/* ---------- 分组标签 ---------- */
+
+.hnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-family: 'Dancing Script', cursive;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: color var(--motion-fast) ease;
+}
+
+.hnav-link:hover,
+.hnav-link:focus-visible {
+  color: var(--text);
+}
+
+/* 当前所在分组：只做轻微加重，不抢视线 */
+.hnav-item.is-active > .hnav-link {
+  color: var(--text);
+}
+
+.hnav-caret {
+  opacity: .55;
+  transition: transform var(--motion-fast) ease;
+}
+
+/* ---------- 下拉 ---------- */
+
+.hnav-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: -14px;
+  z-index: 30;
+  min-width: 190px;
+  margin: 0;
+  padding: 7px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--motion-base) ease,
+              visibility var(--motion-base) ease,
+              transform var(--motion-base) var(--ease-out);
+}
+
+/* 桌面：悬停或键盘聚焦时展开 */
+@media (hover: hover) {
+  .hnav-item--has-menu:hover > .hnav-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .hnav-item--has-menu:hover > .hnav-link--toggle .hnav-caret {
+    transform: rotate(180deg);
+  }
+}
+
+/* 点击展开（移动端与键盘用户） */
+.hnav-item.is-open > .hnav-menu,
+.hnav-item--has-menu:focus-within > .hnav-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.hnav-item.is-open > .hnav-link--toggle .hnav-caret,
+.hnav-item--has-menu:focus-within > .hnav-link--toggle .hnav-caret {
+  transform: rotate(180deg);
+}
+
+.hnav-menu a {
+  display: block;
+  padding: 7px 11px;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--motion-fast) ease;
+}
+
+.hnav-menu a:hover,
+.hnav-menu a:focus-visible {
+  background: var(--surface-2);
+}
+
+.hnav-menu a.is-active .hnav-menu-name {
+  color: var(--text);
+}
+
+.hnav-menu-name {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.hnav-menu-desc {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 600px) {
+  .hnav {
+    /* 让导航可以横向滑动，而不是挤成两行把 header 撑高 */
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .hnav::-webkit-scrollbar { display: none; }
+
+  .hnav-list {
+    gap: 16px;
+    padding-right: 4px;
+    white-space: nowrap;
+  }
+
+  .hnav-link {
+    font-size: 17px;
+  }
+
+  /* 移动端下拉改为左对齐，避免超出视口右缘 */
+  .hnav-menu {
+    left: auto;
+    right: auto;
+    min-width: 170px;
+  }
+}
+
+/* ---------- 减少动效 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hnav-menu,
+  .hnav-caret,
+  .hnav-link,
+  .hnav-menu a {
+    transition: none;
+  }
+}
+
+/* ---------- 数据加载失败时的提示 ---------- */
+
+.hnav-error {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+}

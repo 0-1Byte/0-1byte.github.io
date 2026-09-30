@@ -1,0 +1,61 @@
+{{- /*
+  首页 —— 极简入口，不是 dashboard。
+
+  职责只有一个：给人一个入口。
+  所以这里不列文章、不列数据、不展开任何内容，只有四块：
+    名字/focus 文案  ·  currently  ·  分组入口  ·  Now
+
+  分组入口的映射（与顶部导航同源，均取自 data/nav.yaml）：
+    listen→Music  read→Book  watch→Film  make→Works
+    watch 有 3 个子页，文档结构不便于一屏平铺，因此首页只给一个入口，
+    子页（Film/TV/Docu）由顶部导航的下拉承担。
+
+  文案修改位置（都不用碰模板）：
+    focus / currently  → content/_index.md 的 front matter
+    note（正文段落）    → content/_index.md 的正文
+*/ -}}
+
+{{- define "main" }}
+
+{{- $focus := .Params.focus | default (slice "building small things," "thinking about large things.") }}
+{{- $currently := .Params.currently | default (slice "AI" "Product" "Music" "Writing") }}
+{{- $groups := where site.Data.nav.groups "pending" "!=" true }}
+
+<article class="home">
+
+  <header class="home-hero">
+    <h1 class="home-focus">
+      {{- range $focus }}<span>{{ . }}</span>{{ end }}
+    </h1>
+    {{- with .Content }}
+    <div class="home-note">{{ . }}</div>
+    {{- end }}
+  </header>
+
+  {{- with $currently }}
+  <section class="home-block">
+    <h2 class="home-label">currently</h2>
+    <ul class="home-currently">
+      {{- range . }}<li>{{ . }}</li>{{ end }}
+    </ul>
+  </section>
+  {{- end }}
+
+  <section class="home-block">
+    <h2 class="home-label">elsewhere</h2>
+    <ul class="home-index">
+      {{- range $groups }}
+      {{- $only := index .children 0 }}
+      <li><a href="{{ $only.href | relURL }}">{{ .label }}</a></li>
+      {{- end }}
+    </ul>
+  </section>
+
+  <section class="home-block">
+    <h2 class="home-label">now</h2>
+    <p class="home-now"><a href="{{ "/now/" | relURL }}">此刻在做什么 →</a></p>
+  </section>
+
+</article>
+
+{{- end }}

@@ -133,16 +133,11 @@
     opacity: 0.9 !important;
 }
 
-/* 让主页导航与 logo、欢迎语使用同一套艺术字体 */
-#menu a,
-#menu a span {
-    font-family: 'Dancing Script', cursive !important;
-    font-size: 24px !important;
-    line-height: 32px !important;
-    font-weight: 700 !important;
-}
+/* 导航字体/尺寸由 static/site-nav.css（.hnav-*）统一负责 ——
+   阶段 3 起顶层导航是 listen/read/watch/make 分组，不再是 #menu 扁平菜单。
+   这里只保留 header 的布局逻辑，确保 logo / 导航 / 主题按钮三者对齐。 */
 
-/* 将 Music 放到 Chen 下方，并与正文左边缘对齐 */
+/* 将导航放到 Chen 右侧，与正文左边缘对齐 */
 header.header {
     position: relative;
     z-index: 2;
@@ -159,6 +154,8 @@ nav {
 
 .header-nav {
     justify-content: flex-start !important;
+    /* 与 .hnav-list 的 gap 对齐，避免 logo 与首个分组贴在一起 */
+    gap: 26px !important;
     padding-right: 64px;
 }
 
@@ -180,41 +177,18 @@ nav {
     height: 60px;
 }
 
-/* 与合集页 .site-nav gap:18px 对齐：logo 与首个菜单项间距一致 */
-#menu {
-    position: static;
-    margin-left: 18px !important;
-    flex-shrink: 0;
-}
-
-#menu ul {
-    gap: 18px !important;
-}
-
 @media screen and (max-width: 767px) {
     nav {
         min-height: 76px !important;
     }
 
-    #menu {
-        margin-left: 8px !important;
-    }
-
-    #menu ul {
-        gap: 8px !important;
-    }
-
-    #menu a,
-    #menu a span {
-        font-size: 17px !important;
+    .header-nav {
+        gap: 16px !important;
+        padding-right: 52px;
     }
 
     .logo a {
         font-size: 28px !important;
-    }
-
-    .header-nav {
-        padding-right: 52px;
     }
 }
 

@@ -1,0 +1,50 @@
+{{- /*
+  Header 覆盖 —— 只改导航，不动主题其它部分。
+
+  与 PaperMod 原版 header.html 的差异：
+    · 用 partial "site_nav.html" 取代原来由 site.Menus.main 渲染的 #menu
+      （信息架构现在由 data/nav.yaml 驱动，见该文件注释）
+    · 站点标题 / 主题切换按钮的 DOM 结构与原来完全一致，
+      因此 custom.css 里既有的 .logo a、.logo-switches、#theme-toggle 规则继续生效
+    · Theme toggle 换成内联 onclick：合集页用 addEventListener 绑定，
+      这里保持与主题原状一致的行为与 localStorage key
+*/ -}}
+<header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            {{- $label_text := (site.Params.label.text | default site.Title) }}
+            {{- if site.Title }}
+            <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)">
+                {{- $label_text -}}
+            </a>
+            {{- end }}
+
+            {{- if (not site.Params.disableThemeToggle) }}
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="切换主题">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+            {{- end }}
+        </div>
+
+        {{- partial "site_nav.html" . }}
+    </nav>
+</header>

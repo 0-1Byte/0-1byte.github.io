@@ -5,6 +5,13 @@
 {{- /* 统一设计系统变量（阶段 2）。必须排在主题样式与其它自定义样式之前，
        这样后续文件可以直接消费 --bg / --text / --border / --radius 等。 */ -}}
 <link rel="stylesheet" href="{{ "theme.css" | relURL }}?v=1">
+{{- /* 全站导航样式（阶段 3）：Hugo 页面与 static/ 合集页共用同一份。 */ -}}
+<link rel="stylesheet" href="{{ "site-nav.css" | relURL }}?v=2">
+{{- /* 独立内容页样式（阶段 3）：首页与 Now 页共用同一份排版节奏。
+       只含 .home-* / .now-* 规则，不影响文章页与合集页。 */ -}}
+{{- if or .IsHome (eq .Section "now") }}
+<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=1">
+{{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
@@ -16,3 +23,6 @@
     }
   });
 </script>
+{{- /* 导航数据不再内联注入：static/ 下的合集页不经过 Hugo 模板，注入对它们无效。
+       改为由 layouts/index.json 生成 /nav.json，供 static/site-nav.js 运行时读取；
+       Hugo 页面仍由 site_nav.html 服务端渲染。 */ -}}

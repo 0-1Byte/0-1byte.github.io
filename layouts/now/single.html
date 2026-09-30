@@ -1,0 +1,53 @@
+{{- /*
+  /now/ 页排版。
+
+  用 layouts/page/now.html：content/now.md 的 front matter 里写 layout: now，
+  Hugo 便会找 layouts/page/now.html（找不到才回落到主题的 single.html），
+  因此不会影响其它单页。
+
+  所有内容都来自 content/now.md 的 front matter，这里不硬编码任何文案。
+*/ -}}
+
+{{- define "main" }}
+
+{{- $sections := slice
+      (dict "label" "building"  "items" .Params.building)
+      (dict "label" "reading"   "items" .Params.reading)
+      (dict "label" "listening" "items" .Params.listening)
+      (dict "label" "watching"  "items" .Params.watching) -}}
+
+<article class="home now">
+
+  <header class="home-hero">
+    <h1 class="home-focus"><span>{{ .Title }}</span></h1>
+    {{- with .Description }}
+    <p class="home-note">{{ . }}</p>
+    {{- end }}
+  </header>
+
+  {{- range $section := $sections }}
+  {{- with $section.items }}
+  <section class="home-block">
+    <h2 class="home-label">{{ $section.label }}</h2>
+    <ul class="home-currently now-list">
+      {{- range . }}<li>{{ . }}</li>{{ end }}
+    </ul>
+  </section>
+  {{- end }}
+  {{- end }}
+
+  {{- with .Content }}
+  <section class="home-block">
+    <div class="home-note">{{ . }}</div>
+  </section>
+  {{- end }}
+
+  {{- with .Params.updated }}
+  <footer class="home-block">
+    <p class="now-updated">最后更新 {{ . }}</p>
+  </footer>
+  {{- end }}
+
+</article>
+
+{{- end }}

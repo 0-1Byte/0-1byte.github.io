@@ -1,0 +1,22 @@
+{{- /*
+  导航数据 —— 输出到 /nav.json
+
+  为什么需要这个文件：
+    data/nav.yaml 是信息架构的唯一来源，但 static/ 下的合集页是「原样复制」的
+    静态文件，不经过 Hugo 模板，因此 extend_head.html 的注入对它们无效。
+    所以这里把同一份数据渲染成 JSON，供 static/site-nav.js 在运行时 fetch。
+    Hugo 页面仍由 site_nav.html 服务端渲染（首屏即有导航，不依赖 JS）。
+
+  输出位置由 hugo.toml 的 [outputs] home = ["HTML","JSON"] + mediaTypes 决定。
+*/ -}}
+{{- $groups := slice }}
+{{- range site.Data.nav.groups }}
+  {{- if not .pending }}
+  {{- $children := slice }}
+  {{- range .children }}
+  {{- $children = $children | append (dict "name" .name "href" .href "desc" (.desc | default "")) }}
+  {{- end }}
+  {{- $groups = $groups | append (dict "key" .key "label" .label "children" $children) }}
+  {{- end }}
+{{- end }}
+{{- dict "groups" $groups | jsonify }}

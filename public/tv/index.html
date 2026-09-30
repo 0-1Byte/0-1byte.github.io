@@ -17,19 +17,18 @@
     })();
   </script>
 <link rel="stylesheet" href="/theme.css?v=1">
+  <link rel="stylesheet" href="/site-nav.css?v=2">
   <link rel="stylesheet" href="/collection-states.css?v=2">
   <link rel="stylesheet" href="/back-to-top.css?v=1">
   <!-- 并行预取数据：与 script.js 同时开始，避免串行等待 -->
   <link rel="preload" href="/tv/tvs.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
-  <link rel="stylesheet" href="/tv/style.css?v=3">
+  <link rel="stylesheet" href="/tv/style.css?v=4">
   <title>TV — Chen</title>
 </head>
 <body>
   <div class="page">
     <header class="header">
-      <nav class="site-nav" aria-label="Site navigation">
-        <a href="/">Chen</a><a href="/music/">Music</a><a href="/book/">Book</a><a href="/works/">Works</a><a href="/docu/">Docu</a><a href="/film/">Film</a><a href="/tv/">TV</a>
-      </nav>
+      <div class="site-nav" data-site-nav></div>
       <button id="theme-toggle" class="theme-toggle" accesskey="t" type="button"
               aria-label="切换主题" title="切换主题">
         <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -55,6 +54,7 @@
     </main>
     <footer class="footer"><span>Chen</span><span id="year"></span></footer>
   </div>
+  <script src="/site-nav.js?v=2" defer></script>
   <script src="/collection-common.js?v=1" defer></script>
   <script src="/covers.js?v=1" defer></script>
   <script src="/tv/script.js?v=4" defer></script>

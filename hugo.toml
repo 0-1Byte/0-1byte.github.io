@@ -14,6 +14,27 @@ relativeURLs = false
 [author]
     name = "Chen"
 
+# 阶段 3：把导航数据（data/nav.yaml）输出成 /nav.json，
+# 供 static/ 下的合集页在运行时读取 —— 那些页面不经过 Hugo 模板，
+# 无法使用 extend_head.html 的注入。Hugo 页面仍走服务端渲染。
+#
+# 说明：输出格式取名 NavIndex，避免与 Hugo 内置的 JSON 输出格式冲突
+# （内置的那个会固定写成 index.json，baseName 不生效）。
+# 注意：/index.json 现为导航数据。当前站点未启用搜索（无 content/search.md），
+# 若日后要启用 PaperMod 搜索，需另开一个输出格式，不要复用 index.json。
+[mediaTypes."application/json"]
+    suffixes = ["json"]
+
+[outputFormats.NavIndex]
+    mediaType = "application/json"
+    baseName = "nav"
+    isPlainText = true
+    isHTML = false
+    rel = "alternate"
+
+[outputs]
+    home = ["HTML", "NavIndex"]
+
 [params]
     env = "production"
 
@@ -33,40 +54,9 @@ relativeURLs = false
     [params.assets]
         favicon = "cat.ico"
 
-[menu]
-
-[[menu.main]]
-    identifier = "music"
-    name = "Music"
-    url = "/music/"
-    weight = 30
-
-[[menu.main]]
-    identifier = "book"
-    name = "Book"
-    url = "/book/"
-    weight = 40
-
-[[menu.main]]
-    identifier = "works"
-    name = "Works"
-    url = "/works/"
-    weight = 45
-
-[[menu.main]]
-    identifier = "docu"
-    name = "Docu"
-    url = "/docu/"
-    weight = 50
-
-[[menu.main]]
-    identifier = "film"
-    name = "Film"
-    url = "/film/"
-    weight = 60
-
-[[menu.main]]
-    identifier = "tv"
-    name = "TV"
-    url = "/tv/"
-    weight = 70
+# 导航已改由 data/nav.yaml 驱动（阶段 3 信息架构重组）。
+# 原来的 [[menu.main]] 扁平菜单（Music/Book/Works/Docu/Film/TV）已废弃：
+# 现在顶层是 listen / read / watch / make / think 五个分组，
+# watch 带 Film/TV/Docu 下拉。结构只有一处来源，避免与合集页硬编码导航漂移。
+#
+# 旧 URL 全部保持不变：/music/ /book/ /works/ /docu/ /film/ /tv/
