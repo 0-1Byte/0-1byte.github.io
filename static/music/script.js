@@ -9,7 +9,6 @@
   const grid = document.getElementById("song-grid");
   const count = document.getElementById("song-count");
   const error = document.getElementById("error");
-  const themeToggle = document.getElementById("theme-toggle");
 
   function safeText(value) {
     return String(value ?? "");
@@ -163,23 +162,18 @@
     render(result.data.filter(song => song && song.title && song.cover));
   }
 
-  function setTheme(theme) {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("pref-theme", theme);
-  }
-
-  themeToggle.addEventListener("click", () => {
-    const current = document.documentElement.dataset.theme;
-    setTheme(current === "dark" ? "light" : "dark");
-  });
-
   window.addEventListener("storage", event => {
     if (event.key === "pref-theme" && (event.newValue === "light" || event.newValue === "dark")) {
       document.documentElement.dataset.theme = event.newValue;
     }
   });
 
-  document.getElementById("year").textContent = new Date().getFullYear();
+  /* 页脚年份：拿不到元素就跳过。
+     这里刻意保留非空判断 —— 同一个脚本里若有一句「拿到元素就直接用」
+     并在 null 上抛错，会把后面那句加载调用一起带走，整页数据变空。
+     那种情况真实发生过（主题切换按钮被移除时）。 */
+  const yearEl = document.getElementById("year");
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   loadSongs();
 })();
