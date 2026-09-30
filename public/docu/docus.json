@@ -5,7 +5,8 @@
     "year": 2026,
     "note": "",
     "url": "https://movie.douban.com/subject/38586438/",
-    "id": "a-beautiful-obsession"
+    "id": "a-beautiful-obsession",
+    "img": "a-beautiful-obsession-8e15c8e1"
   },
   {
     "title": "All or Nothing: Manchester City",
@@ -13,7 +14,8 @@
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/30281493/",
-    "id": "all-or-nothing-manchester-city"
+    "id": "all-or-nothing-manchester-city",
+    "img": "all-or-nothing-manchester-city-9935060a"
   },
   {
     "title": "Matchday: Inside FC Barcelona",
@@ -21,7 +23,8 @@
     "year": 2019,
     "note": "",
     "url": "https://movie.douban.com/subject/34899741/",
-    "id": "matchday-inside-fc-barcelona"
+    "id": "matchday-inside-fc-barcelona",
+    "img": "matchday-inside-fc-barcelona-f808348b"
   },
   {
     "title": "Captains of the World",
@@ -29,7 +32,8 @@
     "year": 2023,
     "note": "",
     "url": "https://movie.douban.com/subject/36484605/",
-    "id": "captains-of-the-world"
+    "id": "captains-of-the-world",
+    "img": "captains-of-the-world-edb2186d"
   },
   {
     "title": "罗斯托夫的14秒",
@@ -37,7 +41,8 @@
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/34482019/",
-    "id": "罗斯托夫的14秒"
+    "id": "罗斯托夫的14秒",
+    "img": "罗斯托夫的14秒-10a426b6"
   },
   {
     "title": "Free Solo",
@@ -45,7 +50,8 @@
     "year": 2018,
     "note": "",
     "url": "https://movie.douban.com/subject/30167509/",
-    "id": "free-solo"
+    "id": "free-solo",
+    "img": "free-solo-12310e1f"
   },
   {
     "title": "The Thinking Game",
@@ -53,7 +59,8 @@
     "year": 2024,
     "note": "",
     "url": "https://movie.douban.com/subject/36877225/",
-    "id": "the-thinking-game"
+    "id": "the-thinking-game",
+    "img": "the-thinking-game-27eb26f7"
   },
   {
     "title": "AlphaGo",
@@ -61,7 +68,8 @@
     "year": 2017,
     "note": "",
     "url": "https://movie.douban.com/subject/27012433/",
-    "id": "alphago"
+    "id": "alphago",
+    "img": "alphago-8862de13"
   },
   {
     "title": " Rafa",
@@ -69,7 +77,8 @@
     "year": 2026,
     "note": "",
     "url": "https://movie.douban.com/subject/37163615/",
-    "id": "rafa"
+    "id": "rafa",
+    "img": "rafa-ef8446b3"
   },
   {
     "title": "Test Like You Fly",
@@ -77,7 +86,8 @@
     "year": 2026,
     "note": "",
     "url": "https://movie.douban.com/subject/38489013/",
-    "id": "test-like-you-fly"
+    "id": "test-like-you-fly",
+    "img": "test-like-you-fly-c5ff94bc"
   },
   {
     "title": "The Story of VS Code",
@@ -85,6 +95,7 @@
     "year": 2026,
     "note": "",
     "url": "https://www.youtube.com/watch?v=kHL3XzjpT5w",
-    "id": "the-story-of-vs-code"
+    "id": "the-story-of-vs-code",
+    "img": "the-story-of-vs-code-5ca756cd"
   }
 ]

@@ -1,0 +1,16 @@
+# Python 编译产物
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Hugo 构建锁
+.hugo_build.lock
+
+# 本地预览 / 临时文件
+_preview/
+*.tmp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini

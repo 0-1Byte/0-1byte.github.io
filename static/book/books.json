@@ -7,7 +7,8 @@
     "fallbackCover": "https://covers.openlibrary.org/b/id/7256072-L.jpg",
     "status": "",
     "note": "",
-    "url": "https://book.douban.com/subject/6021440/"
+    "url": "https://book.douban.com/subject/6021440/",
+    "img": "黑客与画家-812a60c3"
   },
   {
     "id": "有限与无限的游戏",
@@ -17,7 +18,8 @@
     "fallbackCover": "https://covers.openlibrary.org/b/id/6609213-L.jpg",
     "status": "",
     "note": "",
-    "url": "https://book.douban.com/subject/33438841/"
+    "url": "https://book.douban.com/subject/33438841/",
+    "img": "有限与无限的游戏-4b1e2c48"
   },
   {
     "id": "悉达多",
@@ -27,7 +29,8 @@
     "fallbackCover": "https://covers.openlibrary.org/b/id/14617972-L.jpg",
     "status": "",
     "note": "",
-    "url": "https://book.douban.com/subject/26980487/"
+    "url": "https://book.douban.com/subject/26980487/",
+    "img": "悉达多-87716676"
   },
   {
     "id": "平面国",
@@ -37,7 +40,8 @@
     "fallbackCover": "https://covers.openlibrary.org/b/id/10069547-L.jpg",
     "status": "",
     "note": "",
-    "url": "https://book.douban.com/subject/35170896/"
+    "url": "https://book.douban.com/subject/35170896/",
+    "img": "平面国-8151b47a"
   },
   {
     "id": "我看见的世界",
@@ -47,7 +51,8 @@
     "fallbackCover": "https://covers.openlibrary.org/b/id/14833024-L.jpg",
     "status": "",
     "note": "",
-    "url": "https://book.douban.com/subject/36672955/"
+    "url": "https://book.douban.com/subject/36672955/",
+    "img": "我看见的世界-2e420ad2"
   },
   {
     "title": "鱼不存在",
@@ -56,7 +61,8 @@
     "status": "",
     "note": "",
     "url": "https://book.douban.com/subject/36096300/",
-    "id": "鱼不存在"
+    "id": "鱼不存在",
+    "img": "鱼不存在-3016d7d5"
   },
   {
     "id": "你一生的故事",
@@ -75,7 +81,8 @@
     "status": "",
     "note": "",
     "url": "https://book.douban.com/subject/2212371/",
-    "id": "先知"
+    "id": "先知",
+    "img": "先知-4d61a764"
   },
   {
     "title": "心态制胜",
@@ -84,6 +91,7 @@
     "status": "",
     "note": "",
     "url": "https://book.douban.com/subject/37124066/",
-    "id": "心态制胜"
+    "id": "心态制胜",
+    "img": "心态制胜-ce24e5a7"
   }
 ]

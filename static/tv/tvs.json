@@ -5,7 +5,8 @@
     "year": 2025,
     "note": "",
     "url": "https://movie.douban.com/subject/36352371/",
-    "id": "pluribus"
+    "id": "pluribus",
+    "img": "pluribus-a3073f62"
   },
   {
     "title": "The Big Bang Theory",
@@ -13,7 +14,8 @@
     "year": 2007,
     "note": "",
     "url": "https://movie.douban.com/subject/2156528/",
-    "id": "the-big-bang-theory"
+    "id": "the-big-bang-theory",
+    "img": "the-big-bang-theory-74a415a7"
   },
   {
     "title": "Game of Thrones",
@@ -21,7 +23,8 @@
     "year": 2011,
     "note": "",
     "url": "https://www.imdb.com/title/tt0944947/",
-    "id": "game-of-thrones"
+    "id": "game-of-thrones",
+    "img": "game-of-thrones-a393a391"
   },
   {
     "title": "Breaking Bad",
@@ -29,7 +32,8 @@
     "year": 2008,
     "note": "",
     "url": "https://movie.douban.com/subject/2373195/",
-    "id": "breaking-bad"
+    "id": "breaking-bad",
+    "img": "breaking-bad-22fdccbd"
   },
   {
     "title": "Better Call Saul",
@@ -37,6 +41,7 @@
     "year": 2015,
     "note": "",
     "url": "https://movie.douban.com/subject/25726259/",
-    "id": "better-call-saul"
+    "id": "better-call-saul",
+    "img": "better-call-saul-0abcb304"
   }
 ]

@@ -26,6 +26,12 @@ TITLE_ALIASES = {
 }
 
 
+# --- 封面衍生图钩子 ---
+# 加完数据后自动补齐封面下载尺寸的 WebP（增量，通常 1~2 秒）。
+# 逻辑见 cover_opt.run_after_add；失败只打警告，不影响加数据本身。
+# 同目录导入：以 `python tools/add_xxx.py` 方式运行时脚本目录已在 sys.path 上。
+from cover_opt import run_after_add as _run_after_add
+
 def fetch_json(url):
     request = Request(
         url,
@@ -279,6 +285,7 @@ def main():
             encoding="utf-8",
         )
     print("完成：新增 {} 本，当前共 {} 本。".format(added, len(books)))
+    _run_after_add("book")
     return 0
 
 

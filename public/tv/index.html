@@ -17,6 +17,8 @@
     })();
   </script>
 <link rel="stylesheet" href="/back-to-top.css?v=1">
+  <!-- 并行预取数据：与 script.js 同时开始，避免串行等待 -->
+  <link rel="preload" href="/tv/tvs.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
   <link rel="stylesheet" href="/tv/style.css?v=2">
   <title>TV — Chen</title>
 </head>
@@ -51,7 +53,8 @@
     </main>
     <footer class="footer"><span>Chen</span><span id="year"></span></footer>
   </div>
-  <script src="/tv/script.js?v=1" defer></script>
+  <script src="/covers.js?v=1" defer></script>
+  <script src="/tv/script.js?v=3" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>

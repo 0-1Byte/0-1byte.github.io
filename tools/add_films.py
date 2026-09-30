@@ -18,6 +18,12 @@ IMDB_SEARCH_URL = "https://v3.sg.media-imdb.com/suggestion/x/{}.json"
 USER_AGENT = "0-1byte.github.io film importer/1.0"
 
 
+# --- 封面衍生图钩子 ---
+# 加完数据后自动补齐封面下载尺寸的 WebP（增量，通常 1~2 秒）。
+# 逻辑见 cover_opt.run_after_add；失败只打警告，不影响加数据本身。
+# 同目录导入：以 `python tools/add_xxx.py` 方式运行时脚本目录已在 sys.path 上。
+from cover_opt import run_after_add as _run_after_add
+
 def normalize(value):
     return " ".join(str(value or "").casefold().split())
 
@@ -185,6 +191,7 @@ def main():
             encoding="utf-8",
         )
     print("完成：新增 {} 部，当前共 {} 部。".format(added, len(films)))
+    _run_after_add("film")
     return 0
 
 

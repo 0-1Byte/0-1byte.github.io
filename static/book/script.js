@@ -14,6 +14,13 @@
   }[char]));
   const asset = path => !path ? "" : (/^(https?:)?\/\//.test(path) || path.startsWith("/") ? path : base + path.replace(/^\.?\//, ""));
 
+  // 交给 /covers.js 生成 srcset/sizes 与首屏优先级（档位与 tools/optimize_covers.py 一致）
+  window.COVER_OPT = {
+    widths: [240, 320, 480],
+    sizes: "(max-width: 600px) 45vw, (max-width: 850px) 31vw, 235px",
+    assetDir: "covers/opt"
+  };
+
   function addCoverFallback(image, title) {
     if (image.dataset.fallbackTried) return;
     image.dataset.fallbackTried = "true";
@@ -23,19 +30,29 @@
   }
 
   function render(books) {
-    grid.innerHTML = books.map(book => {
+    grid.innerHTML = books.map((book, index) => {
       const title = text(book.title);
       const author = text(book.author);
-      const cover = asset(book.cover);
       const details = [book.status, book.note].filter(Boolean).join(" · ");
-      const fallback = book.fallbackCover ? ` data-fallback="${escape(asset(book.fallbackCover))}"` : "";
-      const image = `<img class="cover" src="${escape(cover)}" alt="${escape(title)}" loading="eager" decoding="async"${fallback}>`;
+      // fallbackCover 是"联网找替代封面"用的，与本地 JPG 兜底互不冲突
+      const extraAttrs = book.fallbackCover
+        ? { "data-fallback": resolveCoverAsset(book.fallbackCover) }
+        : null;
+      const image = buildCoverImg({
+        cover: book.cover,
+        img: book.img,
+        alt: title,
+        index,
+        eagerCount: 4,
+        extraAttrs
+      });
       const overlay = `<div class="book-overlay" aria-label="${escape(`${title} 书籍信息`)}"><p><span>作者</span>${escape(author)}</p>${details ? `<p><span>记录</span>${escape(details)}</p>` : ""}</div>`;
       const coverBlock = book.url
         ? `<a class="cover-link" href="${escape(book.url)}" target="_blank" rel="noopener noreferrer" aria-label="打开 ${escape(title)}"><div class="cover-wrap">${image}${overlay}<span class="external">↗</span></div></a>`
         : `<div class="cover-link"><div class="cover-wrap">${image}${overlay}</div></div>`;
       return `<article class="book-card">${coverBlock}<div class="book-info"><h2>${escape(title)}</h2>${author ? `<p>${escape(author)}</p>` : ""}</div></article>`;
     }).join("");
+    bindCoverJpgFallback(grid);
     grid.querySelectorAll("img.cover").forEach(image => {
       image.addEventListener("error", () => addCoverFallback(image, image.alt));
     });
@@ -45,7 +62,7 @@
 
   async function loadBooks() {
     try {
-      const response = await fetch(`${base}books.json?v=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch(`${base}books.json?v=2`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error("books.json must contain an array");

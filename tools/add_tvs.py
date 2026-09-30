@@ -67,6 +67,12 @@ TV_MARKERS = ("电视剧", "剧集", "tv series", "tv mini", "web系列", "网�
 IMDB_TV_TYPES = ("tv series", "tv mini-series", "tv mini series")
 
 
+# --- 封面衍生图钩子 ---
+# 加完数据后自动补齐封面下载尺寸的 WebP（增量，通常 1~2 秒）。
+# 逻辑见 cover_opt.run_after_add；失败只打警告，不影响加数据本身。
+# 同目录导入：以 `python tools/add_xxx.py` 方式运行时脚本目录已在 sys.path 上。
+from cover_opt import run_after_add as _run_after_add
+
 def normalize(value):
     return " ".join(str(value or "").casefold().split())
 
@@ -305,6 +311,7 @@ def remove_shows(shows, titles):
             encoding="utf-8",
         )
     print("完成：删除 {} 部，当前共 {} 部。".format(removed, len(keep)))
+    _run_after_add("tv")
     return 0
 
 
@@ -339,6 +346,7 @@ def add_shows(shows, titles):
             encoding="utf-8",
         )
     print("完成：新增 {} 部，当前共 {} 部。".format(added, len(shows)))
+    _run_after_add("tv")
     return 0
 
 
