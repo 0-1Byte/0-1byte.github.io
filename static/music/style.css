@@ -1,68 +1,25 @@
-:root {
-  --primary: rgb(30, 30, 30);
-  --bg: #faf9f7;
-  --text: #171717;
-  --muted: #8a8781;
-  --line: #e4e2dd;
-  --button: #ffffff;
-}
-
-:root[data-theme="dark"] {
-  --primary: rgb(218, 218, 219);
-  --bg: #11110f;
-  --text: #f1efe9;
-  --muted: #9d9a92;
-  --line: #35342f;
-  --button: #191917;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--bg);
-}
-
+/* 调色板已收敛到 /theme.css（统一设计系统，唯一来源）。 本文件只消费变量，不再声明颜色值。 页面特有的例外（如 Music 的 --button）在下方按需覆盖。 */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
 body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "PingFang SC",
-    "Hiragino Sans GB",
-    "Microsoft YaHei",
-    sans-serif;
+  font-family: Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   -webkit-font-smoothing: antialiased;
-  transition: background-color .2s ease, color .2s ease;
+  transition: background-color var(--motion-fast) ease,color var(--motion-fast) ease;
 }
-
-button,
-input {
-  font: inherit;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
+button,input { font: inherit; }
+a { color: inherit; text-decoration: none; }
 .page {
-  width: min(1040px, calc(100% - 48px));
+  width: min(1040px,calc(100% - 48px));
   min-height: 100vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
-
 /* 顶部 */
-
 .header {
   position: relative;
   height: 68px;
@@ -70,27 +27,24 @@ a {
   align-items: center;
   justify-content: flex-start;
 }
-
 .site-nav {
   display: flex;
   align-items: center;
   gap: 18px;
-  font-family: 'Dancing Script', cursive;
+  font-family: 'Dancing Script',cursive;
   font-size: 20px;
   font-weight: 700;
 }
-
-.site-nav a { transition: opacity .2s ease; }
+.site-nav a { transition: opacity var(--motion-fast) ease; }
 .site-nav a:hover { opacity: .65; }
 .site-nav a:first-child { font-size: 36px; }
 .site-nav a:not(:first-child) { font-size: 24px; }
 .site-nav a:first-child {
-  background: linear-gradient(to right, var(--primary), #ff4b2b);
+  background: linear-gradient(to right,var(--primary),#ff4b2b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: .5px;
 }
-
 .theme-toggle {
   position: absolute;
   top: 50%;
@@ -107,17 +61,9 @@ a {
   appearance: none;
   -webkit-appearance: none;
 }
-
-[data-theme="dark"] .theme-toggle .moon {
-  display: none;
-}
-
-[data-theme="light"] .theme-toggle .sun {
-  display: none;
-}
-
+[data-theme="dark"] .theme-toggle .moon { display: none; }
+[data-theme="light"] .theme-toggle .sun { display: none; }
 /* 标题 */
-
 .hero {
   display: flex;
   align-items: end;
@@ -125,63 +71,46 @@ a {
   gap: 30px;
   padding: 70px 0 38px;
 }
-
 .hero h1 {
   margin: 0;
   max-width: 650px;
-  font-family: 'Dancing Script', cursive;
+  font-family: 'Dancing Script',cursive;
   font-size: 24px;
   line-height: 32px;
   letter-spacing: normal;
   font-weight: 700;
 }
-
 .count {
   flex: none;
   margin: 0 0 4px;
   color: var(--muted);
   font-size: 11px;
 }
-
 /* 歌曲网格 */
-
 .song-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4,minmax(0,1fr));
   column-gap: 23px;
   row-gap: 42px;
   padding: 9px 0 0;
 }
-
-.song-card {
-  min-width: 0;
-}
-
-.cover-link {
-  display: block;
-}
-
+.song-card { min-width: 0; }
+.cover-link { display: block; }
 .cover-wrap {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 7px;
-  background: #e8e7e2;
+  border-radius: var(--radius);
+  background: var(--surface-2);
 }
-
 .cover {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform .45s cubic-bezier(.22, 1, .36, 1), opacity .45s ease;
+  transition: transform var(--motion-slow) var(--ease-out),opacity var(--motion-slow) ease;
 }
-
-.song-card:hover .cover {
-  transform: scale(1.025);
-  opacity: .72;
-}
-
+.song-card:hover .cover { transform: scale(1.025); opacity: .72; }
 .credit-overlay {
   position: absolute;
   inset: 0;
@@ -191,7 +120,7 @@ a {
   justify-content: center;
   gap: 8px;
   padding: 22px;
-  background: rgba(12, 12, 12, .52);
+  background: var(--overlay);
   color: #fff;
   text-align: center;
   opacity: 0;
@@ -199,18 +128,14 @@ a {
   pointer-events: none;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
-  transition:
-    opacity .38s ease,
-    transform .45s cubic-bezier(.22, 1, .36, 1);
+  transition: opacity var(--motion-fade) ease,transform var(--motion-slow) var(--ease-out);
 }
-
 .credit-overlay p {
   margin: 0;
   font-size: 12px;
   line-height: 1.45;
   text-wrap: balance;
 }
-
 .credit-overlay p span {
   display: inline-block;
   margin-right: 7px;
@@ -218,17 +143,8 @@ a {
   font-size: 10px;
   letter-spacing: .12em;
 }
-
-.song-card:hover .credit-overlay,
-.song-card:focus-within .credit-overlay {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.song-info {
-  padding: 11px 1px 0;
-}
-
+.song-card:hover .credit-overlay,.song-card:focus-within .credit-overlay { opacity: 1; transform: translateY(0); }
+.song-info { padding: 11px 1px 0; }
 .title {
   margin: 0;
   font-size: 13px;
@@ -236,16 +152,13 @@ a {
   font-weight: 650;
   letter-spacing: -.005em;
 }
-
 .artist {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 11px;
   line-height: 1.4;
 }
-
 /* 有外部链接时的小箭头 */
-
 .external {
   position: absolute;
   right: 9px;
@@ -255,25 +168,19 @@ a {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(255,255,255,.9);
+  background: rgba(255, 255, 255, .9);
   color: #111;
   font-size: 12px;
   opacity: 0;
   transform: translateY(3px);
-  transition: opacity .2s ease, transform .2s ease;
+  transition: opacity var(--motion-fast) ease,transform var(--motion-fast) var(--ease-out);
 }
-
-.song-card:hover .external {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+.song-card:hover .external { opacity: 1; transform: translateY(0); }
 .error {
   padding: 50px 0;
   color: var(--muted);
   font-size: 12px;
 }
-
 .footer {
   margin-top: auto;
   padding: 86px 0 26px;
@@ -282,45 +189,42 @@ a {
   color: var(--muted);
   font-size: 10px;
 }
-
 /* 平板 */
-
 @media (max-width: 850px) {
   .song-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3,minmax(0,1fr));
     gap: 32px 18px;
   }
 }
-
 /* 手机 */
-
 @media (max-width: 600px) {
-  .site-nav { gap: 8px; }
-  .site-nav a:first-child { font-size: 28px; }
-  .site-nav a:not(:first-child) { font-size: 17px; }
-  .page {
-    width: min(100% - 28px, 1040px);
+  .site-nav {
+    gap: 8px;
   }
-
+  .site-nav a:first-child {
+    font-size: 28px;
+  }
+  .site-nav a:not(:first-child) {
+    font-size: 17px;
+  }
+  .page {
+    width: min(100% - 28px,1040px);
+  }
   .hero {
     padding: 56px 0 30px;
     align-items: start;
   }
-
   .hero h1 {
     font-size: 24px;
     line-height: 32px;
   }
-
   .count {
     margin-top: 28px;
   }
-
   .song-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 30px 14px;
   }
-
   .footer {
     padding-top: 58px;
   }

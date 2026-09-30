@@ -23,7 +23,7 @@
   flex: none;
   width: 13px;
   height: 13px;
-  border: 2px solid var(--line, rgba(128, 128, 128, .28));
+  border: 2px solid var(--border);
   border-top-color: var(--muted);
   border-radius: 50%;
   animation: state-spin .7s linear infinite;
@@ -79,7 +79,7 @@
 .state-row code {
   padding: 1px 6px;
   border-radius: 5px;
-  background: var(--line, rgba(128, 128, 128, .14));
+  background: var(--border);
   color: var(--text);
   font-size: 11px;
   word-break: break-all;

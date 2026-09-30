@@ -29,7 +29,7 @@
     --tt-line-hover: rgba(23, 23, 23, 0.26);
     --tt-fg: #4a4843;
     --tt-fg-hover: #171717;
-    --tt-shadow: 0 2px 10px rgba(20, 18, 14, 0.10), 0 10px 26px rgba(20, 18, 14, 0.09);
+    --tt-shadow: 0 2px 10px rgba(20, 18, 14, 0.10),0 10px 26px rgba(20, 18, 14, 0.09);
 
     background: var(--tt-bg) !important;
     color: var(--tt-fg) !important;
@@ -46,9 +46,7 @@
     pointer-events: none;
     opacity: 0 !important;
     visibility: hidden;
-    transition: opacity .32s ease, visibility .32s ease,
-                background-color .25s ease, border-color .25s ease,
-                color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.22, 1, .36, 1);
+    transition: opacity var(--motion-fade),visibility var(--motion-fade),background-color var(--motion-base),border-color var(--motion-base),color var(--motion-base),box-shadow var(--motion-base),transform var(--motion-slow);
 }
 
 [data-theme="dark"] .top-link {
@@ -58,7 +56,7 @@
     --tt-line-hover: rgba(241, 239, 233, 0.30);
     --tt-fg: #b9b6ae;
     --tt-fg-hover: #f1efe9;
-    --tt-shadow: 0 2px 10px rgba(0, 0, 0, 0.42), 0 10px 26px rgba(0, 0, 0, 0.34);
+    --tt-shadow: 0 2px 10px rgba(0, 0, 0, 0.42),0 10px 26px rgba(0, 0, 0, 0.34);
 }
 
 /* 显示态。用 :not(.hidden) 让基础规则里的 hidden/opacity 被覆盖掉，
@@ -69,18 +67,16 @@
     pointer-events: auto;
 }
 
-.top-link:hover,
-.top-link:focus-visible {
+.top-link:hover,.top-link:focus-visible {
     background: var(--tt-bg-hover) !important;
     color: var(--tt-fg-hover) !important;
     border-color: var(--tt-line-hover);
-    box-shadow: 0 4px 14px rgba(20, 18, 14, 0.14), 0 16px 34px rgba(20, 18, 14, 0.13);
+    box-shadow: 0 4px 14px rgba(20, 18, 14, 0.14),0 16px 34px rgba(20, 18, 14, 0.13);
     transform: translateY(-2px);
 }
 
-[data-theme="dark"] .top-link:hover,
-[data-theme="dark"] .top-link:focus-visible {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 16px 34px rgba(0, 0, 0, 0.42);
+[data-theme="dark"] .top-link:hover,[data-theme="dark"] .top-link:focus-visible {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5),0 16px 34px rgba(0, 0, 0, 0.42);
 }
 
 .top-link:focus-visible {
@@ -110,7 +106,7 @@
     pointer-events: none;
     filter: none;
     opacity: 0;
-    transition: opacity .35s ease;
+    transition: opacity var(--motion-fade);
 }
 
 .top-link:not(.hidden) svg.top-link-ring {
@@ -156,15 +152,11 @@ body.drawer-visible .top-link:not(.hidden) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .top-link,
-    .top-link svg.top-link-ring,
-    .top-link-ring .tt-bar {
+    .top-link,.top-link svg.top-link-ring,.top-link-ring .tt-bar {
         transition: none;
     }
 
-    .top-link:hover,
-    .top-link:focus-visible,
-    .top-link:active {
+    .top-link:hover,.top-link:focus-visible,.top-link:active {
         transform: none;
     }
 }

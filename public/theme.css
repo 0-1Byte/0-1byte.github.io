@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Chen — 统一设计系统（唯一来源）
+   阶段 2 建立。所有页面（PaperMod 生成页 + static/ 下的合集页）都引用本文件，
+   页面自己的 style.css 只消费变量，不再各自声明调色板。
+
+   方向：Quiet / Deep / Minimal / Personal / Timeless
+   定位：一个安静的私人数字档案馆，不是 SaaS 面板，也不是 landing page。
+
+   取值说明（重要）：本文件的颜色**全部沿用站点既有取值**，
+   目的是把散落在 7 个文件里的同一套颜色收敛到一处，
+   而不是换一套配色。因此引入本文件后视觉应当零变化。
+
+   本文件只定义变量，不写任何选择器规则（PaperMod 的映射见 custom.css）。
+   ========================================================================== */
+
+:root {
+  /* ---------- 颜色：浅色 ---------- */
+  --bg: #faf9f7;          /* 页面底色，暖白 */
+  --surface: #ffffff;     /* 抬升面（卡片 / 抽屉） */
+  --surface-2: #e8e7e2;   /* 图片占位、次级面 */
+  --text: #171717;
+  --muted: #8a8781;
+  --border: #e4e2dd;
+  --accent: #ff4b2b;
+
+  /* PaperMod 自带的同义变量，这里指向统一色板。
+     每个页面都定义，使「标题渐变的起点色」不再依赖 var() 的兜底值。 */
+  --primary: #1e1e1e;
+  --secondary: var(--muted);
+  --tertiary: var(--border);
+
+  /* ---------- 结构 ---------- */
+  --radius-xs: 6px;       /* 小标签 */
+  --radius-sm: 5px;       /* 小元素：胶囊、代码块 */
+  --radius: 7px;          /* 图片、卡片主圆角（既有取值为 7px） */
+  --radius-md: 10px;      /* 中等面板：抽屉大图、提示块 */
+  --radius-lg: 16px;      /* 大面板 */
+  --radius-pill: 999px;   /* 胶囊按钮 */
+  --content-width: 1040px;
+  --page-gutter: 48px;
+  --gutter-mobile: 28px;
+
+  /* ---------- 动效 ----------
+     原则：慢、低存在感、非必要不动。
+     时长与缓动分开定义：位移走 --ease-out，透明度走浏览器默认 ease，
+     组合出「慢速位移 + 柔和淡入」，而不是把两者绑死成一个值。 */
+  --motion-fast: .2s;
+  --motion-base: .25s;
+  --motion-fade: .3s;
+  --motion-slow: .45s;
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+
+  /* ---------- 语义色（叠加层 / 阴影） ---------- */
+  --overlay: rgba(12, 12, 12, .52);          /* 封面上的词曲/信息浮层 */
+  --overlay-strong: rgba(12, 12, 12, .42);   /* 抽屉遮罩 */
+  --shadow-sm: 0 2px 10px rgba(20, 18, 14, .10);
+  --shadow-md: 0 10px 26px rgba(20, 18, 14, .09);
+}
+
+:root[data-theme="dark"] {
+  /* ---------- 颜色：暗色（主要视觉方向） ---------- */
+  --bg: #11110f;          /* 暖黑 */
+  --surface: #191917;
+  --surface-2: #1d1c19;
+  --text: #f1efe9;
+  --muted: #9d9a92;
+  --border: #35342f;
+  --accent: #ff4b2b;
+
+  --primary: #dadadb;     /* 与浅色同源的抬升亮度，对应 PaperMod 的 rgb(218, 218, 219) */
+  --secondary: var(--muted);
+  --tertiary: var(--border);
+
+  --overlay: rgba(12, 12, 12, .52);
+  --overlay-strong: rgba(12, 12, 12, .42);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, .42);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, .34);
+}
+
+/* 尊重系统偏好：不做持续动效，也不做视差 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0s;
+    --motion-base: 0s;
+    --motion-fade: 0s;
+    --motion-slow: 0s;
+  }
+}

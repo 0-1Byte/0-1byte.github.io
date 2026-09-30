@@ -81,7 +81,7 @@
     -webkit-text-fill-color: transparent;
     
     color: var(--primary); /* 明确指定使用主题色 */
-    transition: all 0.3s ease;
+    transition: color var(--motion-base), transform var(--motion-base), filter var(--motion-base);
 }
 
 /* 鼠标悬停时的艺术动效 */
@@ -103,7 +103,7 @@
     -webkit-text-fill-color: transparent;
     
     text-decoration: none !important;
-    transition: all 0.3s ease;
+    transition: color var(--motion-base), transform var(--motion-base), filter var(--motion-base);
 }
 
 .logo a:hover {
@@ -218,27 +218,36 @@ nav {
     }
 }
 
-/* ========== 暗色主题：与合集页统一 ==========
-   合集页基准：
-     --bg:      #11110f  （暖黑背景）
-     --text:    #f1efe9
-     --muted:   #9d9a92
-     --line:    #35342f
-     --button:  #191917  （略抬升的卡片面）
-   PaperMod 默认偏冷灰 rgb(29,30,32)，在此覆盖。
+/* ========== 暗色主题：改为消费统一设计系统 ==========
+   调色板本身在 static/theme.css（唯一来源），这里只做「名字映射」：
+   PaperMod 用的是 --theme / --entry / --primary / --secondary / --tertiary / --content，
+   站点统一用的是 --bg / --surface / --text / --muted / --border。
+   两套名字指向同一批值，因此视觉与阶段 2 之前完全一致。
+   PaperMod 默认偏冷灰 rgb(29,30,32)，由 theme.css 的暖黑覆盖。
 */
 :root[data-theme="dark"],
 html[data-theme="dark"] {
-    --theme: #11110f;
-    --entry: #191917;
-    --primary: rgb(218, 218, 219);
-    --secondary: #9d9a92;
-    --tertiary: #35342f;
-    --content: #f1efe9;
-    --code-block-bg: #191917;
-    --code-bg: #1f1e1b;
-    --border: #35342f;
+    --theme: var(--bg);
+    --entry: var(--surface);
+    --primary: var(--text);
+    --secondary: var(--muted);
+    --tertiary: var(--border);
+    --content: var(--text);
+    --code-block-bg: var(--surface);
+    --code-bg: #1f1e1b;          /* 代码块底色略高于 surface，无对应语义变量，保留字面量 */
     color-scheme: dark;
+}
+
+/* 浅色同样映射一次，避免两套名字在浅色下指向不同的默认值 */
+:root[data-theme="light"],
+html[data-theme="light"] {
+    --theme: var(--bg);
+    --entry: var(--surface);
+    --primary: var(--text);
+    --secondary: var(--muted);
+    --tertiary: var(--border);
+    --content: var(--text);
+    color-scheme: light;
 }
 
 html[data-theme="dark"] body,
