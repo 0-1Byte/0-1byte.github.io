@@ -66,13 +66,16 @@ print("=" * 84)
 print("2. Key 文件是否曾进入 git 追踪")
 print("=" * 84)
 r = run(["git", "ls-files", ".secrets"])
-tracked = [x for x in r.stdout.split("\n") if x.strip()]
-check("当前没有被追踪的 .secrets 文件", not tracked, f"被追踪：{tracked}")
+tracked = [x for x in r.stdout.split("\n")
+           if x.strip() and not x.strip().endswith("key.example.yaml")]
+check("没有真实凭据文件被追踪（示例模板除外）", not tracked, f"被追踪：{tracked}")
 
 r = run(["git", "log", "--all", "--pretty=format:", "--name-only"])
 history = [x.strip() for x in r.stdout.split("\n") if x.strip()]
-hist_secrets = sorted({h for h in history if h.startswith(".secrets/")})
-check("历史中从未出现过 .secrets/ 下的文件", not hist_secrets, f"历史里有：{hist_secrets[:5]}")
+# key.example.yaml 是刻意入库的模板（不含真实 Key），不算问题
+hist_secrets = sorted({h for h in history
+                       if h.startswith(".secrets/") and not h.endswith("key.example.yaml")})
+check("历史中从未出现过真实凭据文件", not hist_secrets, f"历史里有：{hist_secrets[:5]}")
 
 print()
 print("=" * 84)
@@ -122,9 +125,15 @@ for p in ROOT.rglob("*"):
         hits.append((rel, [t[:12] + "…" for t in found[:2]]))
 check("工作区源码里没有真实 Key（已排除检测脚本自身与其测试夹具）", not hits, f"命中：{hits[:3]}")
 
-# git 历史
-r = run(["git", "log", "--all", "-p", "--", ".", ":(exclude)public", ":(exclude)themes"])
-hist_hits = real_keys(r.stdout)
+# git 历史：只看新增行（+ 开头）并排除自己人 ——
+# 检测脚本与其测试夹具里内嵌的假 Key 是验证闸门用的，不是凭据。
+hist = run(["git", "log", "--all", "-p", "--",
+            ".", ":(exclude)public", ":(exclude)themes",
+            ":(exclude)tools/weread_check_secrets.py",
+            ":(exclude)tools/weread_test_guard.py"])
+hist_lines = [ln[1:] for ln in hist.stdout.split("\n")
+              if ln.startswith("+") and not ln.startswith("+++")]
+hist_hits = real_keys("\n".join(hist_lines))
 check("git 历史里没有真实 Key", not hist_hits,
       f"命中 {len(hist_hits)} 处，例如 {[h[:12] + '…' for h in hist_hits[:2]]}")
 

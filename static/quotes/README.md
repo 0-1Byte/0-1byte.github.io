@@ -84,20 +84,26 @@ copy .secrets\key.example.yaml .secrets\key.yaml
 # 然后编辑 .secrets\key.yaml，把 wrk- 开头的 Key 填进去
 ```
 
-### 2.2 先探测接口（一次就够）
+### 2.2 先列出可用接口（一次就够）
 
-网关的请求形状会随版本变化，所以脚本不写死调用方式，而是先探一次：
+网关是**统一入口**：靠请求体里的 `api_name` 路由到具体接口，
+每次请求还必须带 `skill_version`。
+（这正是第一次探测全部 404 的原因 —— 请求体里没有 `api_name`，
+网关无法路由到任何接口。）
 
 ```powershell
-python tools/weread_export.py --probe
+python tools/weread_probe.py
 ```
 
-- 探到可用方式 → 记进 `.secrets/probe.json`（同样被忽略），之后直接复用
-- 网络不通 → 按提示设代理后重跑：
+它会先发 `{"api_name": "/_list"}` 列出网关支持的全部接口及参数，
+再在列表里找「笔记本 / 划线」相关接口逐个试调，打印顶层字段名。
+
+- 列出接口并试通 → 把输出里可用的接口名填进 `.secrets/weread.json` 的 `marks_api`
+- 网络失败 → 按提示设代理后重跑：
   ```powershell
   set HTTPS_PROXY=http://127.0.0.1:7897
   ```
-- 都探不到 → 把输出贴回来，状态码与错误提示能定位问题
+- 提示需要升级 skill → 更新 `tools/weread_gateway.py` 里的 `SKILL_VERSION`
 
 ### 2.3 导出并合并
 
@@ -112,6 +118,15 @@ git add data/quotes.yaml && git commit && git push    # 只有这一份文件会
 `import_wechat_quotes.py` 会按 `text` 去重（包含你手工加的句子），
 只追加、不覆盖，你写在 `data/quotes.yaml` 里的注释与手写句子都不会被动。
 
+导出分两步，因为划线必须先知道 `bookId`：
+
+1. `POST {"api_name": "/user/notebooks", "count": 100, "skill_version": "1.0.4"}`
+   → 笔记本概览（每本书的 `noteCount` / `bookId`）
+2. 对每本书取划线明细 —— 接口名由 `--probe` 确定后写进 `.secrets/weread.json`
+
+协议细节见 `tools/weread_gateway.py` 顶部注释（来源：Tencent/WeChatReading
+官方 skill 文档）。
+
 ### 2.4 一条划线的字段映射
 
 | 微信读书 | 这里的字段 |
@@ -119,10 +134,12 @@ git add data/quotes.yaml && git commit && git push    # 只有这一份文件会
 | 划线原文 | `text` |
 | 书名 + 作者 | `source`，形如 `《书名》· 作者` |
 
-导出脚本对网关返回的字段名做了多种兼容（`markedText` / `text` / `content`，
-`bookTitle` / `book.title`），网关字段改名时不会直接崩，会取不到内容并提示。
-想保留更多信息（章节、划线时间、书 ID），先告诉我 —— 当前渲染只认
-`text` 与 `source`，扩数据模型是小事，但需要先定要留哪些。
+导出脚本对网关回包的字段名做了多种兼容（`markedText` / `markText` / `text` /
+`content`，`bookTitle` / `book.title` / `bookName`），网关字段改名时不会直接崩。
+「只有书签没有正文」的条目会被跳过，不会变成空句子。
+
+当前渲染只认 `text` 与 `source`。想保留更多信息（章节、划线时间、书 ID），
+先告诉我 —— 扩数据模型是小事，但需要先定要留哪些。
 
 ---
 

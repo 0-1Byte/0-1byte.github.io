@@ -1,152 +1,116 @@
-"""微信读书网关连通性探针 —— 在你自己电脑上运行，用来确定可用的调用方式。
+"""微信读书网关探针 —— 用官方协议先列接口，再确认划线接口可用。
 
-为什么需要它
-------------
-导出脚本要调用官方网关（i.weread.qq.com/api/agent/gateway），
-但不同版本网关对「路径 / 方法 / 鉴权头 / 请求体字段」的要求会变。
-与其在代码里写死一套可能过时的调用方式，不如先探一次，用实测结果说话。
+在你自己电脑上运行：
 
-它做什么
---------
-用你的 Key 依次尝试若干种调用组合，只报告：
-  · HTTP 状态码
-  · 响应是不是 JSON、顶层有哪些字段
-  · 错误信息（如果有）
-**绝不打印完整 Key，也绝不回显大段正文。**
-
-用法
-----
     python tools/weread_probe.py
 
-如果探针报「网络不可达」，通常是需要代理：
-    set HTTPS_PROXY=http://127.0.0.1:7897      （按你的实际端口改）
-    python tools/weread_probe.py
+它做两件事：
+  1. 调 /_list 列出网关支持的全部接口（名字 + 说明 + 参数）
+  2. 在列表里找「笔记本 / 划线」相关接口，逐个试一次，看哪个能用
 
-把输出贴回来，我据此把导出脚本的调用方式固定下来。
+为什么之前全部 404
+------------------
+请求体里少了 `api_name`。网关是一个统一入口，靠 body 里的
+`api_name` 路由到具体接口；没有它就无法匹配任何路径。
+另外每次请求还必须带 `skill_version`。
+
+它只报告状态与字段，不打印完整 Key，也不回显大段正文。
 """
 import json
-import ssl
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from weread_secret import KeyError_, load_key, redact  # noqa: E402
-
-
-def attempt(endpoint, api_key, path, method, params=None, body=None, headers=None, timeout=20):
-    """发一次请求，返回 (状态码, 说明, 是否为 JSON, 顶层字段)。"""
-    url = endpoint.rstrip("/") + path
-    data = None
-    hdrs = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-        "User-Agent": "my-blog-weread-probe/1.0",
-    }
-    if headers:
-        hdrs.update(headers)
-
-    if method == "GET" and params:
-        from urllib.parse import urlencode
-        url += ("&" if "?" in url else "?") + urlencode(params)
-    elif method == "POST":
-        data = json.dumps(body or {}).encode("utf-8")
-        hdrs["Content-Type"] = "application/json"
-
-    req = urllib.request.Request(url, data=data, headers=hdrs, method=method)
-
-    ctx = ssl.create_default_context()
-    try:
-        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-            raw = resp.read()
-            code = resp.status
-    except urllib.error.HTTPError as e:
-        raw = e.read()
-        code = e.code
-    except Exception as e:  # noqa: BLE001
-        return None, f"{type(e).__name__}: {e}", False, None
-
-    text = raw.decode("utf-8", "replace")
-    try:
-        obj = json.loads(text)
-    except Exception:  # noqa: BLE001
-        return code, f"非 JSON，前 120 字符：{text[:120]!r}", False, None
-
-    if isinstance(obj, dict):
-        keys = list(obj.keys())[:12]
-        # 只取错误信息，不回显正文
-        err = obj.get("errmsg") or obj.get("message") or obj.get("error") or ""
-        hint = f"字段={keys}"
-        if err:
-            hint += f"  提示={str(err)[:80]}"
-        return code, hint, True, keys
-    return code, f"JSON 顶层是 {type(obj).__name__}，长度 {len(obj)}", True, None
+from weread_gateway import (  # noqa: E402
+    SKILL_VERSION, WereadError, call, find_api, list_apis, summarize_apis,
+)
 
 
 def main():
     print("=" * 78)
-    print("微信读书网关探针")
+    print("微信读书网关探针（官方协议）")
     print("=" * 78)
 
     try:
         api_key, endpoint = load_key()
     except KeyError_ as e:
-        print("\n" + str(e))
+        print(str(e))
         return 2
 
-    print(f"  Key      : {redact(api_key)}")
-    print(f"  网关     : {endpoint}")
+    print(f"  Key          : {redact(api_key)}")
+    print(f"  网关         : {endpoint}")
+    print(f"  skill_version: {SKILL_VERSION}")
     print()
 
-    # 组合尽量覆盖常见约定，按「最可能」到「最不可能」排列
-    TRIALS = [
-        ("/", "POST", None, {"skill": "notes"}, None),
-        ("/", "POST", None, {"action": "notes"}, None),
-        ("/", "POST", None, {"skill_id": "notes"}, None),
-        ("/", "GET", {}, None, None),
-        ("/", "GET", {"skill": "notes"}, None, None),
-        ("/notes", "POST", None, {}, None),
-        ("/notes", "GET", {}, None, None),
-        ("/shelf", "POST", None, {}, None),
-        ("/", "POST", None, {}, {"X-API-Key": api_key}),
-    ]
+    # ---------- 1. 列出接口 ----------
+    print("1) 调用 /_list 列出可用接口")
+    print()
+    try:
+        obj = list_apis(endpoint, api_key)
+    except WereadError as e:
+        print(f"  失败：{e}")
+        print()
+        print("  排查方向：")
+        print("   · 「网络请求失败」-> 需要代理：set HTTPS_PROXY=http://127.0.0.1:7897")
+        print("   · 「404」-> /_list 本身不可用，可能需要升级 skill 版本")
+        print("   · 「errcode != 0」-> Key 无效或没有权限")
+        return 3
 
-    ok = []
-    for path, method, params, body, extra in TRIALS:
-        label = f"{method} {path}"
-        if body is not None:
-            label += f"  body={body}"
+    rows = summarize_apis(obj)
+    if not rows:
+        print("  取到了响应，但没解析出接口列表。顶层字段：")
+        print(f"    {list(obj.keys())[:15]}")
+        print("  把这一行贴回来，我据此调整解析。")
+        return 4
+
+    print(f"  共 {len(rows)} 个接口：")
+    for name, desc, params in rows:
+        line = f"    {name}"
+        if desc:
+            line += f"   —— {desc}"
+        print(line)
         if params:
-            label += f"  query={params}"
-        if extra:
-            label += "  （改用 X-API-Key 头）"
-
-        code, note, is_json, keys = attempt(endpoint, api_key, path, method, params, body, extra)
-
-        if code is None:
-            print(f"  [网络失败] {label}")
-            print(f"             {note}")
-            print()
-            print("  看起来是网络层就失败了，不是接口问题。")
-            print("  如果这里需要代理，先设 HTTPS_PROXY 再重跑：")
-            print("      set HTTPS_PROXY=http://127.0.0.1:7897")
-            return 3
-
-        mark = "OK " if code == 200 and is_json else "   "
-        print(f"  [{mark}] {code:>3}  {label}")
-        print(f"          {note}")
-        if code == 200 and is_json:
-            ok.append((path, method, params, body, extra))
-
+            print(f"        参数: {', '.join(params[:12])}")
     print()
+
+    # ---------- 2. 找划线相关接口并实测 ----------
+    print("2) 找「笔记本 / 划线 / 想法」相关接口并试调")
+    print()
+    wanted = []
+    for kws in (("notebook",), ("notes",), ("bookmark",), ("highlight",), ("book",)):
+        name = find_api(rows, *kws)
+        if name and name not in wanted:
+            wanted.append(name)
+
+    if not wanted:
+        print("  接口列表里没找到明显相关的名字，请把上面的完整列表贴回来。")
+        return 0
+
+    ok_calls = []
+    for name in wanted[:6]:
+        try:
+            obj2 = call(endpoint, api_key, name, {"count": 5})
+        except WereadError as e:
+            print(f"  [{name}]  失败：{e}")
+            continue
+        keys = list(obj2.keys())
+        print(f"  [OK] {name}")
+        print(f"       顶层字段: {keys[:12]}")
+        # 粗略看看哪一层像条目列表
+        for k, v in obj2.items():
+            if isinstance(v, list) and v:
+                first = v[0] if isinstance(v[0], dict) else {}
+                print(f"       {k}: {len(v)} 条，条目字段 {list(first.keys())[:12]}")
+        ok_calls.append((name, obj2))
+        print()
+
     print("=" * 78)
-    if ok:
-        print(f"可用组合 {len(ok)} 个，第一个是：{ok[0][1]} {ok[0][0]}")
-        print("把这个结果告诉我，我据此固定导出脚本的调用方式。")
+    if ok_calls:
+        print(f"可用的划线相关接口：{[n for n, _ in ok_calls]}")
+        print("把这些名字与字段贴回来，我就把导出脚本的调用方式固定下来。")
     else:
-        print("没有任何组合返回可用的 JSON。")
-        print("请把上面的完整输出贴回来 —— 状态码和错误提示能定位问题。")
+        print("没有试通任何接口。把上面的输出整段贴回来。")
     print("=" * 78)
     return 0
 

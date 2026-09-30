@@ -1,197 +1,114 @@
-"""从微信读书导出划线，合并进首页句子库。
+"""从微信读书导出划线，合并进首页句子库。用官方 Agent API Gateway。
 
-在你自己电脑上运行（沙箱环境没有外网，也不需要在这里跑）。
-
-    # 1. 先确认网络与接口可用（会打印实测结果，不打印 Key）
-    python tools/weread_export.py --probe
-
-    # 2. 拉取划线，写成 static/quotes/wechat.yaml（该文件被 .gitignore 忽略）
-    python tools/weread_export.py
-
-    # 3. 预览会加进句子库的内容
+    python tools/weread_probe.py      # 先探一次，确认接口名与字段
+    python tools/weread_export.py     # 导出 -> static/quotes/wechat.yaml
     python tools/import_wechat_quotes.py --dry-run
-
-    # 4. 确认后合并进 data/quotes.yaml（这个文件会被提交、会上线）
     python tools/import_wechat_quotes.py
 
-    # 5. 构建发布
-    hugo --minify && git add data/quotes.yaml && git commit && git push
+接口事实（来自 Tencent/WeChatReading 官方 skill 文档，非猜测）：
+  · 统一入口 POST i.weread.qq.com/api/agent/gateway
+  · body 里用 `api_name` 指定接口，业务参数与它平铺在同一层
+  · 每次请求必须带 skill_version
+  · /_list 可列出全部接口；errvector=0 表示成功
+  · 个人笔记总览是 /user/notebooks
 
-密钥安全
---------
-  · Key 只从 .secrets/key.yaml（git 忽略）或环境变量 WEREAD_API_KEY 读取
-  · 打印一律脱敏；从不回显完整 Key
-  · 写盘前调用 assert_no_key_leak() 扫描内容，发现 Key 直接拒绝写入
-  · 上线的内容只有 data/quotes.yaml —— 纯句子文本，没有任何凭据
-  · 原始划线（wechat.yaml）默认也不入库：那是私人阅读记录
-  · 跑 python tools/weread_check_secrets.py 可随时自检
+导出流程分两步，因为划线必须先知道 bookId：
+  1. /user/notebooks        取笔记本概览（每本书的 noteCount/bookId）
+  2. 对每本书取划线明细
 
-接口说明
---------
-  网关：https://i.weread.qq.com/api/agent/gateway（官方 WeRead Skills Agent Gateway）
-  Key：https://weread.qq.com/r/weread-skills 创建，形如 wrk-…
+第 2 步的接口名由 --probe 确定后写进 .secrets/probe.json；
+没有探测结果时脚本会明确提示，而不是乱试。
 
-  网关的具体请求形状会随版本变化，所以这里**不写死**：
-  用 --probe 先探一次，脚本会把可用的调用方式记录下来，
-  之后导出直接复用。探不到就说明需要更新调用方式，而不是悄悄失败。
+密钥安全见 tools/weread_secret.py 与 static/quotes/README.md。
 """
 import argparse
 import json
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from weread_secret import KeyError_, assert_no_key_leak, load_key, redact  # noqa: E402
+from weread_gateway import (  # noqa: E402
+    API_NOTEBOOKS, WereadError, call, redact_error,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_YAML = ROOT / "static" / "quotes" / "wechat.yaml"
-PROBE_CACHE = ROOT / ".secrets" / "probe.json"
+CONF = ROOT / ".secrets" / "weread.json"
 
 
-def http_json(endpoint, api_key, path, method="GET", params=None, body=None,
-              extra_headers=None, timeout=25):
-    """一次请求 -> (状态码, 解析后的对象或 None, 说明)。"""
-    url = endpoint.rstrip("/") + path
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-        "User-Agent": "my-blog-weread-export/1.0",
-    }
-    if extra_headers:
-        headers.update(extra_headers)
-
-    data = None
-    if method == "GET" and params:
-        from urllib.parse import urlencode
-        url += ("&" if "?" in url else "?") + urlencode(params)
-    elif method == "POST":
-        data = json.dumps(body or {}).encode("utf-8")
-        headers["Content-Type"] = "application/json"
-
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw, code = resp.read(), resp.status
-    except urllib.error.HTTPError as e:
-        raw, code = e.read(), e.code
-    except Exception as e:  # noqa: BLE001
-        return None, None, f"{type(e).__name__}: {e}"
-
-    text = raw.decode("utf-8", "replace")
-    try:
-        return code, json.loads(text), ""
-    except Exception:  # noqa: BLE001
-        return code, None, f"响应不是 JSON（前 120 字符）：{text[:120]!r}"
+def load_conf():
+    if CONF.exists():
+        try:
+            return json.loads(CONF.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            return {}
+    return {}
 
 
-# 候选调用方式，按「最可能」排序。--probe 会逐个试，第一个通的就记下来。
-CANDIDATES = [
-    {"path": "/", "method": "POST", "body": {"skill": "notes"}},
-    {"path": "/", "method": "POST", "body": {"action": "notes"}},
-    {"path": "/", "method": "GET", "params": {"skill": "notes"}},
-    {"path": "/", "method": "GET", "params": {}},
-    {"path": "/notes", "method": "GET", "params": {}},
-    {"path": "/notes", "method": "POST", "body": {}},
-    {"path": "/shelf", "method": "GET", "params": {}},
-]
+def save_conf(conf):
+    CONF.parent.mkdir(parents=True, exist_ok=True)
+    CONF.write_text(json.dumps(conf, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def do_probe(api_key, endpoint):
-    print("=" * 78)
-    print("探测可用调用方式")
-    print("=" * 78)
-    print(f"  网关 : {endpoint}")
-    print(f"  Key  : {redact(api_key)}")
-    print()
+# ---------- 字段兼容层 ----------
+# 网关回包经过字段裁剪，文档也说明字段名以官方说明为准。
+# 这里对常见写法做兼容，取不到就跳过该条，而不是崩掉。
 
-    found = None
-    network_failed = False
-    for c in CANDIDATES:
-        label = f"{c['method']} {c['path']}"
-        if c.get("body") is not None:
-            label += f" body={c['body']}"
-        if c.get("params") is not None:
-            label += f" query={c['params']}"
-
-        code, obj, note = http_json(endpoint, api_key, c["path"], c["method"],
-                                    c.get("params"), c.get("body"))
-        if code is None:
-            print(f"  [网络失败] {label}")
-            print(f"             {note}")
-            network_failed = True
-            break
-
-        if code == 200 and isinstance(obj, dict):
-            keys = list(obj.keys())[:10]
-            print(f"  [可用] {code}  {label}")
-            print(f"         顶层字段={keys}")
-            if not found:
-                found = c
-        else:
-            print(f"  [  {code:>3}] {label}")
-            if note:
-                print(f"         {note}")
-            elif isinstance(obj, dict):
-                err = obj.get("errmsg") or obj.get("message") or obj.get("error") or ""
-                print(f"         {list(obj.keys())[:8]}{'  提示=' + str(err)[:60] if err else ''}")
-
-    print()
-    if network_failed:
-        print("网络层就失败了。如果需要代理：")
-        print("    set HTTPS_PROXY=http://127.0.0.1:7897      （改成你的端口）")
-        print("然后重跑 --probe。")
-        return None
-    if found:
-        PROBE_CACHE.parent.mkdir(parents=True, exist_ok=True)
-        PROBE_CACHE.write_text(json.dumps(found, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"已记录可用调用方式到 {PROBE_CACHE.relative_to(ROOT)}（该文件同样被 git 忽略）")
-        print(f"  {found}")
-        return found
-    print("没有探测到可用调用方式。")
-    print("请把上面的输出贴回来 —— 状态码与错误提示能定位问题。")
-    return None
+def pick(node, *names, default=""):
+    for n in names:
+        v = node.get(n)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return v
+    return default
 
 
-def collect_highlights(api_key, endpoint, call):
-    """按探测到的调用方式拉取划线。返回 [{text, source}]。"""
-    code, obj, note = http_json(endpoint, api_key, call["path"], call["method"],
-                                call.get("params"), call.get("body"))
-    if code != 200 or not isinstance(obj, dict):
-        raise RuntimeError(f"拉取失败：HTTP {code} {note or ''}".strip())
+def book_source(book, mark=None):
+    """拼出「《书名》· 作者」。"""
+    title = ""
+    author = ""
+    for src in (mark or {}, book or {}):
+        if not isinstance(src, dict):
+            continue
+        title = title or str(pick(src, "bookTitle", "title", "bookName"))
+        author = author or str(pick(src, "author", "bookAuthor"))
+        b = src.get("book")
+        if isinstance(b, dict):
+            title = title or str(pick(b, "title", "bookName"))
+            author = author or str(pick(b, "author"))
+    if title and author:
+        return f"《{title}》· {author}"
+    if title:
+        return f"《{title}》"
+    return ""
 
-    # 网关的字段名会变，这里做多种兼容，而不是写死一种
-    def walk(node, out):
+
+def extract_marks(obj):
+    """从任意层级的回包里找出划线条目。
+
+    返回 [{text, source}]。只认「有正文的」条目，
+    没有正文的（如纯书签）不会变成空句子。
+    """
+    found = []
+
+    def walk(node, book_ctx=None):
         if isinstance(node, dict):
-            text = node.get("markedText") or node.get("text") or node.get("content")
-            if isinstance(text, str) and text.strip():
-                out.append({
-                    "text": text.strip(),
-                    "source": build_source(node),
-                })
+            ctx = node if isinstance(node.get("book"), dict) or node.get("bookTitle") else book_ctx
+            text = pick(node, "markedText", "markText", "text", "content", "abstract")
+            if text:
+                found.append({"text": text, "source": book_source(ctx, node)})
             for v in node.values():
-                walk(v, out)
+                walk(v, ctx)
         elif isinstance(node, list):
             for v in node:
-                walk(v, out)
+                walk(v, book_ctx)
 
-    def build_source(node):
-        book = node.get("book") if isinstance(node.get("book"), dict) else {}
-        title = (node.get("bookTitle") or book.get("title") or node.get("title") or "").strip()
-        author = (node.get("author") or book.get("author") or "").strip()
-        if title and author:
-            return f"《{title}》· {author}"
-        if title:
-            return f"《{title}》"
-        return ""
+    walk(obj)
 
-    items = []
-    walk(obj, items)
-
-    # 去重（同一句可能在多本书/多个字段里重复出现）
     seen, out = set(), []
-    for it in items:
+    for it in found:
         if it["text"] in seen:
             continue
         seen.add(it["text"])
@@ -199,8 +116,7 @@ def collect_highlights(api_key, endpoint, call):
     return out
 
 
-def write_yaml(items):
-    """写入 static/quotes/wechat.yaml，落盘前过一遍 Key 闸门。"""
+def write_yaml(items, note=""):
     def q(value):
         if value == "":
             return '""'
@@ -212,15 +128,17 @@ def write_yaml(items):
         "# 由 tools/weread_export.py 生成 —— 请勿手工编辑（会被下次导出覆盖）",
         "# 这个文件被 .gitignore 忽略，不会提交、不会上线。",
         f"# 共 {len(items)} 条",
-        "",
     ]
+    if note:
+        lines.append(f"# {note}")
+    lines.append("")
     for it in items:
         lines.append(f"- text: {q(it['text'])}")
-        if it["source"]:
+        if it.get("source"):
             lines.append(f"  source: {q(it['source'])}")
     body = "\n".join(lines) + "\n"
 
-    # 最后一道闸：内容里出现 Key 就拒绝写盘
+    # 落盘前的最后一道闸
     assert_no_key_leak(body, str(OUT_YAML.relative_to(ROOT)))
 
     OUT_YAML.parent.mkdir(parents=True, exist_ok=True)
@@ -229,9 +147,10 @@ def write_yaml(items):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="从微信读书导出划线到 static/quotes/wechat.yaml")
-    ap.add_argument("--probe", action="store_true", help="只探测可用调用方式，不导出")
+    ap = argparse.ArgumentParser(description="从微信读书导出划线")
     ap.add_argument("--limit", type=int, default=0, help="最多导出多少条（0=全部）")
+    ap.add_argument("--books", type=int, default=0, help="最多处理多少本书（0=全部）")
+    ap.add_argument("--verbose", action="store_true", help="打印每本书的处理情况")
     args = ap.parse_args()
 
     try:
@@ -240,44 +159,95 @@ def main():
         print(str(e))
         return 2
 
-    if args.probe:
-        return 0 if do_probe(api_key, endpoint) else 3
+    conf = load_conf()
+    marks_api = conf.get("marks_api", "")
 
-    call = None
-    if PROBE_CACHE.exists():
-        try:
-            call = json.loads(PROBE_CACHE.read_text(encoding="utf-8"))
-        except Exception:  # noqa: BLE001
-            call = None
-    if not call:
-        print("还没有记录可用的调用方式，先探测一次：")
-        print("    python tools/weread_export.py --probe")
-        print()
-        call = do_probe(api_key, endpoint)
-        if not call:
-            return 3
-
+    # ---------- 1. 笔记本概览 ----------
+    print("读取笔记本概览…")
     try:
-        items = collect_highlights(api_key, endpoint, call)
-    except Exception as e:  # noqa: BLE001
-        print(f"导出失败：{e}")
+        notebooks = call(endpoint, api_key, API_NOTEBOOKS, {"count": 100})
+    except WereadError as e:
+        print(f"失败：{redact_error(str(e))}")
+        print()
+        print("如果提示接口不存在或 404，先跑：python tools/weread_probe.py")
+        return 3
+
+    books = notebooks.get("books") if isinstance(notebooks, dict) else None
+    if not isinstance(books, list) or not books:
+        print("没有取到笔记本列表。回包顶层字段：")
+        print(f"  {list(notebooks.keys())[:12] if isinstance(notebooks, dict) else type(notebooks)}")
+        print("把这一行贴回来，我据此调整字段解析。")
         return 4
 
-    if not items:
-        print("没有取到任何划线。")
-        print("  可能原因：这个账号还没有划线；或网关返回的字段名变了。")
-        print("  先跑 --probe 看返回的顶层字段，确认结构。")
+    print(f"  共 {len(books)} 本有笔记的书")
+    if args.books:
+        books = books[:args.books]
+
+    # ---------- 2. 划线明细 ----------
+    if not marks_api:
+        # 没有探测结果：先把概览里能直接拿到的内容导出，并说明下一步
+        print()
+        print("还没有确定「划线明细」的接口名（.secrets/weread.json 里没有 marks_api）。")
+        print("先跑一次探针，它会列出可用接口：")
+        print("    python tools/weread_probe.py")
+        print()
+        # 有些回包在概览层就带了划线，先试着抽一遍
+        items = extract_marks(notebooks)
+        if items:
+            path = write_yaml(items, "来自笔记本概览")
+            print(f"不过概览回包里已经带了 {len(items)} 条可直接用的内容，已写入 {path.relative_to(ROOT)}")
+            return 0
         return 5
 
-    if args.limit and len(items) > args.limit:
+    print(f"逐本取划线，接口：{marks_api}")
+    all_items = []
+    processed = 0
+    for b in books:
+        if not isinstance(b, dict):
+            continue
+        book_id = pick(b, "bookId", "book_id", "id")
+        title = pick(b, "bookTitle", "title", "bookName")
+        note_count = b.get("noteCount") or b.get("bookmarkCount") or 0
+        if not book_id:
+            continue
+        try:
+            detail = call(endpoint, api_key, marks_api, {"bookId": book_id})
+        except WereadError as e:
+            print(f"  [跳过] {title}: {redact_error(str(e))[:80]}")
+            continue
+        got = extract_marks(detail)
+        processed += 1
+        if args.verbose:
+            print(f"  {title}: 笔记 {note_count} 条 -> 取到 {len(got)} 条")
+        all_items.extend(got)
+        if args.limit and len(all_items) >= args.limit:
+            break
+
+    # 去重
+    seen, items = set(), []
+    for it in all_items:
+        if it["text"] in seen:
+            continue
+        seen.add(it["text"])
+        items.append(it)
+
+    if args.limit:
         items = items[:args.limit]
 
+    print(f"  处理 {processed} 本，去重后 {len(items)} 条")
+    if not items:
+        print()
+        print("没有取到任何划线。可能原因：")
+        print("  · 接口名不对 -> 跑 python tools/weread_probe.py 重新确认")
+        print("  · 回包字段名变了 -> 用 --verbose 看每本书取到多少条，把输出贴回来")
+        return 6
+
     path = write_yaml(items)
-    print(f"已导出 {len(items)} 条到 {path.relative_to(ROOT)}")
+    print(f"已写入 {path.relative_to(ROOT)}")
     print()
     print("接下来：")
-    print("    python tools/import_wechat_quotes.py --dry-run   # 预览")
-    print("    python tools/import_wechat_quotes.py             # 合并进 data/quotes.yaml")
+    print("    python tools/import_wechat_quotes.py --dry-run")
+    print("    python tools/import_wechat_quotes.py")
     return 0
 
 
