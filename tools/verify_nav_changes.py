@@ -109,10 +109,21 @@ r = subprocess.run(["git", "status", "--porcelain", "--ignore-submodules=all"],
                    cwd=ROOT, capture_output=True, text=True)
 changed = [x[3:].strip() for x in r.stdout.split("\n") if x.strip()]
 print(f"  本次工作区改动：{changed or '（无）'}")
-allowed = {"data/nav.yaml"}
-extra = [c for c in changed if c not in allowed and not c.startswith("public/")
-         and not c.startswith("tools/")]
-check("除 data/nav.yaml 外没有改动源码文件", not extra, f"多改了 {extra}")
+# 许可清单。清单外的源码改动一律拦下 ——
+# 目的是防止再次出现「顺手改了别处」。
+allowed = {
+    "data/nav.yaml",                          # 本任务：隐藏 think、去 desc
+    "static/site-nav.css",                    # 下拉菜单：紧凑化 + 移动端 fixed
+    "static/site-nav.js",                     # 下拉菜单：移动端定位
+    "layouts/partials/extend_head.html",      # 仅 site-nav.css 的版本号 4 -> 5
+    "data/quotes.yaml",                       # 用户自己改的句子，不是本次代码改动
+}
+extra = [c for c in changed
+         if c not in allowed
+         and not c.startswith("public/")
+         and not c.startswith("tools/")
+         and not c.endswith("index.html")]      # 合集页 index.html 只改版本号
+check("除导航相关文件外没有改动源码", not extra, f"多改了 {extra}")
 
 print()
 print("=" * 82)

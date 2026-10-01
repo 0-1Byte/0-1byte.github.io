@@ -136,12 +136,14 @@
 
 .hnav-menu {
   position: absolute;
-  top: calc(100% + 10px);
-  left: -14px;
+  /* 贴近触发按钮：原来 100% + 10px 再加上菜单自身 7px padding，
+     视觉上离得很远，显得空。 */
+  top: calc(100% + 6px);
+  left: -8px;
   z-index: 30;
-  min-width: 190px;
+  min-width: 148px;
   margin: 0;
-  padding: 7px;
+  padding: 5px;
   list-style: none;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -189,7 +191,7 @@
 
 .hnav-menu a {
   display: block;
-  padding: 7px 11px;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   transition: background-color var(--motion-fast) ease;
 }
@@ -213,9 +215,9 @@
 
 .hnav-menu-name {
   color: var(--text);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .hnav-menu-desc {
@@ -244,35 +246,71 @@
     font-size: 28px;
   }
 
+  /* 这里原先给 .hnav 设了 overflow-x: auto（横向滑动）。
+     问题：CSS 规定 overflow-x 为 auto、overflow-y 为 visible 时，
+     visible 会被计算成 auto —— 于是它成了滚动容器，
+     **绝对定位的下拉菜单被裁掉**，移动端点 watch 等于没反应。
+
+     现在改为允许换行。导航在窄屏最多折成两行，但下拉能正常展开。
+     取舍：不再横向滚动，代价是 header 变高一点；换来的是菜单可用。 */
   .hnav {
-    /* 让导航可以横向滑动，而不是挤成两行把 header 撑高 */
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-wrap: wrap;
+    row-gap: 4px;
   }
 
-  .hnav::-webkit-scrollbar { display: none; }
-
   .hnav-list {
-    gap: 16px;
-    padding-right: 4px;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    /* 折行后每行的点击区域更宽松，别贴着边缘 */
+    padding: 2px 0;
+    white-space: normal;
   }
 
   .hnav-link {
     font-size: 17px;
   }
 
-  /* 移动端下拉改为左对齐，避免超出视口右缘 */
-  .hnav-menu {
-    left: auto;
-    right: auto;
-    min-width: 170px;
+  /* 移动端下拉：改成 fixed 定位。
+     原因同上 —— 父级有 overflow 就会裁掉绝对定位子元素，
+     而 .header 本身也是 68px 定高。fixed 让它脱离这两个容器，
+     位置由 site-nav.js 依据按钮的 getBoundingClientRect() 设置。 */
+  .hnav-menu--sheet {
+    position: fixed;
+    top: 0;              /* 由 JS 覆盖 */
+    left: 0;             /* 由 JS 覆盖 */
+    width: auto;         /* 由 JS 覆盖 */
+    min-width: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* 换行后的导航可能压到菜单上，层级要压过 .hnav 的 z-index */
+    z-index: 60;
   }
 
-  .hnav-menu-name {
+  .hnav-menu--sheet .hnav-menu-name {
+    font-size: 16px;
+  }
+
+  .hnav-menu--sheet a {
+    padding: 10px 12px;
+  }
+}
+
+/* 超窄屏（<=360px，如旧款 iPhone SE）：
+   换行后的导航按 17px 会折成三行、需要约 73px，而 .header 是 68px 定高，
+   会被撑破。这里把导航收紧一档，让它回到两行。
+   定高保持 68px —— 桌面端依赖它（下拉菜单按 100% 相对按钮定位）。 */
+@media (max-width: 360px) {
+  .logo a {
+    font-size: 24px;
+  }
+
+  .hnav-link {
     font-size: 15px;
+  }
+
+  .hnav-list {
+    gap: 4px 12px;
   }
 }
 
