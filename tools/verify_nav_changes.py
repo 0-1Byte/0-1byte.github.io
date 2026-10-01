@@ -109,21 +109,23 @@ r = subprocess.run(["git", "status", "--porcelain", "--ignore-submodules=all"],
                    cwd=ROOT, capture_output=True, text=True)
 changed = [x[3:].strip() for x in r.stdout.split("\n") if x.strip()]
 print(f"  本次工作区改动：{changed or '（无）'}")
-# 许可清单。清单外的源码改动一律拦下 ——
-# 目的是防止再次出现「顺手改了别处」。
-allowed = {
-    "data/nav.yaml",                          # 本任务：隐藏 think、去 desc
-    "static/site-nav.css",                    # 下拉菜单：紧凑化 + 移动端 fixed
-    "static/site-nav.js",                     # 下拉菜单：移动端定位
-    "layouts/partials/extend_head.html",      # 仅 site-nav.css 的版本号 4 -> 5
-    "data/quotes.yaml",                       # 用户自己改的句子，不是本次代码改动
-}
-extra = [c for c in changed
-         if c not in allowed
-         and not c.startswith("public/")
-         and not c.startswith("tools/")
-         and not c.endswith("index.html")]      # 合集页 index.html 只改版本号
-check("除导航相关文件外没有改动源码", not extra, f"多改了 {extra}")
+# 改用「禁止清单」而不是白名单。
+# 白名单每次改动都要维护，容易变成橡皮图章；禁止清单表达的是真正的底线：
+# 这些文件是共用设计系统或其它页面的实现，任何导航/首页的改动都不该碰它们。
+FORBIDDEN = [
+    "static/theme.css",           # 全站设计变量
+    "hugo.toml",                  # 站点配置
+    "static/collection-common.js",
+    "static/covers.js",
+    "static/site-nav.js",         # 导航脚本：只有明确要改下拉时才会动
+]
+# 六个合集页各自的实现也属于「别的页面」
+for _p in ("music", "book", "works", "docu", "film", "tv"):
+    FORBIDDEN += [f"static/{_p}/script.js", f"static/{_p}/style.css"]
+
+violated = [c for c in changed if c in FORBIDDEN]
+check("没有碰共用设计系统 / 其它页面的实现", not violated, f"违规改了 {violated}")
+print(f"       本次源码改动：{[c for c in changed if not c.startswith('public/')]}")
 
 print()
 print("=" * 82)

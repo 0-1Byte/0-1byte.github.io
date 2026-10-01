@@ -22,12 +22,19 @@ const ok = (m) => console.log("      " + m);
 function makeEl(id, cls) {
   const el = {
     id, _classes: new Set(cls ? cls.split(" ") : []),
-    textContent: "", hidden: false, _handlers: {},
+    textContent: "", hidden: false, _handlers: {}, _attrs: {},
     classList: {
       add(c) { el._classes.add(c); },
       remove(c) { el._classes.delete(c); },
       contains(c) { return el._classes.has(c); }
     },
+    // 属性接口：quotes.js 会用 setAttribute/removeAttribute 标记 data-has-dash
+    // （出处自带破折号时抑制 CSS 的前缀）。桩里少了它们会让打字循环中途抛错，
+    // 表现成「没有逐字输出」——那是测试桩的问题，不是产品代码的问题。
+    setAttribute(k, v) { el._attrs[k] = String(v); },
+    getAttribute(k) { return k in el._attrs ? el._attrs[k] : null; },
+    removeAttribute(k) { delete el._attrs[k]; },
+    hasAttribute(k) { return k in el._attrs; },
     querySelector(sel) {
       if (sel === "[data-quote-text]") return elsRef.text;
       if (sel === ".home-focus-caret") return elsRef.caret;
@@ -91,6 +98,39 @@ async function run(opts, fetchImpl) {
 const quotesFetch = (list) => async () => ({
   ok: true, status: 200, json: async () => ({ groups: [], standalone: [], quotes: list })
 });
+
+/* 出处自带破折号时，应加 data-has-dash 让 CSS 的 ::before 不要重复加前缀。
+   pages.css 的规则：
+     .hero--quote .home-focus-source:not([hidden]):not([data-has-dash])::before
+   数据格式不变，靠这个属性避免出现「— — 某某」。 */
+async function checkDashGuard() {
+  console.log();
+  console.log("I. 出处破折号抑制（data-has-dash）");
+  const CASES = [
+    ["普通出处", "Steve Jobs", false],
+    ["全角破折号开头", "— Steve Jobs", true],
+    ["中文破折号开头", "—— 某人", true],
+    ["连字符开头", "- Someone", true],
+    ["前导空格后破折号", "   — X", true],
+    ["出处中间有破折号", "书 · 作者 — 注", false],
+  ];
+  let bad = 0;
+  for (const [label, source, shouldHave] of CASES) {
+    const r = await run({ wait: 300, reduceMotion: true },
+      quotesFetch([{ text: "句子", source }]));
+    const has = r.els.source.hasAttribute("data-has-dash");
+    const ok = has === shouldHave;
+    if (!ok) { bad++; problems++; }
+    console.log(`  ${ok ? "OK " : "FAIL"} ${label.padEnd(12)} source=${JSON.stringify(source).padEnd(20)} ` +
+      `data-has-dash=${has}（期望 ${shouldHave}）`);
+  }
+  // 无出处时不该残留属性
+  const none = await run({ wait: 300, reduceMotion: true }, quotesFetch([{ text: "句子", source: "" }]));
+  const leftover = none.els.source.hasAttribute("data-has-dash");
+  if (leftover) { bad++; problems++; }
+  console.log(`  ${leftover ? "FAIL" : "OK "} 无出处时不残留属性  data-has-dash=${leftover}`);
+  return bad;
+}
 
 (async () => {
   console.log("A. 打字过程（逐帧观察文本长度）");
@@ -180,6 +220,8 @@ const quotesFetch = (list) => async () => ({
   console.log(`      相邻重复 ${repeats} 次（应接近 0）`);
   if (repeats > 1) fail(`相邻重复 ${repeats} 次偏多，避让逻辑可能失效`);
   else ok("相邻不重复（避让生效）");
+
+  await checkDashGuard();
 
   console.log();
   console.log(`合计问题: ${problems}`);

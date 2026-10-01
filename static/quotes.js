@@ -41,14 +41,28 @@
 
   /* ---------- 显示 ---------- */
 
+  /* 数据里若已自带破折号，标记一下，让 CSS 的 ::before 不要重复加前缀。
+     pages.css 里的规则是：
+       .hero--quote .home-focus-source:not([hidden]):not([data-has-dash])::before
+     这样 data/quotes.yaml 的格式与数据都不需要改，
+     而源文本自己写了破折号时也不会变成「— — 某某」。 */
+  function markSourceDash(source) {
+    if (!sourceEl) return;
+    const hasDash = /^\s*[—–-]/.test(String(source || ""));
+    if (hasDash) sourceEl.setAttribute("data-has-dash", "");
+    else sourceEl.removeAttribute("data-has-dash");
+  }
+
   function setSource(source) {
     if (!sourceEl) return;
     if (source) {
       sourceEl.textContent = source;
       sourceEl.hidden = false;
+      markSourceDash(source);
     } else {
       sourceEl.textContent = "";
       sourceEl.hidden = true;
+      sourceEl.removeAttribute("data-has-dash");
     }
   }
 

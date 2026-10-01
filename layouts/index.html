@@ -36,10 +36,21 @@
 
 <article class="home">
 
-  <header class="home-hero">
+  {{- /*
+    为什么 hero 上多一个 hero--quote 修饰类：
+      .home-hero / .home-focus 也被 /now/ 与 /fragments/ 的页头复用
+      （见 now/single.html、fragments/list.html）。首页这次要调字号、
+      阅读宽度与首屏留白，若直接改共用类会把那两页一起改掉。
+      所以用 hero--quote 作为「首页这句随机句子」的作用域，
+      其它页面不受影响。
+  */ -}}
+  <header class="home-hero hero--quote">
     <h1 class="home-focus" id="home-focus">
       <span class="home-focus-text" data-quote-text>{{ $first.text }}</span><span class="home-focus-caret" aria-hidden="true"></span>
     </h1>
+    {{- /* 出处保留原样输出；"— " 前缀由 pages.css 的 ::before 加上，
+           这样 data/quotes.yaml 的格式与数据都不用动。
+           若数据里已自带破折号，JS 会加 data-has-dash 抑制重复。 */ -}}
     <p class="home-focus-source" data-quote-source{{ if not $first.source }} hidden{{ end }}>{{ $first.source }}</p>
     {{- with .Content }}
     <div class="home-note">{{ . }}</div>

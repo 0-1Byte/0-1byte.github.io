@@ -10,13 +10,13 @@
 {{- /* 独立内容页样式（阶段 3）：首页 / Now 页 / 文章列表 / 碎片共用同一份排版节奏。
        只含 .home-* / .now-* / .frag-* 规则，不影响文章正文页与合集页。 */ -}}
 {{- if or .IsHome (eq .Section "now") (eq .Section "posts") (eq .Section "fragments") }}
-<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=4">
+<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=5">
 {{- end }}
 {{- /* 首屏句子的打字机效果，只有首页需要。
        句子数据取自 /nav.json 的 quotes 数组（Hugo 从 data/quotes.yaml 生成）——
        与 site-nav.js 共用同一个端点，少发一个请求。 */ -}}
 {{- if .IsHome }}
-<script src="{{ "quotes.js" | relURL }}?v=1" defer></script>
+<script src="{{ "quotes.js" | relURL }}?v=2" defer></script>
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">

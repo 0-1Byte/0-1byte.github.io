@@ -19,21 +19,83 @@
 }
 
 /* 首屏句子（打字机）
-   字体刻意不用 Dancing Script：那句话之后会接微信读书划线，多半是中文，
-   手写体没有 CJK 字形，会掉到后备字体上，反而更不整齐。
-   这里给一套「衬线优先、CJK 有兜底」的字体栈，中英混排都稳。 */
+   字体刻意不用 Dancing Script：手写体承担的是「个人感」（导航 / Logo 已在用），
+   这句话要承担「思想感 / 文学感」，所以走衬线优先的字体栈。
+   不引入任何 Web Font —— 全部使用系统已有字体，中英混排都有兜底。 */
 .home-focus {
   margin: 0;
-  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia,
-    'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+  /* 衬线优先，不加载任何 Web Font，全部用系统已有字体。
+     拉丁走 Iowan / Palatino 一路（成熟、偏文学编辑风格），
+     中文依次落到 Noto Serif SC / 思源宋体 / 宋体 —— 保证中英混排
+     视觉重量接近，不会出现「英文是衬线、中文突然变细」。
+     这一套同时服务首页那句话与 /now/ /fragments/ 的页头标题。 */
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino,
+    Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong",
+    "SimSun", serif;
   font-size: 27px;
   line-height: 1.5;
   font-weight: 400;
   letter-spacing: .005em;
   color: var(--text);
-  /* 预留两行高度：句子长短不一，打字过程中不会把下面的内容顶来顶去。
-     首页、/now/、/posts/、/fragments/ 的标题都走这套排版，留白一致。 */
-  min-height: calc(2 * 1.5em);
+}
+
+/* ==========================================================================
+   首页那句随机句子 —— 只作用于首页
+   加 .hero--quote 这层作用域的原因：
+     .home-hero / .home-focus 也被 /now/ 与 /fragments/ 的页头复用，
+     直接改共用类会把那两页一起改掉。这里的选择器都带 .hero--quote，
+     所以只有首页命中。
+   规则集中放在 .home-focus 基础规则之后，确保覆盖它。
+   ========================================================================== */
+
+/* 首屏纵向留白：用 clamp 给上下限，避免小屏被顶出屏幕、大屏过分空。
+   原来固定 74px，缺少「打开页面先看到一句落下来的话」的呼吸感。 */
+.hero--quote {
+  padding-top: clamp(72px, 16vh, 150px);
+}
+
+/* 阅读宽度：这句话形成一个独立阅读柱，不横跨整个 --content-width（1040px）。
+   只限制这一行文字，不缩 .home 容器 —— 导航与页脚仍按整幅宽度排布。 */
+.hero--quote .home-focus {
+  max-width: 680px;
+  font-size: 34px;
+  line-height: 1.45;
+  letter-spacing: .008em;
+}
+
+/* 这里刻意不设 min-height。
+   句子长度差异很大（"focus" 5 字符 … 57 字符的长句），
+   预留两行高度会让超短句下方出现一大块突兀空白，看起来像页面坏了。
+   不跳动的保证来自结构本身：这句话下方只有可选的 .home-note，
+   上方是 clamp 出来的固定留白，句子换行不会把别的内容顶来顶去。 */
+
+.hero--quote .home-focus-text {
+  white-space: pre-wrap;
+}
+
+/* 光标：像排版里的细小插入光标，不像 IDE。
+   基础规则在下面（/now/ 与 /fragments/ 不受影响），
+   首页这里只覆盖尺寸与对齐。保留「打字时轻微呼吸、打完后压暗、
+   reduced-motion 不持续动画」这三条既有行为。 */
+.hero--quote .home-focus-caret {
+  width: 1px;
+  height: .82em;
+  margin-left: 3px;
+  vertical-align: -.02em;
+}
+
+/* 出处：先看到句子，第二眼才看到出处。
+   前缀破折号用 ::before 生成，data/quotes.yaml 的格式不用动。
+   数据里已自带破折号时，JS 会加 data-has-dash 抑制重复。 */
+.hero--quote .home-focus-source {
+  margin: 18px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  opacity: .55;
+}
+
+.hero--quote .home-focus-source:not([hidden]):not([data-has-dash])::before {
+  content: "— ";
 }
 
 .home-focus-text {
@@ -200,6 +262,29 @@
 
   .home-index a {
     font-size: 21px;
+  }
+}
+
+/* 首页那句随机句子的移动端排版。
+   单独一节、且选择器都带 .hero--quote：
+   上面那条 .home-focus { font-size: 26px } 是共用的（Now / Fragments 也吃），
+   不能改；这里只覆盖首页。 */
+@media (max-width: 600px) {
+  .hero--quote {
+    /* 桌面 16vh 在手机上偏小且不稳，这里用 10vh 并给上下限 */
+    padding-top: clamp(56px, 10vh, 96px);
+  }
+
+  .hero--quote .home-focus {
+    /* 不照搬桌面的 34px —— 手机上会挤成难看的窄柱 */
+    font-size: 25px;
+    line-height: 1.55;
+    /* 手机屏幕本来就窄，阅读柱交给页面左右留白即可 */
+    max-width: none;
+  }
+
+  .hero--quote .home-focus-source {
+    margin-top: 16px;
   }
 }
 
