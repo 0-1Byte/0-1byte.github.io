@@ -149,7 +149,10 @@
 
       // 过滤掉空条目（data/quotes.yaml 里可能留了空占位）
       const list = data.quotes
-        .map((q) => ({ text: String(q.text || "").trim(), source: String(q.source || "").trim() }))
+        .map((q) => ({
+          text: String(q.text || "").replace(/\s*\|\s*/g, "\n").trim(),
+          source: String(q.source || "").trim()
+        }))
         .filter((q) => q.text);
 
       if (!list.length) {
