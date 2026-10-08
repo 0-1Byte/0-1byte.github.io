@@ -145,21 +145,24 @@
   padding-top: clamp(72px, 16vh, 150px);
 }
 
-/* 阅读宽度：这句话形成一个独立阅读柱，不横跨整个 --content-width（1040px）。
-   只限制这一行文字，不缩 .home 容器 —— 导航与页脚仍按整幅宽度排布。 */
+/* 响应式阅读柱：给不同长度的句子留出舒适空间，不缩 .home 容器，
+   导航与页脚仍按整幅宽度排布。 */
 .hero--quote .home-focus {
-  max-width: 680px;
-  font-size: 34px;
+  max-width: min(82vw, 840px);
+  font-size: clamp(25px, 3.2vw, 36px);
   line-height: 1.45;
-  letter-spacing: .008em;
+  letter-spacing: .004em;
   min-height: 2.9em;
 }
 
 .hero--quote .home-focus.is-loading {
   visibility: hidden;
 }
+
 .hero--quote .home-focus-text {
   white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* 光标：像排版里的细小插入光标，不像 IDE。
@@ -365,11 +368,9 @@
   }
 
   .hero--quote .home-focus {
-    /* 不照搬桌面的 34px —— 手机上会挤成难看的窄柱 */
-    font-size: 25px;
-    line-height: 1.55;
-    /* 手机屏幕本来就窄，阅读柱交给页面左右留白即可 */
-    max-width: none;
+    font-size: clamp(23px, 6vw, 29px);
+    line-height: 1.5;
+    max-width: 100%;
     min-height: 4.65em;
   }
 

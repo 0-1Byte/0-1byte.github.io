@@ -23,6 +23,7 @@ function makeEl(id, cls) {
   const el = {
     id, _classes: new Set(cls ? cls.split(" ") : []),
     textContent: "", hidden: false, _handlers: {}, _attrs: {},
+    clientWidth: 680,
     classList: {
       add(c) { el._classes.add(c); },
       remove(c) { el._classes.delete(c); },
@@ -49,6 +50,7 @@ let elsRef = {};
 
 function setup(opts) {
   const host = makeEl("home-focus", "home-focus is-loading");
+  host.clientWidth = opts.width || 680;
   const text = makeEl("home-focus-text");
   const caret = makeEl("home-focus-caret");
   const source = makeEl("home-focus-source");
@@ -58,12 +60,31 @@ function setup(opts) {
   const doc = {
     getElementById: (id) => (id === "home-focus" ? host : null),
     querySelector: (sel) => (sel === "[data-quote-source]" ? source : null),
+    createElement: (tag) => tag === "canvas" ? ({
+      getContext: () => ({
+        font: "",
+        measureText(text) {
+          return { width: Array.from(text).reduce((width, char) =>
+            width + (/[\u2e80-\u9fff\uf900-\ufaff]/.test(char) ? 34 : /\s/.test(char) ? 8 : 17), 0) };
+        }
+      })
+    }) : null,
     addEventListener() {},
     documentElement: { dataset: {} },
     hidden: false
   };
   const win = {
-    matchMedia: (q) => ({ matches: opts.reduceMotion === true && q.includes("reduced-motion") })
+    matchMedia: (q) => ({ matches: opts.reduceMotion === true && q.includes("reduced-motion") }),
+    getComputedStyle: () => ({
+      fontStyle: "normal",
+      fontVariant: "normal",
+      fontWeight: "400",
+      fontSize: `${opts.fontSize || 34}px`,
+      fontFamily: "serif",
+      letterSpacing: "0px"
+    }),
+    _handlers: {},
+    addEventListener(type, fn) { (this._handlers[type] ||= []).push(fn); }
   };
   return { doc, win, els: elsRef };
 }
@@ -211,7 +232,72 @@ async function checkDashGuard() {
   else ok("光标直接为完成态");
 
   console.log();
-  console.log("G. 超长句子截断到 140 字符");
+  console.log("G. 自适应排版：中文语义断点、英文单词、显式换行");
+  const semantic = "我们吞咽了太多意义，其实生命只需要呼吸。";
+  const semanticResult = await run({ wait: 250, reduceMotion: true, width: 400 },
+    quotesFetch([{ text: semantic }]));
+  if (!semanticResult.els.text.textContent.includes("，\n")) {
+    fail(`中文优先在逗号后断行，实际：[${semanticResult.els.text.textContent}]`);
+  } else ok(`中文逗号语义断行：[${semanticResult.els.text.textContent}]`);
+
+  const shortResult = await run({ wait: 250, reduceMotion: true, width: 680 },
+    quotesFetch([{ text: "适时剪枝" }]));
+  if (shortResult.els.text.textContent.includes("\n")) fail("短中文句不应被强制拆行");
+  else ok("短中文句保持单行");
+
+  const english = "building small things, thinking about large things.";
+  const englishResult = await run({ wait: 250, reduceMotion: true, width: 280 },
+    quotesFetch([{ text: english }]));
+  if (!englishResult.els.text.textContent.includes("\n")) fail("窄宽度下英文长句应自然分行");
+  const rejoinedEnglish = englishResult.els.text.textContent.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+  if (rejoinedEnglish !== english) fail("英文断行不应拆词或丢失标点/空格");
+  else ok(`英文按完整单词换行：[${englishResult.els.text.textContent}]`);
+
+  const explicit = await run({ wait: 250, reduceMotion: true, width: 680 },
+    quotesFetch([{ text: "Some people want diamond rings | Some just want everything" }]));
+  if (!explicit.els.text.textContent.includes("\n")) fail("显式断点应保留为换行");
+  else ok("显式断点保留");
+
+  const longChinese = "他不再等一个更好的处境，才允许自己认真的生活。";
+  const longChineseResult = await run({ wait: 250, reduceMotion: true, width: 400 },
+    quotesFetch([{ text: longChinese }]));
+  const longChineseLines = longChineseResult.els.text.textContent.split("\n");
+  if (longChineseLines.length < 2 || longChineseLines.some((line) => /^[，。！？；：、,.!?;:]/u.test(line))) {
+    fail("长中文句应自然分行且不能以标点开头");
+  } else if (/^[\u2e80-\u9fff\uf900-\ufaff]{1,3}[，。！？；：、,.!?;:]?$/u.test(longChineseLines[longChineseLines.length - 1])) {
+    fail("长中文句不应留下 1～3 字的孤儿行");
+  } else ok(`长中文句的断行自然：[${longChineseLines.join(" / ")}]`);
+
+  const mixed = "To See the world，并不是为了拥有答案。";
+  const mixedResult = await run({ wait: 250, reduceMotion: true, width: 300 },
+    quotesFetch([{ text: mixed }]));
+  if (!mixedResult.els.text.textContent.split("\n").some((line) => /\bworld\b/.test(line))) {
+    fail("中英混排时应保留完整英文单词");
+  } else ok("中英混排中的英文单词未拆分");
+
+  const punctuation = "认识你自己、凡事勿过度、妄立誓则祸近。";
+  const punctuationResult = await run({ wait: 250, reduceMotion: true, width: 280 },
+    quotesFetch([{ text: punctuation }]));
+  if (punctuationResult.els.text.textContent.replace(/\n/g, "") !== punctuation) {
+    fail("多个中文标点句的自动排版应保留全部字符");
+  } else if (punctuationResult.els.text.textContent.split("\n").some((line) => /^[，。！？；：、]/u.test(line))) {
+    fail("自动排版不应让中文标点出现在行首");
+  } else ok(`多标点中文句保留顺序且断行正常：[${punctuationResult.els.text.textContent}]`);
+
+  console.log();
+  console.log("H. 显示完成后窗口变宽时重新排版");
+  const resizeResult = await run({ wait: 250, reduceMotion: true, width: 280 },
+    quotesFetch([{ text: semantic }]));
+  const narrowLines = resizeResult.els.text.textContent.split("\n").length;
+  resizeResult.els.host.clientWidth = 680;
+  for (const handler of resizeResult.win._handlers.resize || []) handler();
+  await new Promise((r) => setTimeout(r, 160));
+  const wideLines = resizeResult.els.text.textContent.split("\n").length;
+  if (wideLines >= narrowLines) fail("窗口变宽后应按新宽度重新计算断行");
+  else ok(`窗口变宽后由 ${narrowLines} 行调整为 ${wideLines} 行`);
+
+  console.log();
+  console.log("I. 超长句子截断到 140 字符");
   const huge = { text: "字".repeat(300), source: "" };
   const cut = await run({ wait: 300, reduceMotion: true }, quotesFetch([huge]));
   const n = Array.from(cut.els.text.textContent).length;
@@ -220,7 +306,7 @@ async function checkDashGuard() {
   else ok("截断到 140");
 
   console.log();
-  console.log("H. 尽量避开上一句");
+  console.log("J. 尽量避开上一句");
   const store = {};
   const two = [{ text: "AAA", source: "" }, { text: "BBB", source: "" }];
   const picks = [];

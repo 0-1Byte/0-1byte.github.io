@@ -9,6 +9,7 @@
    行为：
      · 每次刷新随机抽一句（尽量避开刚看过的那句）
      · 随机背景先加载并淡入，再显示句子
+     · 打字前按当前宽度与标点/词语边界选好断行，窗口变化时重新排版
      · 一个字符一个字符打出来，速度略有抖动，读起来不像机器
      · 打完后光标停住并变暗（不做无限闪烁，避免抢注意力）
      · 三种状态都有明确表现：
@@ -43,6 +44,146 @@
   const CHARS_PER_SEC = 19;          // 基准速度
   const MAX_LEN = 140;               // 超长句子截断，避免打字太久
   const BACKGROUND_FADE_MS = 1400;
+  let activeItem = null;
+  let typingFinished = true;
+  let typeTimer = 0;
+
+  function createMeasurer() {
+    const style = window.getComputedStyle ? window.getComputedStyle(host) : null;
+    const font = style
+      ? `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+      : "34px serif";
+    const letterSpacing = style ? parseFloat(style.letterSpacing) || 0 : 0;
+    const canvas = document.createElement && document.createElement("canvas");
+    const context = canvas && canvas.getContext && canvas.getContext("2d");
+    if (context) context.font = font;
+
+    return (text) => {
+      if (context) {
+        return context.measureText(text).width + Array.from(text).length * letterSpacing;
+      }
+      return Array.from(text).reduce((width, char) =>
+        width + (/[\u2e80-\u9fff\uf900-\ufaff]/.test(char) ? 1 : .55) * 34, 0);
+    };
+  }
+
+  function tokenize(text) {
+    if (typeof Intl.Segmenter === "function") {
+      return Array.from(new Intl.Segmenter("zh", { granularity: "word" }).segment(text),
+        (part) => part.segment);
+    }
+    return text.match(/[\u2e80-\u9fff\uf900-\ufaff]|[A-Za-z0-9]+(?:['’][A-Za-z0-9]+)*|\s+|./gu) || [];
+  }
+
+  function breakPenalty(line, nextToken, currentToken) {
+    if (/^[，。！？；：、,.!?;:，」』）》〉】〕］｝”’)]/u.test(nextToken || "")) return Infinity;
+    const end = line.trimEnd();
+    if (/[，,]$/u.test(end)) return -17;
+    if (/[；;：:]$/u.test(end)) return -13;
+    if (/[。！？.!?]$/u.test(end)) return -11;
+    if (/、$/u.test(end)) return -15;
+    if (/\s$/u.test(line)) return 0;
+    const currentCjk = /^[\u2e80-\u9fff\uf900-\ufaff]+$/u.test(currentToken || "");
+    const nextCjk = /^[\u2e80-\u9fff\uf900-\ufaff]+$/u.test(nextToken || "");
+    if (currentCjk && nextCjk && currentToken.length === 1 && nextToken.length === 1) return 16;
+    if (/[的了着过和与及把被将而才只不更一]$/u.test(end)) return 11;
+    if (/^[的了着过和与及把被]$/u.test(nextToken || "")) return 16;
+    if (/[\u2e80-\u9fff\uf900-\ufaff]/u.test(end)) return 2;
+    return 0;
+  }
+
+  function layoutParagraph(paragraph, width, measure) {
+    const tokens = tokenize(paragraph).flatMap((token) =>
+      /^[\u2e80-\u9fff\uf900-\ufaff]+$/u.test(token) && measure(token) > width
+        ? Array.from(token)
+        : [token]
+    );
+    if (tokens.length < 2 || measure(paragraph) <= width) return [paragraph.trim()];
+
+    const states = Array(tokens.length + 1).fill(null);
+    states[0] = { cost: 0, previous: -1 };
+
+    for (let start = 0; start < tokens.length; start += 1) {
+      const state = states[start];
+      if (!state) continue;
+      let line = "";
+
+      for (let end = start; end < tokens.length; end += 1) {
+        line += tokens[end];
+        const value = line.trim();
+        if (!value) continue;
+        const lineWidth = measure(value);
+        if (lineWidth > width && end > start) break;
+        if (lineWidth > width) continue;
+
+        const nextToken = tokens[end + 1] || "";
+        const penalty = breakPenalty(line, nextToken, tokens[end]);
+        if (penalty === Infinity) continue;
+
+        const isLast = end === tokens.length - 1;
+        const raggedness = Math.max(0, (width - lineWidth) / width);
+        let cost = state.cost + raggedness * raggedness * (isLast ? 2 : 9);
+        if (!isLast) cost += 9 + penalty;
+
+        if (isLast && lineWidth < width * .2) cost += 45;
+        if (isLast && /^[\u2e80-\u9fff\uf900-\ufaff]{1,3}[，。！？；：、,.!?;:]?$/u.test(value)) {
+          cost += 120;
+        }
+
+        const position = end + 1;
+        if (!states[position] || cost < states[position].cost) {
+          states[position] = {
+            cost,
+            previous: start,
+            value
+          };
+        }
+      }
+    }
+
+    if (!states[tokens.length]) return [paragraph.trim()];
+    const lines = [];
+    let position = tokens.length;
+    while (position > 0) {
+      const state = states[position];
+      lines.push(state.value);
+      position = state.previous;
+    }
+    return lines.reverse();
+  }
+
+  function layoutText(text) {
+    const measure = createMeasurer();
+    const width = Math.max(1, (host.clientWidth || 680) - 2);
+    return String(text || "").split("\n")
+      .flatMap((paragraph) => layoutParagraph(paragraph, width, measure))
+      .join("\n");
+  }
+
+  function renderCompletedItem() {
+    if (!activeItem) return;
+    textEl.textContent = layoutText(String(activeItem.text || "").slice(0, MAX_LEN));
+  }
+
+  function handleResize() {
+    if (!activeItem) return;
+    if (typingFinished) {
+      renderCompletedItem();
+      return;
+    }
+
+    const visibleCharacters = Array.from(textEl.textContent).filter((char) => char !== "\n").length;
+    clearTimeout(typeTimer);
+    typeOut(activeItem, visibleCharacters);
+  }
+
+  if (window.addEventListener) {
+    let resizeTimer = 0;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(handleResize, 120);
+    });
+  }
 
   function updateHomeTime() {
     if (!homeTimeEl) return;
@@ -96,7 +237,9 @@
   }
 
   function showFull(item) {
-    textEl.textContent = String(item.text || "").slice(0, MAX_LEN);
+    activeItem = item;
+    typingFinished = true;
+    textEl.textContent = layoutText(String(item.text || "").slice(0, MAX_LEN));
     setSource(item.source || "");
     if (caretEl) caretEl.classList.add("is-done");
     host.classList.remove("is-loading");
@@ -160,9 +303,10 @@
 
   /* 打字：用 setTimeout 递归而不是 setInterval，
      这样每步可以带一点随机抖动，停顿更像自然书写 */
-  let typeTimer = 0;
-  function typeOut(item) {
-    const chars = Array.from(String(item.text || "").slice(0, MAX_LEN));
+  function typeOut(item, visibleCharacters = 0) {
+    activeItem = item;
+    typingFinished = false;
+    const chars = Array.from(layoutText(String(item.text || "").slice(0, MAX_LEN)));
     setSource(item.source || "");
     if (caretEl) caretEl.classList.remove("is-done");
 
@@ -172,8 +316,19 @@
     }
 
     let i = 0;
-    textEl.textContent = "";
+    let countedCharacters = 0;
+    while (i < chars.length && countedCharacters < visibleCharacters) {
+      if (chars[i] !== "\n") countedCharacters += 1;
+      i += 1;
+    }
+    textEl.textContent = chars.slice(0, i).join("");
     host.classList.remove("is-loading");
+    if (i >= chars.length) {
+      if (caretEl) caretEl.classList.add("is-done");
+      typingFinished = true;
+      typeTimer = 0;
+      return;
+    }
 
     const step = () => {
       // 一次打 1 个字符；标点后稍作停顿，读起来有呼吸
@@ -183,6 +338,7 @@
 
       if (i >= chars.length) {
         if (caretEl) caretEl.classList.add("is-done");
+        typingFinished = true;
         typeTimer = 0;
         return;
       }
