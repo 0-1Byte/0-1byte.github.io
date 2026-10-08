@@ -1,4 +1,4 @@
-"""合集页封面优化入口：book / docu / film / tv（Music 见 optimize_music_covers.py）。
+"""合集页封面优化入口：book / docu / film / tv / game（Music 见 optimize_music_covers.py）。
 
 用法
 ----
@@ -24,8 +24,7 @@ from cover_opt import CollectionConfig, optimize  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# 合集页封面是 2:3 竖版：桌面四列时显示约 235x353，2x 屏需 470 宽，
-# 所以沿用与 Music 相同的 240/320/480 档位即可覆盖 1x/2x 与移动端。
+# 衍生图按宽度生成并保持原始宽高比；240/320/480 档位覆盖常见的 1x/2x 显示尺寸。
 COLLECTIONS = [
     CollectionConfig(
         key="book", label="Book",
@@ -57,6 +56,14 @@ COLLECTIONS = [
         data_file=ROOT / "static" / "tv" / "tvs.json",
         cover_dir=ROOT / "static" / "tv" / "covers",
         derivative_dir=ROOT / "static" / "tv" / "covers" / "opt",
+        widths=(240, 320, 480),
+    ),
+    CollectionConfig(
+        key="game", label="Game",
+        root=ROOT / "static" / "game",
+        data_file=ROOT / "static" / "game" / "games.json",
+        cover_dir=ROOT / "static" / "game" / "covers",
+        derivative_dir=ROOT / "static" / "game" / "covers" / "opt",
         widths=(240, 320, 480),
     ),
 ]
