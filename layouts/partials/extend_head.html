@@ -2,6 +2,9 @@
 {{- /*     Insert any custom code (web-analytics, resources, etc.) - it will appear in the <head></head> section of every page. */ -}}
 {{- /*     Can be overwritten by partial with the same name in the global layouts. */ -}}
 {{- /* Head custom content area end */ -}}
+<link rel="manifest" href="{{ "site.webmanifest" | absURL }}">
+{{- /* PaperMod emits the Apple touch icon from params.assets.apple_touch_icon
+       alongside the browser favicon declarations in its shared head partial. */ -}}
 {{- /* 统一设计系统变量（阶段 2）。必须排在主题样式与其它自定义样式之前，
        这样后续文件可以直接消费 --bg / --text / --border / --radius 等。 */ -}}
 <link rel="stylesheet" href="{{ "theme.css" | relURL }}?v=1">

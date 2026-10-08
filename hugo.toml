@@ -100,6 +100,7 @@ relativeURLs = false
 
     [params.assets]
         favicon = "cat.ico"
+        apple_touch_icon = "apple-touch-icon.png"
 
 # 导航已改由 data/nav.yaml 驱动（阶段 3 信息架构重组）。
 # 原来的 [[menu.main]] 扁平菜单（Music/Book/Works/Docu/Film/TV）已废弃：
