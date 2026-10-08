@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -104,12 +104,26 @@ def image_extension(content, content_type):
 
 def download_cover(url, title):
     if not url:
-        return ""
+        raise ValueError("Steam 没有提供官方封面 URL")
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not (
+        host == "steamstatic.com" or host.endswith(".steamstatic.com")
+    ):
+        raise ValueError("封面地址不是 Steam 官方 CDN：{}".format(host or "(无主机名)"))
     content, content_type = fetch(url, "image/*")
     extension = image_extension(content, content_type)
+    if not content:
+        raise ValueError("Steam 封面内容为空")
     COVERS_DIR.mkdir(parents=True, exist_ok=True)
     path = COVERS_DIR / (slug(title) + extension)
-    path.write_bytes(content)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    try:
+        temporary.write_bytes(content)
+        temporary.replace(path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
     return "covers/{}".format(path.name)
 
 
@@ -165,6 +179,69 @@ def write_games(games):
             temporary.unlink()
 
 
+def has_value(game, key):
+    return key in game and game[key] not in (None, "")
+
+
+def local_cover_path(cover):
+    if not cover or cover.startswith(("http://", "https://")):
+        return None
+    relative = cover.replace("\\", "/")
+    if relative.startswith("covers/"):
+        relative = relative[len("covers/"):]
+    return COVERS_DIR / relative
+
+
+def find_existing(games, title):
+    wanted = normalize(title)
+    for game in games:
+        if isinstance(game, dict) and normalize(game.get("title")) == wanted:
+            return game
+    return None
+
+
+def find_existing_by_app_id(games, app_id):
+    expected = str(app_id)
+    for game in games:
+        if not isinstance(game, dict):
+            continue
+        url = game.get("url")
+        if not isinstance(url, str):
+            continue
+        match = re.search(r"/app/(\d+)(?:/|$)", urlsplit(url).path)
+        if match and match.group(1) == expected:
+            return game
+    return None
+
+
+def verify_optimized_games(games, titles):
+    wanted = {normalize(title) for title in titles}
+    selected = [
+        game for game in games
+        if isinstance(game, dict) and normalize(game.get("title")) in wanted
+    ]
+    errors = []
+    found = {normalize(game.get("title")) for game in selected}
+    for missing in sorted(wanted - found):
+        errors.append("{}：games.json 中找不到该游戏".format(missing))
+    for game in selected:
+        title = game.get("title") or "(无标题)"
+        cover = game.get("cover")
+        image_base = game.get("img")
+        if not cover or not image_base:
+            errors.append("{}：缺少 cover 或 img 字段".format(title))
+            continue
+        cover_path = local_cover_path(cover)
+        if not cover_path or not cover_path.is_file():
+            errors.append("{}：本地封面文件不存在 ({})".format(title, cover_path))
+            continue
+        for width in (240, 320, 480):
+            derivative = COVERS_DIR / "opt" / "{}-{}.webp".format(image_base, width)
+            if not derivative.is_file() or derivative.stat().st_size == 0:
+                errors.append("{}：缺少 {} WebP ({})".format(title, width, derivative))
+    return errors
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="批量添加或删除游戏；添加时从 Steam 匹配名称、平台、年份和封面。"
@@ -205,65 +282,126 @@ def main():
             print("未自动删除封面文件；确认没有其他条目引用后可手动清理。")
         return 0
 
-    existing = {
-        normalize(game.get("title"))
-        for game in games
-        if isinstance(game, dict) and game.get("title")
-    }
+    changed = False
+    optimize_titles = []
     added = 0
-    failures = 0
+    repaired = 0
+    failures = []
     for title in titles:
-        if normalize(title) in existing:
-            print("跳过（已存在）：{}".format(title))
+        game = find_existing(games, title)
+        if game and has_value(game, "cover") and has_value(game, "img"):
+            print("跳过（已有 cover 和 img）：{}".format(title))
+            continue
+        existing_cover = local_cover_path(game.get("cover")) if game else None
+        cover_is_available = existing_cover is not None and existing_cover.is_file()
+        if game and cover_is_available:
+            optimize_titles.append(game["title"])
+            repaired += 1
+            print("已找到本地封面，将补生成 img 和 WebP：{}".format(game["title"]))
             continue
         try:
             metadata = find_game(title)
         except (HTTPError, URLError, TimeoutError, OSError, ValueError, json.JSONDecodeError) as error:
-            print("查询失败：{} ({})".format(title, error), file=sys.stderr)
-            failures += 1
+            reason = "Steam 查询失败：{}".format(error)
+            print("{}：{}".format(title, reason), file=sys.stderr)
+            failures.append("{}：{}".format(title, reason))
             continue
 
-        if metadata and normalize(metadata["title"]) in existing:
-            print("跳过（Steam 对应游戏已存在）：{}".format(metadata["title"]))
+        if not metadata:
+            reason = "Steam 商店没有精确匹配，未新增或修改数据"
+            print("{}：{}".format(title, reason), file=sys.stderr)
+            failures.append("{}：{}".format(title, reason))
             continue
 
-        if metadata is None:
-            game = {"title": title, "note": ""}
-            print("Steam 没有精确匹配，已添加名称；可之后补充封面：{}".format(title))
-        else:
-            game = {
-                "title": metadata["title"],
-                "year": metadata["year"],
-                "platform": metadata["platform"],
-                "note": "",
-                "url": metadata["url"],
-            }
+        if game is None:
+            game = find_existing(games, metadata["title"])
+            if game is None:
+                game = find_existing_by_app_id(games, metadata["appid"])
+            if game and has_value(game, "cover") and has_value(game, "img"):
+                print("跳过（Steam 对应游戏已有 cover 和 img）：{}".format(metadata["title"]))
+                continue
+            existing_cover = local_cover_path(game.get("cover")) if game else None
+            cover_is_available = existing_cover is not None and existing_cover.is_file()
+            if game and cover_is_available and has_value(game, "img"):
+                print("跳过（Steam 对应游戏已有 cover 和 img）：{}".format(metadata["title"]))
+                continue
+            if game and cover_is_available:
+                optimize_titles.append(game["title"])
+                repaired += 1
+                print("已找到本地封面，将补生成 img 和 WebP：{}".format(game["title"]))
+                continue
+
+        if not cover_is_available:
             try:
-                cover = download_cover(metadata["cover_url"], metadata["title"])
+                cover = download_cover(metadata.get("cover_url"), metadata["title"])
             except (HTTPError, URLError, TimeoutError, OSError, ValueError) as error:
-                print("封面下载失败：{} ({})".format(title, error), file=sys.stderr)
-                cover = ""
-            if cover:
-                game["cover"] = cover
-            else:
-                print("没有封面图片：{}".format(title), file=sys.stderr)
-            print("已匹配 Steam：{}".format(metadata["title"]))
+                reason = "Steam 官方封面下载失败：{}".format(error)
+                print("{}：{}".format(title, reason), file=sys.stderr)
+                failures.append("{}：{}".format(title, reason))
+                continue
+        else:
+            cover = None
 
-        games.append(game)
-        existing.add(normalize(game["title"]))
-        added += 1
+        was_new = game is None
+        if was_new:
+            game = {"title": metadata["title"], "note": ""}
+            games.append(game)
+            added += 1
 
-    if added:
+        if cover:
+            game["cover"] = cover
+            changed = True
+        for field in ("year", "platform", "url"):
+            if not has_value(game, field) and has_value(metadata, field):
+                game[field] = metadata[field]
+                changed = True
+
+        if not was_new and (cover or not has_value(game, "img")):
+            repaired += 1
+        optimize_titles.append(game["title"])
+        print(
+            "{}：{}".format(
+                "已新增" if was_new else "已补全",
+                game["title"],
+            )
+        )
+
+    if changed:
         try:
             write_games(games)
         except OSError as error:
             print("无法保存游戏数据：{}".format(error), file=sys.stderr)
             return 1
-        print("完成：新增 {} 款，当前共 {} 款。".format(added, len(games)))
+
+    if optimize_titles:
+        print("正在优化并验证游戏封面...")
         _run_after_add("game")
-    else:
-        print("没有新增游戏；当前共 {} 款。".format(len(games)))
-    return 1 if failures else 0
+        try:
+            optimized_games = load_games()
+        except ValueError as error:
+            print("无法验证封面优化结果：{}".format(error), file=sys.stderr)
+            return 1
+        optimization_errors = verify_optimized_games(optimized_games, optimize_titles)
+        if optimization_errors:
+            print("封面优化未完成：", file=sys.stderr)
+            for error in optimization_errors:
+                print("  - {}".format(error), file=sys.stderr)
+            return 1
+
+    if failures:
+        print(
+            "未全部完成：新增 {} 款、补全 {} 款，失败 {} 项；当前共 {} 款。".format(
+                added, repaired, len(failures), len(games)
+            ),
+            file=sys.stderr,
+        )
+        return 1
+    print(
+        "完成：新增 {} 款，补全 {} 款，当前共 {} 款。".format(
+            added, repaired, len(games)
+        )
+    )
+    return 0
 
 
 if __name__ == "__main__":
