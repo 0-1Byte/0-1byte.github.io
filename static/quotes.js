@@ -41,12 +41,14 @@
   const FALLBACK = "building small things, thinking about large things.";
 
   const SEEN_KEY = "home-quote-seen";
+  const RECENT_BACKGROUND_KEY = "home-background-recent";
   const CHARS_PER_SEC = 19;          // 基准速度
   const MAX_LEN = 140;               // 超长句子截断，避免打字太久
   const BACKGROUND_FADE_MS = 1400;
   let activeItem = null;
   let typingFinished = true;
   let typeTimer = 0;
+  let recentBackgrounds = [];
 
   function createMeasurer() {
     const style = window.getComputedStyle ? window.getComputedStyle(host) : null;
@@ -198,12 +200,37 @@
     }
   }
 
-  function currentPeriod(hour) {
-    if (hour >= 5 && hour < 8) return "dawn";
-    if (hour >= 8 && hour < 11) return "morning";
-    if (hour >= 11 && hour < 16) return "day";
-    if (hour >= 16 && hour < 19) return "dusk";
-    return "night";
+  function getBackgroundName(path) {
+    const filename = String(path).split(/[?#]/, 1)[0].split("/").pop() || "";
+    try {
+      return decodeURIComponent(filename);
+    } catch (error) {
+      return filename;
+    }
+  }
+
+  function pickBackground(backgrounds) {
+    let recent = recentBackgrounds;
+    try {
+      const saved = JSON.parse(localStorage.getItem(RECENT_BACKGROUND_KEY) || "[]");
+      if (Array.isArray(saved)) recent = saved.filter((name) => typeof name === "string").slice(0, 2);
+    } catch (error) {
+      // If storage is blocked, continue with this page's in-memory history.
+    }
+
+    const eligible = backgrounds.length > 2
+      ? backgrounds.filter((item) => !recent.includes(getBackgroundName(item.src)))
+      : backgrounds;
+    const selected = eligible[Math.floor(Math.random() * eligible.length)];
+    const name = getBackgroundName(selected.src);
+    recentBackgrounds = [name, ...recent.filter((previous) => previous !== name)].slice(0, 2);
+
+    try {
+      localStorage.setItem(RECENT_BACKGROUND_KEY, JSON.stringify(recentBackgrounds));
+    } catch (error) {
+      // The in-memory history still prevents repeats until the page is left.
+    }
+    return selected;
   }
 
   updateHomeTime();
@@ -257,17 +284,11 @@
     }
     if (!Array.isArray(backgrounds) || backgrounds.length === 0) return;
 
-    const period = currentPeriod(new Date().getHours());
-    const preferred = backgrounds.filter((background) =>
-      Array.isArray(background.periods) && background.periods.includes(period)
+    const candidates = backgrounds.filter((background) =>
+      background && typeof background.src === "string" && background.src
     );
-    const other = backgrounds.filter((background) =>
-      !Array.isArray(background.periods) || !background.periods.includes(period)
-    );
-    const pool = preferred.length && other.length
-      ? (Math.random() < 0.75 ? preferred : other)
-      : backgrounds;
-    const selected = pool[Math.floor(Math.random() * pool.length)];
+    if (!candidates.length) return;
+    const selected = pickBackground(candidates);
     try {
       await new Promise((resolve, reject) => {
         backgroundEl.addEventListener("load", resolve, { once: true });

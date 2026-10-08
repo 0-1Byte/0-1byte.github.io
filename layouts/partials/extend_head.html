@@ -16,7 +16,7 @@
        句子数据取自 /nav.json 的 quotes 数组（Hugo 从 data/quotes.yaml 生成）——
        与 site-nav.js 共用同一个端点，少发一个请求。 */ -}}
 {{- if .IsHome }}
-<script src="{{ "quotes.js" | relURL }}?v=7" defer></script>
+<script src="{{ "quotes.js" | relURL }}?v=8" defer></script>
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">
