@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
@@ -25,6 +26,70 @@ from cover_opt import run_after_add as _run_after_add
 
 def normalize(value):
     return " ".join(str(value or "").casefold().split())
+
+
+def normalize_for_match(value):
+    """Ignore whitespace and Unicode punctuation while preserving meaningful symbols."""
+    return "".join(
+        char for char in normalize(value)
+        if not char.isspace() and not unicodedata.category(char).startswith("P")
+    )
+
+
+def unique_search_results(items):
+    unique = []
+    seen = set()
+    for item in items:
+        key = item.get("id")
+        if key is None:
+            key = (item.get("type"), normalize(item.get("name")))
+        if key not in seen:
+            unique.append(item)
+            seen.add(key)
+    return unique
+
+
+def search_query_variants(title):
+    """Create a tokenized retry query for compact titles; matching remains exact."""
+    compact = normalize_for_match(title)
+    if len(compact) < 2:
+        return []
+    midpoint = (len(compact) + 1) // 2
+    query = compact[:midpoint] + "\u3000" + compact[midpoint:]
+    return [query] if query != title else []
+
+
+def find_best_search_result(items, title):
+    candidates = [item for item in items if item.get("name")]
+    exact = unique_search_results([
+        item for item in candidates
+        if normalize(item.get("name")) == normalize(title)
+    ])
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        matches = "、".join(
+            "{} (App ID {})".format(item["name"], item.get("id", "未知"))
+            for item in exact
+        )
+        raise ValueError("Steam 搜索到多个完全同名游戏，请手动确认：{}".format(matches))
+
+    punctuation_insensitive = unique_search_results([
+        item for item in candidates
+        if normalize_for_match(item.get("name")) == normalize_for_match(title)
+    ])
+    if len(punctuation_insensitive) == 1:
+        return punctuation_insensitive[0]
+    if len(punctuation_insensitive) > 1:
+        matches = "、".join(
+            "{} (App ID {})".format(item["name"], item.get("id", "未知"))
+            for item in punctuation_insensitive
+        )
+        raise ValueError("忽略标点后存在多个候选，请手动确认：{}".format(matches))
+
+    # Do not use substring or edit-distance matching: shorter titles could silently
+    # resolve to unrelated sequels, DLC, soundtracks, or similarly named games.
+    return None
 
 
 def slug(title):
@@ -46,11 +111,15 @@ def json_request(url):
 
 def find_game(title):
     search = json_request(SEARCH_URL.format(quote(title)))
-    wanted = normalize(title)
-    result = next(
-        (item for item in search.get("items", []) if normalize(item.get("name")) == wanted),
-        None,
-    )
+    items = list(search.get("items", []))
+    result = find_best_search_result(items, title)
+    if result is None:
+        for query in search_query_variants(title):
+            retry = json_request(SEARCH_URL.format(quote(query)))
+            items.extend(retry.get("items", []))
+            result = find_best_search_result(items, title)
+            if result is not None:
+                break
     if not result:
         return None
 
@@ -322,9 +391,6 @@ def main():
                 continue
             existing_cover = local_cover_path(game.get("cover")) if game else None
             cover_is_available = existing_cover is not None and existing_cover.is_file()
-            if game and cover_is_available and has_value(game, "img"):
-                print("跳过（Steam 对应游戏已有 cover 和 img）：{}".format(metadata["title"]))
-                continue
             if game and cover_is_available:
                 optimize_titles.append(game["title"])
                 repaired += 1
