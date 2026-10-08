@@ -3,17 +3,17 @@
      B. 完成后光标变暗（is-done）
      C. 出处显示 / 隐藏
      D. empty：句子库为空 -> 兜底句 + console.warn
-     E. error：请求失败 -> 保留页面上的句子 + console.warn（不打扰访客）
+     E. error：请求失败 -> 显示兜底句 + console.warn（不打扰访客）
      F. prefers-reduced-motion -> 直接显示整句
      G. 超长句子截断
      H. 尽量避开上一句（localStorage 记忆）
-   脚本取自构建产物。 */
+   脚本取自 static/quotes.js。 */
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = "D:/AAA_RELOAD/my-blog";
-const PUB = path.join(ROOT, "public");
-const src = fs.readFileSync(path.join(PUB, "quotes.js"), "utf8");
+const STATIC = path.join(ROOT, "static");
+const src = fs.readFileSync(path.join(STATIC, "quotes.js"), "utf8");
 
 let problems = 0;
 const fail = (m) => { problems++; console.log("      ✗ " + m); };
@@ -48,11 +48,11 @@ function makeEl(id, cls) {
 let elsRef = {};
 
 function setup(opts) {
-  const host = makeEl("home-focus", "home-focus");
+  const host = makeEl("home-focus", "home-focus is-loading");
   const text = makeEl("home-focus-text");
   const caret = makeEl("home-focus-caret");
   const source = makeEl("home-focus-source");
-  text.textContent = opts.serverText || "building small things,";
+  text.textContent = opts.serverText || "";
   elsRef = { host, text, caret, source };
 
   const doc = {
@@ -133,6 +133,20 @@ async function checkDashGuard() {
 }
 
 (async () => {
+  console.log("0. loading：数据就绪前保持隐藏且不含固定首句");
+  let releaseFetch;
+  const waiting = run({ wait: 50 }, () => new Promise((resolve) => { releaseFetch = resolve; }));
+  await new Promise((r) => setTimeout(r, 20));
+  const pending = elsRef;
+  if (pending.text.textContent) fail("数据未就绪时句子区不应含有可见文案");
+  else ok("数据未就绪时句子内容为空");
+  if (!pending.host.classList.contains("is-loading")) fail("数据未就绪时句子区应保持隐藏");
+  else ok("数据未就绪时句子区保持隐藏");
+  releaseFetch(await quotesFetch([{ text: "随机句子", source: "" }])());
+  await waiting;
+  if (pending.host.classList.contains("is-loading")) fail("数据就绪后句子区未显示");
+  else ok("数据就绪后句子区显示");
+
   console.log("A. 打字过程（逐帧观察文本长度）");
   const long = { text: "这是一句用来观察打字过程的话。", source: "《测试》· 某人" };
   // 逐段观察：在打字中途取一次，结束时再取一次
@@ -163,8 +177,8 @@ async function checkDashGuard() {
   console.log("C. empty：句子库为空");
   const empty = await run({ wait: 400 }, quotesFetch([]));
   console.log(`      文本 = [${empty.els.text.textContent}]`);
-  if (empty.els.text.textContent !== "building small things,") {
-    fail("空句子库时应保留页面上的兜底句");
+  if (empty.els.text.textContent !== "building small things, thinking about large things.") {
+    fail("空句子库时应显示完整兜底句");
   } else ok("保留兜底句，页面不空白");
   if (!empty.warns.some((w) => w.includes("quotes"))) fail("空句子库时应留一条 console.warn");
   else ok(`console.warn：${empty.warns[0].slice(0, 50)}`);
@@ -173,9 +187,9 @@ async function checkDashGuard() {
   console.log("D. error：请求失败");
   const err = await run({ wait: 400 }, async () => { throw new Error("network down"); });
   console.log(`      文本 = [${err.els.text.textContent}]`);
-  if (err.els.text.textContent !== "building small things,") {
-    fail("请求失败时应保留页面上的句子");
-  } else ok("保留页面上的句子，不打扰访客");
+  if (err.els.text.textContent !== "building small things, thinking about large things.") {
+    fail("请求失败时应显示完整兜底句");
+  } else ok("请求失败时显示兜底句");
   if (!err.warns.some((w) => w.includes("加载失败"))) fail("失败时应留一条 console.warn");
   else ok(`console.warn：${err.warns[0].slice(0, 60)}`);
 

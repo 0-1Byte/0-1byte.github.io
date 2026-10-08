@@ -11,9 +11,9 @@
      · 一个字符一个字符打出来，速度略有抖动，读起来不像机器
      · 打完后光标停住并变暗（不做无限闪烁，避免抢注意力）
      · 三种状态都有明确表现：
-         loading  保留服务端渲染的那句（页面不会空白）
-         empty    data/quotes.yaml 为空 -> 用兜底句
-         error    请求失败 -> 保留现有文案 + console.warn（不打扰访客）
+         loading  隐藏句子区并预留稳定空间，避免固定句子首屏闪现
+         empty    data/quotes.yaml 为空 -> 显示兜底句
+         error    请求失败 -> 显示兜底句 + console.warn（不打扰访客）
      · prefers-reduced-motion：直接显示整句，不打字
 
    用 Array.from 切分字符，这样 emoji 与组合字符不会被劈成两半。
@@ -31,9 +31,7 @@
   const reduceMotion = window.matchMedia
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // 服务端已经渲染了一句，先留着；拿到数据后再换掉
-  const serverText = textEl.textContent || "";
-  const FALLBACK = serverText || "building small things, thinking about large things.";
+  const FALLBACK = "building small things, thinking about large things.";
 
   const SEEN_KEY = "home-quote-seen";
   const CHARS_PER_SEC = 19;          // 基准速度
@@ -70,6 +68,7 @@
     textEl.textContent = String(item.text || "").slice(0, MAX_LEN);
     setSource(item.source || "");
     if (caretEl) caretEl.classList.add("is-done");
+    host.classList.remove("is-loading");
   }
 
   /* 打字：用 setTimeout 递归而不是 setInterval，
@@ -81,13 +80,13 @@
     if (caretEl) caretEl.classList.remove("is-done");
 
     if (!chars.length) {
-      textEl.textContent = FALLBACK;
-      if (caretEl) caretEl.classList.add("is-done");
+      showFull({ text: FALLBACK, source: "" });
       return;
     }
 
     let i = 0;
     textEl.textContent = "";
+    host.classList.remove("is-loading");
 
     const step = () => {
       // 一次打 1 个字符；标点后稍作停顿，读起来有呼吸
@@ -156,7 +155,7 @@
         .filter((q) => q.text);
 
       if (!list.length) {
-        // empty：句子库是空的 —— 保留兜底句，不显示空白
+        // empty：句子库是空的 —— 显示兜底句，不显示空白
         console.warn("[quotes] data/quotes.yaml 里还没有句子，显示兜底文案。");
         showFull({ text: FALLBACK, source: "" });
         return;
@@ -166,11 +165,11 @@
       if (reduceMotion) showFull(item);
       else typeOut(item);
     } catch (error) {
-      // error：不打扰访客，保留页面上已有的那句，只在控制台留下原因
+      // error：不打扰访客，显示兜底句并在控制台留下原因
       const reason = error && error.name === "AbortError"
         ? "请求超时（8 秒）" : String(error && error.message || error);
-      console.warn(`[quotes] 句子加载失败（${reason}），保留页面上的兜底文案。`);
-      if (caretEl) caretEl.classList.add("is-done");
+      console.warn(`[quotes] 句子加载失败（${reason}），显示兜底文案。`);
+      showFull({ text: FALLBACK, source: "" });
     } finally {
       if (timer) clearTimeout(timer);
     }

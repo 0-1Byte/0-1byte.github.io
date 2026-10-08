@@ -4,11 +4,8 @@
   结构：只有那句随机句子（+ 可选的一段说明）。
 
   关于首屏句子（打字机）：
-    句子不写死在模板里，改为从 data/quotes.yaml 随机抽一句，
-    由 static/quotes.js 在运行时一个字一个字打出来。
-    这里先渲染第一句作为兜底：
-      · JS 未加载或请求失败时页面也不是空的
-      · JS 就绪后用 data-quote-* 接管，重新选一句并打字
+    句子从 data/quotes.yaml 随机抽取，由 static/quotes.js 运行时渲染。
+    数据准备好之前句子区保持隐藏，避免固定句子参与首屏绘制。
 
   曾经的 currently 与 writing 两块已按反馈移除（首页太乱）：
     · currently 的数据仍在 content/_index.md 的 front matter 里
@@ -22,18 +19,6 @@
 
 {{- define "main" }}
 
-{{- $quotes := site.Data.quotes | default slice }}
-{{- $fallback := "building small things, thinking about large things." }}
-{{- $first := dict "text" $fallback "source" "" }}
-{{- range $q := $quotes }}
-  {{- if reflect.IsMap $q }}
-    {{- if $q.text }}{{ $first = dict "text" $q.text "source" ($q.source | default "") }}{{ end }}
-  {{- else if $q }}
-    {{- $first = dict "text" $q "source" "" }}
-  {{- end }}
-  {{- break }}
-{{- end }}
-
 <article class="home">
 
   {{- /*
@@ -45,13 +30,11 @@
       其它页面不受影响。
   */ -}}
   <header class="home-hero hero--quote">
-    <h1 class="home-focus" id="home-focus">
-      <span class="home-focus-text" data-quote-text>{{ $first.text }}</span><span class="home-focus-caret" aria-hidden="true"></span>
+    <h1 class="home-focus is-loading" id="home-focus">
+      <span class="home-focus-text" data-quote-text></span><span class="home-focus-caret" aria-hidden="true"></span>
     </h1>
-    {{- /* 出处保留原样输出；"— " 前缀由 pages.css 的 ::before 加上，
-           这样 data/quotes.yaml 的格式与数据都不用动。
-           若数据里已自带破折号，JS 会加 data-has-dash 抑制重复。 */ -}}
-    <p class="home-focus-source" data-quote-source{{ if not $first.source }} hidden{{ end }}>{{ $first.source }}</p>
+    {{- /* 出处及句子都由初始化后的随机结果填充，避免首屏显示不匹配内容。 */ -}}
+    <p class="home-focus-source" data-quote-source hidden></p>
     {{- with .Content }}
     <div class="home-note">{{ . }}</div>
     {{- end }}

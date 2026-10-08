@@ -61,14 +61,12 @@
   font-size: 34px;
   line-height: 1.45;
   letter-spacing: .008em;
+  min-height: 2.9em;
 }
 
-/* 这里刻意不设 min-height。
-   句子长度差异很大（"focus" 5 字符 … 57 字符的长句），
-   预留两行高度会让超短句下方出现一大块突兀空白，看起来像页面坏了。
-   不跳动的保证来自结构本身：这句话下方只有可选的 .home-note，
-   上方是 clamp 出来的固定留白，句子换行不会把别的内容顶来顶去。 */
-
+.hero--quote .home-focus.is-loading {
+  visibility: hidden;
+}
 .hero--quote .home-focus-text {
   white-space: pre-wrap;
 }
@@ -281,6 +279,7 @@
     line-height: 1.55;
     /* 手机屏幕本来就窄，阅读柱交给页面左右留白即可 */
     max-width: none;
+    min-height: 4.65em;
   }
 
   .hero--quote .home-focus-source {
