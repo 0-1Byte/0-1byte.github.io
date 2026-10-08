@@ -19,7 +19,30 @@
 
 {{- define "main" }}
 
-<article class="home">
+{{- $backgrounds := slice }}
+{{- range readDir "static/home/backgrounds" }}
+  {{- if not .IsDir }}
+    {{- $extension := lower (path.Ext .Name) }}
+    {{- if in (slice ".jpg" ".jpeg" ".png" ".webp" ".svg") $extension }}
+      {{- $periods := index site.Data.home_background_periods .Name | default slice }}
+      {{- $periodMatches := findRE "--(dawn|morning|day|dusk|night)" .Name }}
+      {{- range $periodMatches }}
+        {{- $periods = $periods | append (replaceRE "^--" . "") }}
+      {{- end }}
+      {{- $backgrounds = $backgrounds | append (dict
+        "src" (printf "home/backgrounds/%s" .Name | relURL)
+        "periods" $periods
+      ) }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+<article class="home home--living" data-home-backgrounds="{{ $backgrounds | jsonify }}">
+  <div class="home-atmosphere" aria-hidden="true">
+    <img class="home-atmosphere-image" data-home-background-image alt="">
+    <span class="home-atmosphere-shade"></span>
+    <span class="home-atmosphere-grain"></span>
+  </div>
 
   {{- /*
     为什么 hero 上多一个 hero--quote 修饰类：
@@ -29,7 +52,7 @@
       所以用 hero--quote 作为「首页这句随机句子」的作用域，
       其它页面不受影响。
   */ -}}
-  <header class="home-hero hero--quote">
+  <header class="home-hero hero--quote home-content">
     <h1 class="home-focus is-loading" id="home-focus">
       <span class="home-focus-text" data-quote-text></span><span class="home-focus-caret" aria-hidden="true"></span>
     </h1>
@@ -39,6 +62,10 @@
     <div class="home-note">{{ . }}</div>
     {{- end }}
   </header>
+  <time class="home-time" data-home-time aria-label="本地时间">
+    <span data-home-clock></span>
+    <span data-home-date></span>
+  </time>
 
   {{- /*
     首页到此为止：只有那句随机句子（+ 可选的一段说明）。

@@ -8,6 +8,7 @@
 
    行为：
      · 每次刷新随机抽一句（尽量避开刚看过的那句）
+     · 随机背景先加载并淡入，再显示句子
      · 一个字符一个字符打出来，速度略有抖动，读起来不像机器
      · 打完后光标停住并变暗（不做无限闪烁，避免抢注意力）
      · 三种状态都有明确表现：
@@ -30,12 +31,42 @@
 
   const reduceMotion = window.matchMedia
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const backgroundRoot = document.querySelector("[data-home-backgrounds]");
+  const backgroundEl = document.querySelector("[data-home-background-image]");
+  const homeTimeEl = document.querySelector("[data-home-time]");
+  const homeClockEl = document.querySelector("[data-home-clock]");
+  const homeDateEl = document.querySelector("[data-home-date]");
 
   const FALLBACK = "building small things, thinking about large things.";
 
   const SEEN_KEY = "home-quote-seen";
   const CHARS_PER_SEC = 19;          // 基准速度
   const MAX_LEN = 140;               // 超长句子截断，避免打字太久
+  const BACKGROUND_FADE_MS = 1400;
+
+  function updateHomeTime() {
+    if (!homeTimeEl) return;
+    const now = new Date();
+    const pad = (value) => String(value).padStart(2, "0");
+    const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(now).toUpperCase();
+    const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(now).toUpperCase();
+    homeTimeEl.dateTime = now.toISOString();
+    if (homeClockEl && homeDateEl) {
+      homeClockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      homeDateEl.textContent = `${weekday} / ${month} ${pad(now.getDate())}`;
+    }
+  }
+
+  function currentPeriod(hour) {
+    if (hour >= 5 && hour < 8) return "dawn";
+    if (hour >= 8 && hour < 11) return "morning";
+    if (hour >= 11 && hour < 16) return "day";
+    if (hour >= 16 && hour < 19) return "dusk";
+    return "night";
+  }
+
+  updateHomeTime();
+  setInterval(updateHomeTime, 30000);
 
   /* ---------- 显示 ---------- */
 
@@ -69,6 +100,62 @@
     setSource(item.source || "");
     if (caretEl) caretEl.classList.add("is-done");
     host.classList.remove("is-loading");
+  }
+
+  async function showRandomBackground() {
+    if (!backgroundEl) return;
+
+    let backgrounds = [];
+    try {
+      backgrounds = JSON.parse(backgroundRoot && backgroundRoot.getAttribute("data-home-backgrounds") || "[]");
+    } catch (error) {
+      console.warn("[quotes] 背景图片列表格式无效，使用纯色背景。", error);
+      return;
+    }
+    if (!Array.isArray(backgrounds) || backgrounds.length === 0) return;
+
+    const period = currentPeriod(new Date().getHours());
+    const preferred = backgrounds.filter((background) =>
+      Array.isArray(background.periods) && background.periods.includes(period)
+    );
+    const other = backgrounds.filter((background) =>
+      !Array.isArray(background.periods) || !background.periods.includes(period)
+    );
+    const pool = preferred.length && other.length
+      ? (Math.random() < 0.75 ? preferred : other)
+      : backgrounds;
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    try {
+      await new Promise((resolve, reject) => {
+        backgroundEl.addEventListener("load", resolve, { once: true });
+        backgroundEl.addEventListener("error", reject, { once: true });
+        backgroundEl.src = selected.src;
+      });
+    } catch (error) {
+      console.warn(`[quotes] 背景图片加载失败（${selected.src}），使用纯色背景。`, error);
+      return;
+    }
+
+    if (reduceMotion) {
+      backgroundEl.classList.add("is-visible");
+      return;
+    }
+
+    await new Promise((resolve) => {
+      let timer = 0;
+      const finish = () => {
+        if (timer) clearTimeout(timer);
+        backgroundEl.removeEventListener("transitionend", onTransitionEnd);
+        resolve();
+      };
+      const onTransitionEnd = (event) => {
+        if (event.target === backgroundEl && event.propertyName === "opacity") finish();
+      };
+
+      backgroundEl.addEventListener("transitionend", onTransitionEnd);
+      timer = setTimeout(finish, BACKGROUND_FADE_MS + 200);
+      requestAnimationFrame(() => backgroundEl.classList.add("is-visible"));
+    });
   }
 
   /* 打字：用 setTimeout 递归而不是 setInterval，
@@ -134,6 +221,7 @@
   async function load() {
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
+    const backgroundReady = showRandomBackground();
 
     try {
       const res = await fetch("/nav.json", {
@@ -157,11 +245,13 @@
       if (!list.length) {
         // empty：句子库是空的 —— 显示兜底句，不显示空白
         console.warn("[quotes] data/quotes.yaml 里还没有句子，显示兜底文案。");
+        await backgroundReady;
         showFull({ text: FALLBACK, source: "" });
         return;
       }
 
       const item = pick(list);
+      await backgroundReady;
       if (reduceMotion) showFull(item);
       else typeOut(item);
     } catch (error) {
@@ -169,6 +259,7 @@
       const reason = error && error.name === "AbortError"
         ? "请求超时（8 秒）" : String(error && error.message || error);
       console.warn(`[quotes] 句子加载失败（${reason}），显示兜底文案。`);
+      await backgroundReady;
       showFull({ text: FALLBACK, source: "" });
     } finally {
       if (timer) clearTimeout(timer);

@@ -12,6 +12,97 @@
   max-width: var(--content-width);
 }
 
+/* 首页专属环境层；其它共享 .home-focus 的页面保持原样。 */
+.home--living {
+  position: relative;
+  isolation: isolate;
+}
+
+.header--home {
+  position: relative;
+  z-index: 2;
+}
+
+.home-atmosphere {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background: #101214;
+  pointer-events: none;
+}
+
+.home-atmosphere-image,
+.home-atmosphere-shade,
+.home-atmosphere-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-atmosphere-image {
+  object-fit: cover;
+  object-position: center 48%;
+  opacity: 0;
+  transform: scale(1.025);
+  transition: opacity 1.4s ease;
+}
+
+.home-atmosphere-image.is-visible {
+  opacity: 1;
+  animation: home-ken-burns 28s ease-in-out alternate infinite;
+}
+
+.home-atmosphere-shade {
+  background: rgba(8, 10, 12, .62);
+  box-shadow: inset 0 0 18vw 2vw rgba(0, 0, 0, .24);
+}
+
+.home-atmosphere-grain {
+  opacity: .045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: soft-light;
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+}
+
+.home-time {
+  display: grid;
+  justify-items: start;
+  position: fixed;
+  z-index: 2;
+  left: max(26px, env(safe-area-inset-left));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  color: rgba(241, 239, 233, .48);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.home-time [data-home-clock] {
+  font-size: 10px;
+  letter-spacing: .04em;
+  line-height: 1.2;
+}
+
+.home-time [data-home-date] {
+  margin-top: 2px;
+  font-size: 8px;
+  letter-spacing: .055em;
+  line-height: 1.2;
+  opacity: .76;
+}
+
+@keyframes home-ken-burns {
+  from { transform: scale(1.025) translate3d(-.12%, .08%, 0); }
+  to   { transform: scale(1.055) translate3d(.12%, -.08%, 0); }
+}
+
 /* ---------- 首屏文案 ---------- */
 
 .home-hero {
@@ -284,6 +375,31 @@
 
   .hero--quote .home-focus-source {
     margin-top: 16px;
+  }
+
+  .home-atmosphere-image {
+    object-position: 54% center;
+  }
+
+  .home-time {
+    left: max(16px, env(safe-area-inset-left));
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .home-time [data-home-clock] {
+    font-size: 9px;
+  }
+
+  .home-time [data-home-date] {
+    font-size: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-atmosphere-image,
+  .home-atmosphere-image.is-visible {
+    animation: none;
+    transition: none;
   }
 }
 
