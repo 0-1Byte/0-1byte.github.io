@@ -111,6 +111,37 @@ async function run(opts, serializedQuotes = "[]") {
   const store = opts.store || {};
   const warns = [];
   const con = { ...console, warn: (...a) => warns.push(a.map(String).join(" ")), error: () => {} };
+  const clock = opts.fakeTimers ? {
+    now: 0,
+    nextId: 1,
+    timers: new Map(),
+    scheduledDelays: [],
+    setTimeout(fn, delay) {
+      const id = this.nextId++;
+      const wait = Number(delay) || 0;
+      this.scheduledDelays.push(wait);
+      this.timers.set(id, { fn, due: this.now + wait });
+      return id;
+    },
+    clearTimeout(id) {
+      this.timers.delete(id);
+    },
+    runNext() {
+      let nextId = 0;
+      let nextTimer = null;
+      for (const [id, timer] of this.timers) {
+        if (!nextTimer || timer.due < nextTimer.due) {
+          nextId = id;
+          nextTimer = timer;
+        }
+      }
+      if (!nextTimer) return false;
+      this.timers.delete(nextId);
+      this.now = nextTimer.due;
+      nextTimer.fn();
+      return true;
+    }
+  } : null;
 
   const savedDoc = global.document, savedWin = global.window, savedLs = global.localStorage;
   global.document = env.doc;
@@ -123,12 +154,15 @@ async function run(opts, serializedQuotes = "[]") {
     new Function("document", "window", "navigator", "console", "localStorage",
       "setTimeout", "setInterval", "clearTimeout", src)(
       env.doc, env.win, { hardwareConcurrency: 8 }, con, global.localStorage,
-      setTimeout, () => 1, clearTimeout);
-    await new Promise((r) => setTimeout(r, opts.wait || 300));
+      clock ? clock.setTimeout.bind(clock) : setTimeout,
+      () => 1,
+      clock ? clock.clearTimeout.bind(clock) : clearTimeout);
+    if (opts.onInit) opts.onInit({ ...env, clock });
+    if (!clock) await new Promise((r) => setTimeout(r, opts.wait || 300));
   } finally {
     global.document = savedDoc; global.window = savedWin; global.localStorage = savedLs;
   }
-  return { ...env, warns, store };
+  return { ...env, warns, store, clock };
 }
 
 const quotesFetch = (list) => JSON.stringify(list);
@@ -207,23 +241,66 @@ async function checkDashGuard() {
 
   console.log("A. 打字过程（逐帧观察文本长度）");
   const long = { text: "这是一句用来观察打字过程的话。", source: "《测试》· 某人" };
-  // 逐段观察：在打字中途取一次，结束时再取一次
-  const typing = await run({ wait: 500 }, quotesFetch([long]));
-  const mid = typing.els.text.textContent;
-  await new Promise((r) => setTimeout(r, 1500));
-  const end = typing.els.text.textContent;
-  console.log(`      500ms 时文本 = [${mid}]  长度 ${Array.from(mid).length}`);
-  console.log(`      2s 后文本   = [${end}]  长度 ${Array.from(end).length}`);
-  if (!end) fail("最终没有打出任何文字");
-  if (Array.from(mid).length >= Array.from(end).length && end) {
-    fail("500ms 时就已打完，说明不是逐字输出");
+  let initialText = null;
+  let initialDelay = null;
+  const typing = await run({
+    fakeTimers: true,
+    width: 3000,
+    backgrounds: [{ src: "/home/backgrounds/pending.jpg" }],
+    onInit: ({ els, clock }) => {
+      initialText = els.text.textContent;
+      initialDelay = clock.scheduledDelays[0];
+    }
+  }, quotesFetch([long]));
+  if (initialText !== "") fail(`打字开始前文本必须为空，实际：[${initialText}]`);
+  else ok("打字开始前文本为空");
+  if (initialDelay !== 220) fail(`首次打字延迟应为 220ms，实际 ${initialDelay}ms`);
+  else ok("首次打字定时器延迟为 220ms");
+  if (typing.backgroundImage.src !== "/home/backgrounds/pending.jpg") {
+    fail("背景尚未加载时未启动句子打字");
+  } else ok("背景请求仍在等待时，句子已进入打字流程");
+
+  typing.clock.runNext();
+  const first = typing.els.text.textContent;
+  if (Array.from(first).length !== 1) fail(`首个定时器应只显示一个字符，实际：[${first}]`);
+  else ok(`首个定时器后只显示首字：[${first}]`);
+  typing.clock.runNext();
+  const second = typing.els.text.textContent;
+  if (Array.from(second).length !== Array.from(first).length + 1) {
+    fail(`后续定时器应只增加一个字符，实际：[${first}] -> [${second}]`);
+  } else ok("后续定时器逐字符增加");
+  let previous = second;
+  let oneCharacterPerStep = true;
+  while (typing.clock.timers.size) {
+    typing.clock.runNext();
+    const current = typing.els.text.textContent;
+    if (Array.from(current).length !== Array.from(previous).length + 1) {
+      oneCharacterPerStep = false;
+      break;
+    }
+    previous = current;
   }
+  if (!oneCharacterPerStep) fail("长句余下各步必须严格逐字符输出");
+  const end = typing.els.text.textContent;
   if (end !== long.text) fail(`最终文本与句子不一致：[${end}]`);
-  ok("逐字输出，最终完整");
+  else ok("长句逐字输出并完整结束");
   if (!typing.els.caret._classes.has("is-done")) fail("打完后光标未标记 is-done");
   else ok("打完后光标变暗（is-done）");
   if (typing.els.source.textContent !== "《测试》· 某人") fail("出处未显示");
   else ok(`出处显示：${typing.els.source.textContent}`);
+
+  console.log();
+  console.log("A.1 短句逐字输出");
+  let shortInitialText = null;
+  const shortTyping = await run({
+    fakeTimers: true,
+    onInit: ({ els }) => { shortInitialText = els.text.textContent; }
+  }, quotesFetch([{ text: "猫", source: "" }]));
+  if (shortInitialText !== "") fail("短句打字开始前文本必须为空");
+  shortTyping.clock.runNext();
+  if (shortTyping.els.text.textContent !== "猫") fail("短句首个定时器后应显示完整的一字句");
+  else ok("一字短句等待起始延迟后显示，未提前闪现");
+  if (!shortTyping.els.caret._classes.has("is-done")) fail("短句完成后光标应为完成态");
 
   console.log();
   console.log("B. 没有出处时整行隐藏");

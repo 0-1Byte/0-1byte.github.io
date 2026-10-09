@@ -352,10 +352,6 @@
       if (chars[i] !== "\n") countedCharacters += 1;
       i += 1;
     }
-    if (visibleCharacters === 0) {
-      while (i < chars.length && chars[i] === "\n") i += 1;
-      if (i < chars.length) i += 1;
-    }
     textEl.textContent = chars.slice(0, i).join("");
     host.classList.remove("is-loading");
     if (i >= chars.length) {
@@ -384,7 +380,7 @@
       typeTimer = setTimeout(step, delay);
     };
 
-    typeTimer = setTimeout(step, 1000 / CHARS_PER_SEC);
+    typeTimer = setTimeout(step, 220);
   }
 
   /* ---------- 抽签 ---------- */
