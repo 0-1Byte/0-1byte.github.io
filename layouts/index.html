@@ -20,29 +20,52 @@
 {{- define "main" }}
 
 {{- $backgrounds := slice }}
+{{- $hasOptimizedBackgrounds := false }}
+{{- range readDir "static/home/backgrounds-optimized" }}
+  {{- if not .IsDir }}
+    {{- $extension := lower (path.Ext .Name) }}
+    {{- if eq $extension ".webp" }}
+      {{- $hasOptimizedBackgrounds = true }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
 {{- range readDir "static/home/backgrounds" }}
   {{- if not .IsDir }}
     {{- $extension := lower (path.Ext .Name) }}
     {{- if in (slice ".jpg" ".jpeg" ".png" ".webp" ".svg") $extension }}
-      {{- $periods := index site.Data.home_background_periods .Name | default slice }}
-      {{- $periodMatches := findRE "--(dawn|morning|day|dusk|night)" .Name }}
-      {{- range $periodMatches }}
-        {{- $periods = $periods | append (replaceRE "^--" . "") }}
-      {{- end }}
       {{- $backgrounds = $backgrounds | append (dict
         "src" (printf "home/backgrounds/%s" .Name | relURL)
-        "periods" $periods
       ) }}
     {{- end }}
   {{- end }}
 {{- end }}
 
-<article class="home home--living" data-home-backgrounds="{{ $backgrounds | jsonify }}">
+{{- $quotes := slice }}
+{{- range $quote := site.Data.quotes }}
+  {{- $text := "" }}
+  {{- $source := "" }}
+  {{- if reflect.IsMap $quote }}
+    {{- $text = $quote.text | default "" }}
+    {{- $source = $quote.source | default "" }}
+  {{- else }}
+    {{- $text = $quote }}
+  {{- end }}
+  {{- $text = $text | strings.TrimSpace }}
+  {{- if $text }}
+    {{- $quotes = $quotes | append (dict "text" $text "source" ($source | strings.TrimSpace)) }}
+  {{- end }}
+{{- end }}
+
+<article class="home home--living"
+         data-home-backgrounds="{{ $backgrounds | jsonify }}"
+         data-home-backgrounds-optimized="{{ $hasOptimizedBackgrounds }}">
   <div class="home-atmosphere" aria-hidden="true">
-    <img class="home-atmosphere-image" data-home-background-image alt="">
+    <img class="home-atmosphere-image" data-home-background-image alt="" decoding="async">
     <span class="home-atmosphere-shade"></span>
     <span class="home-atmosphere-grain"></span>
   </div>
+  <script type="application/json" id="home-quotes">{{ $quotes | jsonify | safeHTML }}</script>
 
   {{- /*
     为什么 hero 上多一个 hero--quote 修饰类：

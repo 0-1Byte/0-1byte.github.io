@@ -22,10 +22,18 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Optimize homepage backgrounds
+        run: |
+          python -m pip install Pillow
+          python tools/optimize_home_backgrounds.py
       - name: Enrich music credits
         run: python tools/enrich_music_credits.py
       - name: Build
-        run: hugo --minify
+        run: hugo --minify --cleanDestinationDir
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

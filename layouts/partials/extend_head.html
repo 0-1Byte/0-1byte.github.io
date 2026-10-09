@@ -13,18 +13,17 @@
 {{- /* 独立内容页样式（阶段 3）：首页 / Now 页 / 文章列表 / 碎片共用同一份排版节奏。
        只含 .home-* / .now-* / .frag-* 规则，不影响文章正文页与合集页。 */ -}}
 {{- if or .IsHome (eq .Section "now") (eq .Section "posts") (eq .Section "fragments") }}
-<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=10">
+<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=11">
 {{- end }}
 {{- /* 首屏句子的打字机效果，只有首页需要。
-       句子数据取自 /nav.json 的 quotes 数组（Hugo 从 data/quotes.yaml 生成）——
-       与 site-nav.js 共用同一个端点，少发一个请求。 */ -}}
+       句子数据已由 layouts/index.html 内联，首页不再等待 /nav.json。 */ -}}
 {{- if .IsHome }}
-<script src="{{ "quotes.js" | relURL }}?v=8" defer></script>
+<script src="{{ "quotes.js" | relURL }}?v=9" defer></script>
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-<link href="https://fonts.loli.net/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet"></noscript>
 <script>
   /* 全站固定深色主题（阶段 7）
      ——

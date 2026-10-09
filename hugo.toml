@@ -23,10 +23,10 @@ relativeURLs = false
 #
 # 实测结论（重要）：首页的多个自定义输出格式会共用同一个模板文件
 # layouts/index.json —— Hugo 按 kind 而不是格式名找模板，baseName 只决定文件名。
-# 所以 /nav.json 现在是「站点运行时数据」这一个端点，里面同时包含
+# /nav.json 为 static 页面导航服务，并保留 quotes 字段兼容已有消费者；
+# 首页直接从 data/quotes.yaml 以内联 JSON 读取句子，不再等待这个端点。
 #   · groups / standalone  导航结构       -> static/site-nav.js、ocean/script.js
-#   · quotes               首屏句子库     -> static/quotes.js
-# 这样只发一个请求，也避免再造一个只是为了名字好看的端点。
+#   · quotes               兼容数据字段
 #
 # 当前站点未启用搜索（无 content/search.md）；若日后要启用 PaperMod 搜索，
 # 需另开一个输出格式，不要复用 nav 这个 baseName。
@@ -52,11 +52,8 @@ relativeURLs = false
     isHTML = false
     rel = "alternate"
 
-# 实测结论：首页的多个自定义输出格式会共用同一个模板文件 layouts/index.json，
-# 因为 Hugo 按 kind 找模板、baseName 只决定文件名。
-# 所以不再为句子库单开一个格式 —— 它并进 /nav.json，
-# 与导航数据同一个端点，只发一个请求。
-# 详见 layouts/index.json 顶部说明。
+# 多个首页输出格式仍共用 layouts/index.json；quotes 字段在 nav.json 中保留兼容。
+# 首页 HTML 自己内联句子数据，避免关键路径请求 nav.json。
 
 
 [outputs]
@@ -86,6 +83,7 @@ relativeURLs = false
     # ---------------------------------------------------------------------------
     disableThemeToggle = true
     defaultTheme = "dark"
+    disableScrollToTop = true
 
     ShowFullTextContent = false
     disableSpecialFirstPost = true

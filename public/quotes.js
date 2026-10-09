@@ -1,21 +1,18 @@
 /* ==========================================================================
    首屏句子的打字机效果
 
-   数据来源：/nav.json 里的 quotes 数组（由 Hugo 从 data/quotes.yaml 生成）。
-   为什么和导航共用一个端点：Hugo 的首页多个自定义输出格式共用同一个模板
-   （按 kind 而不是格式名找模板），而 site-nav.js 已经会拉这个文件 ——
-   让句子复用它，可以少发一个请求，也不用再造一个只是名字好看的端点。
+   数据来源：首页 HTML 内联的 #home-quotes（由 Hugo 从 data/quotes.yaml 生成）。
 
    行为：
      · 每次刷新随机抽一句（尽量避开刚看过的那句）
-     · 随机背景先加载并淡入，再显示句子
+     · 句子立即开始显示；随机背景在后台加载并淡入
      · 打字前按当前宽度与标点/词语边界选好断行，窗口变化时重新排版
      · 一个字符一个字符打出来，速度略有抖动，读起来不像机器
      · 打完后光标停住并变暗（不做无限闪烁，避免抢注意力）
      · 三种状态都有明确表现：
          loading  隐藏句子区并预留稳定空间，避免固定句子首屏闪现
          empty    data/quotes.yaml 为空 -> 显示兜底句
-         error    请求失败 -> 显示兜底句 + console.warn（不打扰访客）
+         error    内联数据无效 -> 显示兜底句 + console.warn（不打扰访客）
      · prefers-reduced-motion：直接显示整句，不打字
 
    用 Array.from 切分字符，这样 emoji 与组合字符不会被劈成两半。
@@ -34,9 +31,16 @@
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const backgroundRoot = document.querySelector("[data-home-backgrounds]");
   const backgroundEl = document.querySelector("[data-home-background-image]");
+  const quotesEl = document.getElementById("home-quotes");
   const homeTimeEl = document.querySelector("[data-home-time]");
   const homeClockEl = document.querySelector("[data-home-clock]");
   const homeDateEl = document.querySelector("[data-home-date]");
+  const homeRoot = host.closest(".home--living");
+  const segmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter("zh", { granularity: "word" })
+    : null;
+  const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+  const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
   const FALLBACK = "building small things, thinking about large things.";
 
@@ -44,11 +48,17 @@
   const RECENT_BACKGROUND_KEY = "home-background-recent";
   const CHARS_PER_SEC = 19;          // 基准速度
   const MAX_LEN = 140;               // 超长句子截断，避免打字太久
-  const BACKGROUND_FADE_MS = 1400;
   let activeItem = null;
   let typingFinished = true;
   let typeTimer = 0;
   let recentBackgrounds = [];
+  let measureText = createMeasurer();
+
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const lowMotion = reduceMotion
+    || (navigator.hardwareConcurrency > 0 && navigator.hardwareConcurrency <= 4)
+    || Boolean(connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || "")));
+  if (lowMotion && homeRoot) homeRoot.classList.add("home--low-motion");
 
   function createMeasurer() {
     const style = window.getComputedStyle ? window.getComputedStyle(host) : null;
@@ -70,8 +80,8 @@
   }
 
   function tokenize(text) {
-    if (typeof Intl.Segmenter === "function") {
-      return Array.from(new Intl.Segmenter("zh", { granularity: "word" }).segment(text),
+    if (segmenter) {
+      return Array.from(segmenter.segment(text),
         (part) => part.segment);
     }
     return text.match(/[\u2e80-\u9fff\uf900-\ufaff]|[A-Za-z0-9]+(?:['’][A-Za-z0-9]+)*|\s+|./gu) || [];
@@ -155,10 +165,9 @@
   }
 
   function layoutText(text) {
-    const measure = createMeasurer();
     const width = Math.max(1, (host.clientWidth || 680) - 2);
     return String(text || "").split("\n")
-      .flatMap((paragraph) => layoutParagraph(paragraph, width, measure))
+      .flatMap((paragraph) => layoutParagraph(paragraph, width, measureText))
       .join("\n");
   }
 
@@ -168,6 +177,7 @@
   }
 
   function handleResize() {
+    measureText = createMeasurer();
     if (!activeItem) return;
     if (typingFinished) {
       renderCompletedItem();
@@ -191,8 +201,8 @@
     if (!homeTimeEl) return;
     const now = new Date();
     const pad = (value) => String(value).padStart(2, "0");
-    const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(now).toUpperCase();
-    const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(now).toUpperCase();
+    const weekday = weekdayFormatter.format(now).toUpperCase();
+    const month = monthFormatter.format(now).toUpperCase();
     homeTimeEl.dateTime = now.toISOString();
     if (homeClockEl && homeDateEl) {
       homeClockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
@@ -272,7 +282,7 @@
     host.classList.remove("is-loading");
   }
 
-  async function showRandomBackground() {
+  function showRandomBackground() {
     if (!backgroundEl) return;
 
     let backgrounds = [];
@@ -289,37 +299,37 @@
     );
     if (!candidates.length) return;
     const selected = pickBackground(candidates);
-    try {
-      await new Promise((resolve, reject) => {
-        backgroundEl.addEventListener("load", resolve, { once: true });
-        backgroundEl.addEventListener("error", reject, { once: true });
-        backgroundEl.src = selected.src;
-      });
-    } catch (error) {
-      console.warn(`[quotes] 背景图片加载失败（${selected.src}），使用纯色背景。`, error);
-      return;
-    }
+    const mobile = window.matchMedia && window.matchMedia("(max-width: 767px)").matches;
+    const canUseOptimized = backgroundRoot
+      && backgroundRoot.getAttribute("data-home-backgrounds-optimized") === "true"
+      && !/\.svg$/i.test(selected.src);
+    const variant = mobile ? "mobile" : "desktop";
+    const source = canUseOptimized
+      ? selected.src
+        .replace(/(^|\/)home\/backgrounds\//, "$1home/backgrounds-optimized/")
+        .replace(/\.(jpe?g|png|webp)$/i,
+          (_, extension) => `--${extension.toLowerCase()}--${variant}.webp`)
+      : selected.src;
+    let activeSource = source;
+    const showLoadedBackground = () => {
+      if (backgroundEl.naturalWidth > 0) backgroundEl.classList.add("is-visible");
+    };
+    const showBackgroundError = () => {
+      if (activeSource !== selected.src) {
+        console.warn(`[quotes] 背景图片加载失败（${activeSource}），改用原图。`);
+        activeSource = selected.src;
+        backgroundEl.addEventListener("error", showBackgroundError, { once: true });
+        backgroundEl.src = activeSource;
+        return;
+      }
+      console.warn(`[quotes] 背景图片加载失败（${activeSource}），保留基础深色背景。`);
+    };
 
-    if (reduceMotion) {
-      backgroundEl.classList.add("is-visible");
-      return;
-    }
-
-    await new Promise((resolve) => {
-      let timer = 0;
-      const finish = () => {
-        if (timer) clearTimeout(timer);
-        backgroundEl.removeEventListener("transitionend", onTransitionEnd);
-        resolve();
-      };
-      const onTransitionEnd = (event) => {
-        if (event.target === backgroundEl && event.propertyName === "opacity") finish();
-      };
-
-      backgroundEl.addEventListener("transitionend", onTransitionEnd);
-      timer = setTimeout(finish, BACKGROUND_FADE_MS + 200);
-      requestAnimationFrame(() => backgroundEl.classList.add("is-visible"));
-    });
+    backgroundEl.setAttribute("fetchpriority", "high");
+    backgroundEl.addEventListener("load", showLoadedBackground, { once: true });
+    backgroundEl.addEventListener("error", showBackgroundError, { once: true });
+    backgroundEl.src = source;
+    if (backgroundEl.complete) showLoadedBackground();
   }
 
   /* 打字：用 setTimeout 递归而不是 setInterval，
@@ -341,6 +351,10 @@
     while (i < chars.length && countedCharacters < visibleCharacters) {
       if (chars[i] !== "\n") countedCharacters += 1;
       i += 1;
+    }
+    if (visibleCharacters === 0) {
+      while (i < chars.length && chars[i] === "\n") i += 1;
+      if (i < chars.length) i += 1;
     }
     textEl.textContent = chars.slice(0, i).join("");
     host.classList.remove("is-loading");
@@ -370,7 +384,7 @@
       typeTimer = setTimeout(step, delay);
     };
 
-    typeTimer = setTimeout(step, 220);   // 起手稍等一下，让视线落下来
+    typeTimer = setTimeout(step, 1000 / CHARS_PER_SEC);
   }
 
   /* ---------- 抽签 ---------- */
@@ -395,24 +409,15 @@
 
   /* ---------- 取数 ---------- */
 
-  async function load() {
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
-    const backgroundReady = showRandomBackground();
-
+  function loadQuotes() {
     try {
-      const res = await fetch("/nav.json", {
-        credentials: "same-origin",
-        signal: controller ? controller.signal : undefined
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data || !Array.isArray(data.quotes)) {
-        throw new Error("数据里缺少 quotes 数组");
+      const data = JSON.parse(quotesEl && quotesEl.textContent || "null");
+      if (!Array.isArray(data)) {
+        throw new Error("内联数据缺少 quotes 数组");
       }
 
       // 过滤掉空条目（data/quotes.yaml 里可能留了空占位）
-      const list = data.quotes
+      const list = data
         .map((q) => ({
           text: String(q.text || "").replace(/\s*\|\s*/g, "\n").trim(),
           source: String(q.source || "").trim()
@@ -422,24 +427,17 @@
       if (!list.length) {
         // empty：句子库是空的 —— 显示兜底句，不显示空白
         console.warn("[quotes] data/quotes.yaml 里还没有句子，显示兜底文案。");
-        await backgroundReady;
         showFull({ text: FALLBACK, source: "" });
-        return;
+      } else {
+        const item = pick(list);
+        if (reduceMotion) showFull(item);
+        else typeOut(item);
       }
-
-      const item = pick(list);
-      await backgroundReady;
-      if (reduceMotion) showFull(item);
-      else typeOut(item);
     } catch (error) {
       // error：不打扰访客，显示兜底句并在控制台留下原因
-      const reason = error && error.name === "AbortError"
-        ? "请求超时（8 秒）" : String(error && error.message || error);
+      const reason = String(error && error.message || error);
       console.warn(`[quotes] 句子加载失败（${reason}），显示兜底文案。`);
-      await backgroundReady;
       showFull({ text: FALLBACK, source: "" });
-    } finally {
-      if (timer) clearTimeout(timer);
     }
   }
 
@@ -448,8 +446,13 @@
     if (document.hidden && typeTimer) {
       clearTimeout(typeTimer);
       typeTimer = 0;
+    } else if (!document.hidden && activeItem && !typingFinished && !typeTimer) {
+      const visibleCharacters = Array.from(textEl.textContent)
+        .filter((char) => char !== "\n").length;
+      typeOut(activeItem, visibleCharacters);
     }
   });
 
-  load();
+  loadQuotes();
+  showRandomBackground();
 })();

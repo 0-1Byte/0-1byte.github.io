@@ -7,15 +7,15 @@
     所以这里把同一份数据渲染成 JSON，供运行时 fetch。
     Hugo 页面仍由模板服务端渲染（首屏即有内容，不依赖 JS）。
 
-  为什么导航和句子共用一个端点：
+  为什么句子仍出现在 nav.json：
     实测 Hugo 会把首页的多个自定义输出格式都交给同一个模板文件
-    （按 kind 找模板，baseName 只决定文件名），所以拆成两个端点做不到。
-    共用一个反而更好：site-nav.js 已经会拉这个文件，
-    quotes.js 复用它就不用再发一个请求。
+    （按 kind 找模板，baseName 只决定文件名）。static 页面由 site-nav.js
+    读取导航；保留 quotes 字段以兼容已有数据消费者。首页句子改由 HTML
+    内联数据提供，不会再请求 nav.json。
 
   当前包含两块：
     groups / standalone  导航结构    -> static/site-nav.js、ocean/script.js
-    quotes               首屏句子库  -> static/quotes.js
+    quotes               兼容字段；首页使用 layouts/index.html 注入的数据
 */ -}}
 
 {{- $groups := slice }}

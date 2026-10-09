@@ -3,7 +3,7 @@
      B. 完成后光标变暗（is-done）
      C. 出处显示 / 隐藏
      D. empty：句子库为空 -> 兜底句 + console.warn
-     E. error：请求失败 -> 显示兜底句 + console.warn（不打扰访客）
+     E. error：内联数据无效 -> 显示兜底句 + console.warn（不打扰访客）
      F. prefers-reduced-motion -> 直接显示整句
      G. 超长句子截断
      H. 尽量避开上一句（localStorage 记忆）
@@ -23,7 +23,7 @@ function makeEl(id, cls) {
   const el = {
     id, _classes: new Set(cls ? cls.split(" ") : []),
     textContent: "", hidden: false, _handlers: {}, _attrs: {},
-    clientWidth: 680,
+    clientWidth: 680, complete: false, naturalWidth: 0, src: "",
     classList: {
       add(c) { el._classes.add(c); },
       remove(c) { el._classes.delete(c); },
@@ -41,25 +41,38 @@ function makeEl(id, cls) {
       if (sel === ".home-focus-caret") return elsRef.caret;
       return null;
     },
-    addEventListener(t, fn) { (el._handlers[t] ||= []).push(fn); }
+    addEventListener(t, fn) { (el._handlers[t] ||= []).push(fn); },
+    closest() { return null; }
   };
   return el;
 }
 
 let elsRef = {};
 
-function setup(opts) {
+function setup(opts, serializedQuotes) {
   const host = makeEl("home-focus", "home-focus is-loading");
   host.clientWidth = opts.width || 680;
   const text = makeEl("home-focus-text");
   const caret = makeEl("home-focus-caret");
   const source = makeEl("home-focus-source");
+  const quotes = makeEl("home-quotes");
+  quotes.textContent = serializedQuotes;
+  const backgrounds = makeEl("home-backgrounds");
+  backgrounds.getAttribute = (name) => name === "data-home-backgrounds"
+    ? JSON.stringify(opts.backgrounds || [])
+    : name === "data-home-backgrounds-optimized" ? String(Boolean(opts.optimized)) : null;
+  const backgroundImage = makeEl("home-background-image");
   text.textContent = opts.serverText || "";
   elsRef = { host, text, caret, source };
 
   const doc = {
-    getElementById: (id) => (id === "home-focus" ? host : null),
-    querySelector: (sel) => (sel === "[data-quote-source]" ? source : null),
+    getElementById: (id) => id === "home-focus" ? host : id === "home-quotes" ? quotes : null,
+    querySelector: (sel) => {
+      if (sel === "[data-quote-source]") return source;
+      if (sel === "[data-home-backgrounds]") return backgrounds;
+      if (sel === "[data-home-background-image]") return opts.backgrounds ? backgroundImage : null;
+      return null;
+    },
     createElement: (tag) => tag === "canvas" ? ({
       getContext: () => ({
         font: "",
@@ -74,7 +87,11 @@ function setup(opts) {
     hidden: false
   };
   const win = {
-    matchMedia: (q) => ({ matches: opts.reduceMotion === true && q.includes("reduced-motion") }),
+    matchMedia: (q) => ({
+      matches: q.includes("reduced-motion")
+        ? opts.reduceMotion === true
+        : q.includes("max-width") && opts.mobile === true
+    }),
     getComputedStyle: () => ({
       fontStyle: "normal",
       fontVariant: "normal",
@@ -86,11 +103,11 @@ function setup(opts) {
     _handlers: {},
     addEventListener(type, fn) { (this._handlers[type] ||= []).push(fn); }
   };
-  return { doc, win, els: elsRef };
+  return { doc, win, els: elsRef, backgroundImage };
 }
 
-async function run(opts, fetchImpl) {
-  const env = setup(opts);
+async function run(opts, serializedQuotes = "[]") {
+  const env = setup(opts, serializedQuotes);
   const store = opts.store || {};
   const warns = [];
   const con = { ...console, warn: (...a) => warns.push(a.map(String).join(" ")), error: () => {} };
@@ -102,13 +119,11 @@ async function run(opts, fetchImpl) {
     setItem(k, v) { store[k] = v; },
     getItem(k) { return store[k] === undefined ? null : store[k]; }
   };
-  global.AbortController = function () { this.signal = {}; this.abort = () => {}; };
-
   try {
-    new Function("document", "window", "fetch", "console", "localStorage",
-      "AbortController", "setTimeout", "clearTimeout", src)(
-      env.doc, env.win, fetchImpl, con, global.localStorage,
-      global.AbortController, setTimeout, clearTimeout);
+    new Function("document", "window", "navigator", "console", "localStorage",
+      "setTimeout", "setInterval", "clearTimeout", src)(
+      env.doc, env.win, { hardwareConcurrency: 8 }, con, global.localStorage,
+      setTimeout, () => 1, clearTimeout);
     await new Promise((r) => setTimeout(r, opts.wait || 300));
   } finally {
     global.document = savedDoc; global.window = savedWin; global.localStorage = savedLs;
@@ -116,9 +131,7 @@ async function run(opts, fetchImpl) {
   return { ...env, warns, store };
 }
 
-const quotesFetch = (list) => async () => ({
-  ok: true, status: 200, json: async () => ({ groups: [], standalone: [], quotes: list })
-});
+const quotesFetch = (list) => JSON.stringify(list);
 
 /* 出处自带破折号时，应加 data-has-dash 让 CSS 的 ::before 不要重复加前缀。
    pages.css 的规则：
@@ -154,19 +167,43 @@ async function checkDashGuard() {
 }
 
 (async () => {
-  console.log("0. loading：数据就绪前保持隐藏且不含固定首句");
-  let releaseFetch;
-  const waiting = run({ wait: 50 }, () => new Promise((resolve) => { releaseFetch = resolve; }));
-  await new Promise((r) => setTimeout(r, 20));
+  console.log("0. 首屏句子不等待背景图片");
+  const waiting = run({
+    wait: 50,
+    backgrounds: [{ src: "/home/backgrounds/test.jpg" }]
+  }, quotesFetch([{ text: "随机句子", source: "" }]));
   const pending = elsRef;
-  if (pending.text.textContent) fail("数据未就绪时句子区不应含有可见文案");
-  else ok("数据未就绪时句子内容为空");
-  if (!pending.host.classList.contains("is-loading")) fail("数据未就绪时句子区应保持隐藏");
-  else ok("数据未就绪时句子区保持隐藏");
-  releaseFetch(await quotesFetch([{ text: "随机句子", source: "" }])());
   await waiting;
-  if (pending.host.classList.contains("is-loading")) fail("数据就绪后句子区未显示");
-  else ok("数据就绪后句子区显示");
+  if (!pending.text.textContent) fail("内联句子数据应立即开始显示");
+  else ok(`句子立即显示：${pending.text.textContent}`);
+  if (pending.host.classList.contains("is-loading")) fail("有内联句子数据时句子区仍隐藏");
+  else ok("句子区没有等待背景图 load");
+  if (waiting.backgroundImage.src !== "/home/backgrounds/test.jpg") {
+    fail("随机背景没有在后台开始加载");
+  } else ok("随机背景请求已启动且未等待其完成");
+
+  console.log("0.1 移动端变体、最近背景避让与 WebP 回退");
+  const backgroundStore = {
+    "home-background-recent": JSON.stringify(["recent-a.jpg", "recent-b.jpg"])
+  };
+  const backgroundResult = await run({
+    wait: 50,
+    mobile: true,
+    optimized: true,
+    store: backgroundStore,
+    backgrounds: [
+      { src: "/home/backgrounds/recent-a.jpg" },
+      { src: "/home/backgrounds/recent-b.jpg" },
+      { src: "/home/backgrounds/available.jpg" }
+    ]
+  }, quotesFetch([{ text: "图片不阻塞句子", source: "" }]));
+  if (backgroundResult.backgroundImage.src !== "/home/backgrounds-optimized/available--jpg--mobile.webp") {
+    fail(`移动端应选择排除近期背景后的 WebP 变体，实际 ${backgroundResult.backgroundImage.src}`);
+  } else ok("手机选中单张 mobile WebP，最近两张背景仍被排除");
+  backgroundResult.backgroundImage._handlers.error[0]();
+  if (backgroundResult.backgroundImage.src !== "/home/backgrounds/available.jpg") {
+    fail("WebP 加载失败时应回退到原图");
+  } else ok("WebP 失败时回退到原图，句子保持可见");
 
   console.log("A. 打字过程（逐帧观察文本长度）");
   const long = { text: "这是一句用来观察打字过程的话。", source: "《测试》· 某人" };
@@ -205,8 +242,8 @@ async function checkDashGuard() {
   else ok(`console.warn：${empty.warns[0].slice(0, 50)}`);
 
   console.log();
-  console.log("D. error：请求失败");
-  const err = await run({ wait: 400 }, async () => { throw new Error("network down"); });
+  console.log("D. error：内联数据无效");
+  const err = await run({ wait: 400 }, "{");
   console.log(`      文本 = [${err.els.text.textContent}]`);
   if (err.els.text.textContent !== "building small things, thinking about large things.") {
     fail("请求失败时应显示完整兜底句");
@@ -216,9 +253,7 @@ async function checkDashGuard() {
 
   console.log();
   console.log("E. 格式不对（缺 quotes 数组）");
-  const badShape = await run({ wait: 400 }, async () => ({
-    ok: true, status: 200, json: async () => ({ groups: [] })
-  }));
+  const badShape = await run({ wait: 400 }, JSON.stringify({ groups: [] }));
   if (!badShape.warns.some((w) => w.includes("加载失败"))) fail("缺 quotes 时应走 error 分支");
   else ok("走 error 分支并保留原句");
 
