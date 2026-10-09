@@ -65,7 +65,7 @@
     <span class="home-atmosphere-shade"></span>
     <span class="home-atmosphere-grain"></span>
   </div>
-  <script type="application/json" id="home-quotes">{{ $quotes | jsonify | safeHTML }}</script>
+  {{- printf `<script type="application/json" id="home-quotes">%s</script>` ($quotes | jsonify) | safeHTML }}
 
   {{- /*
     为什么 hero 上多一个 hero--quote 修饰类：

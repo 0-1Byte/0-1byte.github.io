@@ -11,7 +11,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = "D:/AAA_RELOAD/my-blog";
+const ROOT = path.resolve(__dirname, "..");
 const STATIC = path.join(ROOT, "static");
 const src = fs.readFileSync(path.join(STATIC, "quotes.js"), "utf8");
 
@@ -167,6 +167,46 @@ async function run(opts, serializedQuotes = "[]") {
 
 const quotesFetch = (list) => JSON.stringify(list);
 
+function checkBuiltHomepageQuotes() {
+  console.log("构建产物集成检查：public/index.html 内联句子");
+  const indexPath = path.join(ROOT, "public", "index.html");
+  let html;
+  try {
+    html = fs.readFileSync(indexPath, "utf8");
+  } catch (error) {
+    fail(`无法读取构建产物 ${indexPath}；请先运行 Hugo 生产构建`);
+    return;
+  }
+
+  const match = html.match(/<script\b(?=[^>]*\bid=["']home-quotes["'])[^>]*>([\s\S]*?)<\/script\s*>/i);
+  if (!match) {
+    fail("构建产物中缺少 #home-quotes JSON script 标签");
+    return;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(match[1]);
+  } catch (error) {
+    fail(`#home-quotes 内容不能由一次 JSON.parse() 解析：${error.message}`);
+    return;
+  }
+  if (!Array.isArray(data)) {
+    fail(`#home-quotes 一次解析后应为数组，实际为 ${typeof data}（可能被双重编码）`);
+    return;
+  }
+  if (!data.length) {
+    fail("#home-quotes 数组不能为空");
+    return;
+  }
+  if (!data.every((quote) => quote && typeof quote.text === "string"
+    && quote.text.trim() && typeof quote.source === "string")) {
+    fail("每个句子项都必须包含非空 text 字符串和 source 字符串");
+    return;
+  }
+  ok(`#home-quotes 一次解析得到 ${data.length} 条有效句子`);
+}
+
 /* 出处自带破折号时，应加 data-has-dash 让 CSS 的 ::before 不要重复加前缀。
    pages.css 的规则：
      .hero--quote .home-focus-source:not([hidden]):not([data-has-dash])::before
@@ -201,6 +241,8 @@ async function checkDashGuard() {
 }
 
 (async () => {
+  checkBuiltHomepageQuotes();
+
   console.log("0. 首屏句子不等待背景图片");
   const waiting = run({
     wait: 50,
