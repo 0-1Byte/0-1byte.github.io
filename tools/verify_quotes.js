@@ -178,7 +178,7 @@ function checkBuiltHomepageQuotes() {
     return;
   }
 
-  const match = html.match(/<script\b(?=[^>]*\bid=["']home-quotes["'])[^>]*>([\s\S]*?)<\/script\s*>/i);
+  const match = html.match(/<script\b(?=[^>]*\bid\s*=\s*["']?home-quotes["']?(?=\s|>))[^>]*>([\s\S]*?)<\/script\s*>/i);
   if (!match) {
     fail("构建产物中缺少 #home-quotes JSON script 标签");
     return;
@@ -244,8 +244,8 @@ async function checkDashGuard() {
   checkBuiltHomepageQuotes();
 
   console.log("0. 首屏句子不等待背景图片");
-  const waiting = run({
-    wait: 50,
+  const waiting = await run({
+    wait: 300,
     backgrounds: [{ src: "/home/backgrounds/test.jpg" }]
   }, quotesFetch([{ text: "随机句子", source: "" }]));
   const pending = elsRef;
@@ -263,7 +263,7 @@ async function checkDashGuard() {
     "home-background-recent": JSON.stringify(["recent-a.jpg", "recent-b.jpg"])
   };
   const backgroundResult = await run({
-    wait: 50,
+    wait: 300,
     mobile: true,
     optimized: true,
     store: backgroundStore,
