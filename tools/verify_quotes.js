@@ -354,7 +354,7 @@ async function checkDashGuard() {
   console.log("C. empty：句子库为空");
   const empty = await run({ wait: 400 }, quotesFetch([]));
   console.log(`      文本 = [${empty.els.text.textContent}]`);
-  if (empty.els.text.textContent.replace(/\n/g, "") !== "building small things, thinking about large things.") {
+  if (empty.els.text.textContent.replace(/\n/g, " ").replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("空句子库时应显示完整兜底句");
   } else ok("保留兜底句，页面不空白");
   if (!empty.warns.some((w) => w.includes("quotes"))) fail("空句子库时应留一条 console.warn");
@@ -364,7 +364,7 @@ async function checkDashGuard() {
   console.log("D. error：内联数据无效");
   const err = await run({ wait: 400 }, "{");
   console.log(`      文本 = [${err.els.text.textContent}]`);
-  if (err.els.text.textContent.replace(/\n/g, "") !== "building small things, thinking about large things.") {
+  if (err.els.text.textContent.replace(/\n/g, " ").replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("请求失败时应显示完整兜底句");
   } else ok("请求失败时显示兜底句");
   if (!err.warns.some((w) => w.includes("加载失败"))) fail("失败时应留一条 console.warn");
