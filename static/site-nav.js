@@ -60,7 +60,7 @@
     const only = children[0];
     return `
       <li class="hnav-item${active ? " is-active" : ""}" data-group="${esc(group.key)}">
-        <a class="hnav-link" href="${esc(only.href)}" title="${esc(only.desc || only.name)}">
+        <a class="hnav-link" href="${esc(only.href)}">
           <span>${esc(group.label)}</span>
         </a>
       </li>`;
@@ -76,7 +76,7 @@
     const standalone = nav.standalone || [];
     const standaloneHtml = standalone.map(s => `
       <li class="hnav-item">
-        <a class="hnav-link" href="${esc(s.href)}" title="${esc(s.desc || s.name)}">
+        <a class="hnav-link" href="${esc(s.href)}">
           <span>${esc(s.name)}</span>
         </a>
       </li>`).join("");
@@ -115,7 +115,8 @@
 
   function positionSheet(btn, menu) {
     const rect = btn.getBoundingClientRect();
-    const width = Math.min(260, window.innerWidth - VIEWPORT_MARGIN * 2);
+    const width = Math.min(menu.getBoundingClientRect().width || 124,
+      window.innerWidth - VIEWPORT_MARGIN * 2);
 
     // 左对齐到按钮，但不越出视口
     let left = rect.left;

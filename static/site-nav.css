@@ -136,25 +136,35 @@
 
 .hnav-menu {
   position: absolute;
-  /* 贴近触发按钮：原来 100% + 10px 再加上菜单自身 7px padding，
-     视觉上离得很远，显得空。 */
   top: calc(100% + 6px);
-  left: -8px;
+  left: 0;
   z-index: 30;
-  min-width: 148px;
+  box-sizing: border-box;
+  width: 124px;
+  max-width: calc(100vw - 24px);
   margin: 0;
-  padding: 5px;
+  padding: 6px;
+  display: grid;
+  gap: 2px;
   list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  background: rgba(28, 29, 31, .94);
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .24);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
-  transition: opacity var(--motion-base) ease,
-              visibility var(--motion-base) ease,
-              transform var(--motion-base) var(--ease-out);
+  transition: opacity 150ms ease,
+              visibility 150ms ease,
+              transform 150ms var(--ease-out);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hnav-menu {
+    background: rgba(28, 29, 31, .68);
+    -webkit-backdrop-filter: blur(16px) saturate(125%);
+    backdrop-filter: blur(16px) saturate(125%);
+  }
 }
 
 /* 桌面：悬停或键盘聚焦时展开 */
@@ -191,14 +201,20 @@
 
 .hnav-menu a {
   display: block;
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: var(--radius-sm);
-  transition: background-color var(--motion-fast) ease;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .hnav-menu a:hover,
 .hnav-menu a:focus-visible {
-  background: var(--surface-2);
+  color: var(--text);
+  background: rgba(255, 255, 255, .075);
+}
+
+.hnav-menu a:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, .24);
+  outline-offset: -1px;
 }
 
 .hnav-menu a.is-active .hnav-menu-name {
@@ -278,8 +294,7 @@
     position: fixed;
     top: 0;              /* 由 JS 覆盖 */
     left: 0;             /* 由 JS 覆盖 */
-    width: auto;         /* 由 JS 覆盖 */
-    min-width: 0;
+    width: 124px;        /* JS 读取此宽度并限制在视口内 */
     max-height: 70vh;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -292,7 +307,7 @@
   }
 
   .hnav-menu--sheet a {
-    padding: 10px 12px;
+    padding: 7px 11px;
   }
 }
 
