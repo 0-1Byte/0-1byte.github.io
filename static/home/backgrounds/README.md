@@ -10,6 +10,13 @@ The GitHub Pages workflow runs this step before Hugo. The original files remain
 available as a fallback and retain their existing URLs; the homepage selects a
 single size appropriate to the viewport.
 
+The generator targets 150 KiB per mobile image and 180 KiB per desktop image.
+It makes quality-first, incremental updates using source and encoder fingerprints;
+the Pages workflow caches generated variants and its manifest between builds.
+The manifest is stored outside `static/` so it is not published. Unreadable raster
+files are reported and skipped, and any output that still exceeds its target is
+listed as an explicit exception rather than treated as a successful size match.
+
 Existing time-period tags in `data/home_background_periods.yaml` are retained as
 catalog metadata only. The homepage draws uniformly from the full background
 library, excluding the two most recently shown images; it does not weight a

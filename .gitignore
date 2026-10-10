@@ -5,6 +5,11 @@ __pycache__/
 
 # Hugo 构建锁
 .hugo_build.lock
+/.cache/homepage-backgrounds/
+/public/
+/static/home/backgrounds-optimized/*.webp
+/static/home/backgrounds-optimized/.manifest.json
+/static/home/backgrounds-optimized/.manifest.tmp
 
 # 本地预览 / 临时文件
 _preview/

@@ -144,8 +144,13 @@ async function run(opts, serializedQuotes = "[]") {
   } : null;
 
   const savedDoc = global.document, savedWin = global.window, savedLs = global.localStorage;
+  const savedRandom = Math.random;
   global.document = env.doc;
   global.window = env.win;
+  if (opts.randomValues) {
+    let randomIndex = 0;
+    Math.random = () => opts.randomValues[randomIndex++] ?? opts.randomValues[opts.randomValues.length - 1] ?? 0.5;
+  }
   global.localStorage = {
     setItem(k, v) { store[k] = v; },
     getItem(k) { return store[k] === undefined ? null : store[k]; }
@@ -161,6 +166,7 @@ async function run(opts, serializedQuotes = "[]") {
     if (!clock) await new Promise((r) => setTimeout(r, opts.wait || 300));
   } finally {
     global.document = savedDoc; global.window = savedWin; global.localStorage = savedLs;
+    Math.random = savedRandom;
   }
   return { ...env, warns, store, clock };
 }
@@ -168,8 +174,10 @@ async function run(opts, serializedQuotes = "[]") {
 const quotesFetch = (list) => JSON.stringify(list);
 
 function checkBuiltHomepageQuotes() {
-  console.log("构建产物集成检查：public/index.html 内联句子");
-  const indexPath = path.join(ROOT, "public", "index.html");
+  const indexPath = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : path.join(ROOT, "public", "index.html");
+  console.log(`构建产物集成检查：${indexPath} 内联句子`);
   let html;
   try {
     html = fs.readFileSync(indexPath, "utf8");
@@ -178,7 +186,7 @@ function checkBuiltHomepageQuotes() {
     return;
   }
 
-  const match = html.match(/<script\b(?=[^>]*\bid\s*=\s*["']?home-quotes["']?(?=\s|>))[^>]*>([\s\S]*?)<\/script\s*>/i);
+  const match = html.match(/<script\b(?=[^>]*\bid\s*=\s*(?:"home-quotes"|'home-quotes'|home-quotes)(?=\s|>))[^>]*>([\s\S]*?)<\/script\s*>/i);
   if (!match) {
     fail("构建产物中缺少 #home-quotes JSON script 标签");
     return;
@@ -244,26 +252,42 @@ async function checkDashGuard() {
   checkBuiltHomepageQuotes();
 
   console.log("0. 首屏句子不等待背景图片");
+  let initialText = null;
+  let initialDelay = null;
   const waiting = await run({
-    wait: 300,
-    backgrounds: [{ src: "/home/backgrounds/test.jpg" }]
+    fakeTimers: true,
+    backgrounds: [{ src: "/home/backgrounds/test.jpg" }],
+    randomValues: [0.5],
+    onInit: ({ els, clock }) => {
+      initialText = els.text.textContent;
+      initialDelay = clock.scheduledDelays[0];
+    }
   }, quotesFetch([{ text: "随机句子", source: "" }]));
-  const pending = elsRef;
-  await waiting;
-  if (!pending.text.textContent) fail("内联句子数据应立即开始显示");
-  else ok(`句子立即显示：${pending.text.textContent}`);
-  if (pending.host.classList.contains("is-loading")) fail("有内联句子数据时句子区仍隐藏");
-  else ok("句子区没有等待背景图 load");
+  if (waiting.els.host.classList.contains("is-loading")) fail("有效内联数据时句子区应立即解除 loading");
+  else ok("有效内联数据时句子区立即解除 loading");
+  if (initialText !== "") fail(`220ms 起始延迟前文本必须为空，实际：[${initialText}]`);
+  else ok("220ms 起始延迟前文本为空");
+  if (initialDelay !== 220) fail(`首次打字延迟应为 220ms，实际 ${initialDelay}ms`);
+  else ok("首次打字延迟为 220ms");
   if (waiting.backgroundImage.src !== "/home/backgrounds/test.jpg") {
-    fail("随机背景没有在后台开始加载");
-  } else ok("随机背景请求已启动且未等待其完成");
+    fail("背景请求没有在后台开始加载");
+  } else ok("背景已独立启动，未阻塞句子初始化");
+  waiting.clock.runNext();
+  if (Array.from(waiting.els.text.textContent).length !== 1) {
+    fail(`首个打字定时器应显示一个字符，实际：[${waiting.els.text.textContent}]`);
+  } else ok("首个打字定时器后恰好显示一个字符");
+  const beforeNextStep = waiting.els.text.textContent;
+  waiting.clock.runNext();
+  if (Array.from(waiting.els.text.textContent).length !== Array.from(beforeNextStep).length + 1) {
+    fail("后续定时器应只增加一个字符");
+  } else ok("后续定时器只增加一个字符");
 
-  console.log("0.1 移动端变体、最近背景避让与 WebP 回退");
+  console.log("0.1 响应式 WebP 变体、最近背景避让与原图回退");
   const backgroundStore = {
     "home-background-recent": JSON.stringify(["recent-a.jpg", "recent-b.jpg"])
   };
   const backgroundResult = await run({
-    wait: 300,
+    wait: 50,
     mobile: true,
     optimized: true,
     store: backgroundStore,
@@ -280,23 +304,43 @@ async function checkDashGuard() {
   if (backgroundResult.backgroundImage.src !== "/home/backgrounds/available.jpg") {
     fail("WebP 加载失败时应回退到原图");
   } else ok("WebP 失败时回退到原图，句子保持可见");
+  const desktopBackground = await run({
+    wait: 50,
+    optimized: true,
+    backgrounds: [{ src: "/home/backgrounds/available.jpg" }]
+  }, quotesFetch([{ text: "桌面背景", source: "" }]));
+  if (desktopBackground.backgroundImage.src !== "/home/backgrounds-optimized/available--jpg--desktop.webp") {
+    fail(`桌面端应选择 desktop WebP 变体，实际 ${desktopBackground.backgroundImage.src}`);
+  } else ok("桌面端选中单张 desktop WebP 变体");
+
+  console.log("0.2 随机选句与上一句避让");
+  const quoteStore = { "home-quote-seen": "前一句" };
+  const randomPick = await run({
+    wait: 250,
+    reduceMotion: true,
+    store: quoteStore,
+    randomValues: [0, 0.99]
+  }, quotesFetch([{ text: "前一句" }, { text: "新句子" }]));
+  if (randomPick.els.text.textContent !== "新句子") {
+    fail(`上一句避让未生效，选中：[${randomPick.els.text.textContent}]`);
+  } else ok("刷新抽取随机候选，并避开 localStorage 中的上一句");
 
   console.log("A. 打字过程（逐帧观察文本长度）");
   const long = { text: "这是一句用来观察打字过程的话。", source: "《测试》· 某人" };
-  let initialText = null;
-  let initialDelay = null;
+  let typingInitialText = null;
+  let typingInitialDelay = null;
   const typing = await run({
     fakeTimers: true,
     width: 3000,
     backgrounds: [{ src: "/home/backgrounds/pending.jpg" }],
     onInit: ({ els, clock }) => {
-      initialText = els.text.textContent;
-      initialDelay = clock.scheduledDelays[0];
+      typingInitialText = els.text.textContent;
+      typingInitialDelay = clock.scheduledDelays[0];
     }
   }, quotesFetch([long]));
-  if (initialText !== "") fail(`打字开始前文本必须为空，实际：[${initialText}]`);
+  if (typingInitialText !== "") fail(`打字开始前文本必须为空，实际：[${typingInitialText}]`);
   else ok("打字开始前文本为空");
-  if (initialDelay !== 220) fail(`首次打字延迟应为 220ms，实际 ${initialDelay}ms`);
+  if (typingInitialDelay !== 220) fail(`首次打字延迟应为 220ms，实际 ${typingInitialDelay}ms`);
   else ok("首次打字定时器延迟为 220ms");
   if (typing.backgroundImage.src !== "/home/backgrounds/pending.jpg") {
     fail("背景尚未加载时未启动句子打字");
@@ -354,7 +398,7 @@ async function checkDashGuard() {
   console.log("C. empty：句子库为空");
   const empty = await run({ wait: 400 }, quotesFetch([]));
   console.log(`      文本 = [${empty.els.text.textContent}]`);
-  if (empty.els.text.textContent.replace(/\n/g, " ").replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
+  if (empty.els.text.textContent.replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("空句子库时应显示完整兜底句");
   } else ok("保留兜底句，页面不空白");
   if (!empty.warns.some((w) => w.includes("quotes"))) fail("空句子库时应留一条 console.warn");
@@ -364,7 +408,7 @@ async function checkDashGuard() {
   console.log("D. error：内联数据无效");
   const err = await run({ wait: 400 }, "{");
   console.log(`      文本 = [${err.els.text.textContent}]`);
-  if (err.els.text.textContent.replace(/\n/g, " ").replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
+  if (err.els.text.textContent.replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("请求失败时应显示完整兜底句");
   } else ok("请求失败时显示兜底句");
   if (!err.warns.some((w) => w.includes("加载失败"))) fail("失败时应留一条 console.warn");

@@ -25,11 +25,22 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.7'
+      - name: Restore optimized homepage backgrounds
+        uses: actions/cache@v4
+        with:
+          path: |
+            static/home/backgrounds-optimized
+            .cache/homepage-backgrounds
+          key: ${{ runner.os }}-homepage-backgrounds-v4-py37-pillow8.2-${{ hashFiles('static/home/backgrounds/**', 'tools/optimize_home_backgrounds.py') }}
+          restore-keys: |
+            ${{ runner.os }}-homepage-backgrounds-v4-py37-pillow8.2-
       - name: Optimize homepage backgrounds
         run: |
-          python -m pip install Pillow
+          python -m pip install Pillow==8.2.0
           python tools/optimize_home_backgrounds.py
+      - name: Verify incremental homepage background generation
+        run: python tools/test_optimize_home_backgrounds.py
       - name: Enrich music credits
         run: python tools/enrich_music_credits.py
       - name: Build
