@@ -25,19 +25,19 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
+          python-version: '3.11'
       - name: Restore optimized homepage backgrounds
         uses: actions/cache@v4
         with:
           path: |
             static/home/backgrounds-optimized
             .cache/homepage-backgrounds
-          key: ${{ runner.os }}-homepage-backgrounds-v4-py37-pillow8.2-${{ hashFiles('static/home/backgrounds/**', 'tools/optimize_home_backgrounds.py') }}
+          key: ${{ runner.os }}-homepage-backgrounds-v5-py311-pillow10.4-${{ hashFiles('static/home/backgrounds/**', 'tools/optimize_home_backgrounds.py') }}
           restore-keys: |
-            ${{ runner.os }}-homepage-backgrounds-v4-py37-pillow8.2-
+            ${{ runner.os }}-homepage-backgrounds-v5-py311-pillow10.4-
       - name: Optimize homepage backgrounds
         run: |
-          python -m pip install Pillow==8.2.0
+          python -m pip install Pillow==10.4.0
           python tools/optimize_home_backgrounds.py
       - name: Verify incremental homepage background generation
         run: python tools/test_optimize_home_backgrounds.py

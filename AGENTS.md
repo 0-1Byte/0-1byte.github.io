@@ -15,6 +15,7 @@
   python -c "import PIL; print(PIL.__version__)"
   .\hugo.exe version
   ```
+- The Pages workflow pins Python 3.11 and Pillow 10.4.0 because GitHub's current Ubuntu runner does not provide Python 3.7. Local Python 3.7/Pillow installations may still be used to check backward compatibility, but CI availability must be verified against the workflow's pinned versions.
 
 ## Before editing
 
