@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="color-scheme" content="dark">
+  <title>微信读书同步控制台 · Chen</title>
+  <link rel="stylesheet" href="/admin/weread-sync/style.css">
+</head>
+<body>
+  <main class="console">
+    <header class="top">
+      <a href="/" class="back">Chen</a>
+      <span class="eyebrow">PRIVATE ADMIN TOOL</span>
+    </header>
+
+    <section class="panel" aria-labelledby="title">
+      <p class="eyebrow">WECHAT READING</p>
+      <h1 id="title">同步控制台</h1>
+      <p class="intro">手动启动个人划线同步。只有任务实际完成数据校验后，统计信息才会更新。</p>
+
+      <div id="auth" class="auth" hidden>
+        <p id="auth-message">请使用已授权的 GitHub 账号登录。</p>
+        <a id="login" class="button button-secondary" href="#">使用 GitHub 登录</a>
+      </div>
+
+      <div id="dashboard" hidden>
+        <div class="identity">
+          <span>已验证身份</span>
+          <strong id="login-name"></strong>
+          <button id="logout" class="text-button" type="button">退出</button>
+        </div>
+
+        <dl class="stats">
+          <div><dt>上次同步</dt><dd id="last-sync">尚无记录</dd></div>
+          <div><dt>成功读取书籍</dt><dd id="books-read">—</dd></div>
+          <div><dt>去重后划线</dt><dd id="quote-count">—</dd></div>
+          <div><dt>缺少作者</dt><dd id="missing-author">—</dd></div>
+          <div><dt>缺少章节</dt><dd id="missing-chapter">—</dd></div>
+          <div><dt>章节映射异常</dt><dd id="chapter-issues">—</dd></div>
+        </dl>
+
+        <div class="run-card" aria-live="polite">
+          <div class="run-heading">
+            <span id="state-badge" class="state state-idle">尚无任务</span>
+            <span id="run-time" class="muted"></span>
+          </div>
+          <p id="stage" class="stage">准备就绪</p>
+          <p id="summary" class="summary">运行状态由 GitHub Actions 实时提供。</p>
+          <a id="logs" class="logs" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            查看 GitHub Actions 日志 ↗
+          </a>
+        </div>
+
+        <div class="actions">
+          <button id="trigger" class="button" type="button" disabled>立即同步</button>
+          <span id="feedback" class="feedback" role="status"></span>
+        </div>
+      </div>
+    </section>
+    <footer>管理身份由后端验证；此静态页面地址本身不提供访问控制。</footer>
+  </main>
+  <script src="/admin/weread-sync/config.js"></script>
+  <script src="/admin/weread-sync/app.js" defer></script>
+</body>
+</html>

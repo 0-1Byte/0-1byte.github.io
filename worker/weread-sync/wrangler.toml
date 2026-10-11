@@ -1,0 +1,36 @@
+name = "weread-sync-console"
+main = "src/index.js"
+compatibility_date = "2025-03-01"
+workers_dev = true
+
+[vars]
+SITE_ORIGIN = "https://0-1byte.github.io"
+WORKER_ORIGIN = "https://weread-sync-console.weread-chen.workers.dev"
+GITHUB_OWNER = "0-1byte"
+GITHUB_REPO = "0-1byte.github.io"
+GITHUB_WORKFLOW = "sync-weread.yml"
+GITHUB_BRANCH = "main"
+ADMIN_GITHUB_LOGIN = "0-1Byte"
+TRIGGER_COOLDOWN_SECONDS = "600"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "weread-private-quotes"
+database_id = "5653452d-0e4f-402a-af7c-95004c6459a3"
+migrations_dir = "migrations"
+
+[[ratelimits]]
+name = "PUBLIC_QUOTE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
+[[durable_objects.bindings]]
+name = "SYNC_COORDINATOR"
+class_name = "SyncCoordinator"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SyncCoordinator"]

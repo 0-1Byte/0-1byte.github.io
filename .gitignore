@@ -35,6 +35,7 @@ _preview/
 docs/weread-key.local.yaml
 static/quotes/wechat.yaml
 tools/_probe_out/
+data/weread_quotes.json
 
 # 系统文件
 .DS_Store

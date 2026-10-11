@@ -1,108 +1,283 @@
 """微信读书 Agent API Gateway 客户端 —— 官方协议
 
 协议来源：Tencent/WeChatReading 官方 skill 文档（skills/SKILL.md）
-以下每一条都是文档明确写出的，不是猜的：
+文档要求：
 
   统一入口   POST https://i.weread.qq.com/api/agent/gateway
-  鉴权       Authorization: Bearer $WEREAD_API_KEY      （wrk- 开头）
+  鉴权       Authorization: Bearer <api_key>
   请求体     JSON。`api_name` 指定接口，其余为接口参数，
-             **每次请求必须带 `skill_version`**（当前 "1.0.4"）
+             每次请求必须带 `skill_version`（当前 1.0.5）
   参数平铺   业务参数与 api_name / skill_version 放在同一层
              —— 文档明确说：不要包在 params / data / body 里
   响应       JSON，经过字段裁剪；`errcode` 为 0 表示成功
   发现接口   发 `{"api_name": "/_list"}` 可列出所有可用接口及参数定义
-
-之前探针之所以全部 404：请求体里没有 `api_name`，
-网关无法路由到这个虚拟接口。
 """
 import json
+import os
 import re
-import urllib.error
-import urllib.request
-from pathlib import Path
+import time
+import traceback
+import requests
 
-# 文档里 skills/SKILL.md 头部写的 version，每次请求都要带
-SKILL_VERSION = "1.0.4"
-
+SKILL_VERSION = "1.0.5"
 DEFAULT_ENDPOINT = "https://i.weread.qq.com/api/agent/gateway"
+_SESSION = None
 
-# 官方文档（Tencent/WeChatReading skills/notes.md）明确的接口
-API_LIST = "/_list"                      # 文档示例里出现过，但未正式说明
-API_NOTEBOOKS = "/user/notebooks"        # 笔记本概览：有笔记的书 + 计数
-API_BOOKMARKLIST = "/book/bookmarklist"  # 单本书的划线内容（markText）
-API_BOOK_UNDERLINES = "/book/underlines"  # 章节划线热度统计（不含文本）
-API_BEST_BOOKMARKS = "/book/bestbookmarks"  # 全书热门划线（含原文）
-API_BOOK_REVIEWS = "/book/readreviews"   # 划线下的想法/评论
-API_REVIEW_SINGLE = "/review/single"     # 单条想法详情
+API_LIST = "/_list"
+API_NOTEBOOKS = "/user/notebooks"
+API_BOOKMARKLIST = "/book/bookmarklist"
+API_BOOK_UNDERLINES = "/book/underlines"
+API_BEST_BOOKMARKS = "/book/bestbookmarks"
+API_BOOK_REVIEWS = "/book/readreviews"
+API_REVIEW_SINGLE = "/review/single"
 API_SHELF_SYNC = "/shelf/sync"
 API_SEARCH = "/store/search"
 
 
 class WereadError(RuntimeError):
-    """网关返回了 errcode != 0。"""
+    """网关返回了 errcode != 0 或协议错误。"""
+
+    def __init__(self, message, kind="protocol", http_status=None, errcode=None,
+                 attempts=0, elapsed_seconds=0.0):
+        RuntimeError.__init__(self, message)
+        self.kind = kind
+        self.http_status = http_status
+        self.errcode = errcode
+        self.attempts = attempts
+        self.elapsed_seconds = elapsed_seconds
+        self.transport_type = None
+        self.safe_exception_message = ""
+        self.exception_errno = None
+        self.exception_winerror = None
+        self.exception_function = ""
+        self.exception_file = ""
+        self.exception_line = None
 
 
-def call(endpoint, api_key, api_name, params=None, timeout=25, skill_version=SKILL_VERSION):
-    """调用一个网关接口。
+def _exception_details(exc, api_key=""):
+    cause = exc
+    frames = traceback.extract_tb(cause.__traceback__) if cause.__traceback__ else []
+    frame = frames[-1] if frames else None
+    message = str(cause)
+    if api_key:
+        message = message.replace(api_key, "[REDACTED]")
+    message = re.sub(r"(?i)https?://\S+", "[URL]", message)
+    message = re.sub(
+        r"(?i)\b(authorization|cookie|api[_-]?key|token)\b\s*[:=]\s*\S+",
+        r"\1=[REDACTED]",
+        message,
+    )
+    message = re.sub(r"(?i)\bbearer\s+\S+", "Bearer [REDACTED]", message)
+    message = re.sub(r"[\r\n\t]+", " ", message).strip()[:180]
+    return {
+        "exception_type": type(cause).__name__,
+        "exception_message": message or "(empty)",
+        "errno": getattr(cause, "errno", None),
+        "winerror": getattr(cause, "winerror", None),
+        "function": frame.name if frame else "",
+        "file": os.path.basename(frame.filename) if frame else "",
+        "line": frame.lineno if frame else None,
+    }
 
-    params 会与 api_name / skill_version 平铺在同一层 —— 这是文档要求的形式。
-    返回解析后的 dict。
-    """
+
+def _attach_exception_details(error, details):
+    error.transport_type = details["exception_type"]
+    error.safe_exception_message = details["exception_message"]
+    error.exception_errno = details["errno"]
+    error.exception_winerror = details["winerror"]
+    error.exception_function = details["function"]
+    error.exception_file = details["file"]
+    error.exception_line = details["line"]
+
+
+def _get_session():
+    global _SESSION
+    if _SESSION is None:
+        _SESSION = requests.Session()
+        _SESSION.trust_env = True
+    return _SESSION
+
+
+def call(endpoint, api_key, api_name, params=None, timeout=25,
+         skill_version=SKILL_VERSION, retries=4, diagnostics=None):
+    """按官方协议调用一个网关接口。"""
+    if not endpoint:
+        endpoint = DEFAULT_ENDPOINT
+    if endpoint != DEFAULT_ENDPOINT:
+        raise WereadError("只允许向官方网关发送请求。", kind="endpoint")
+    if not api_key:
+        raise WereadError("缺少微信读书 API Key，无法调用网关。", kind="credentials")
+
     body = {"api_name": api_name, "skill_version": skill_version}
     if params:
+        if "api_name" in params or "skill_version" in params:
+            raise WereadError("请求参数不得覆盖 api_name 或 skill_version。", kind="parameters")
         body.update(params)
 
     data = json.dumps(body, ensure_ascii=False).encode("utf-8")
-    req = urllib.request.Request(
-        endpoint,
-        data=data,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "my-blog-weread/1.0",
-        },
-    )
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "my-blog-weread/1.0",
+    }
 
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw, code = resp.read(), resp.status
-    except urllib.error.HTTPError as e:
-        raw, code = e.read(), e.code
-    except Exception as e:  # noqa: BLE001
-        raise WereadError(f"网络请求失败：{type(e).__name__}: {e}") from e
-
-    text = raw.decode("utf-8", "replace")
-
-    # 404 且响应体为空 —— 通常是 api_name 写错，或需要升级 skill
-    if code == 404 and not text.strip():
-        raise WereadError(
-            f"网关返回 404（接口 {api_name}）。\n"
-            f"  常见原因：api_name 拼错、该接口不存在，或需要升级 skill 版本。\n"
-            f"  先发 {{\"api_name\": \"/_list\"}} 看可用接口列表。"
+    attempt = 0
+    started = time.monotonic()
+    def network_error(exc, http_status=None):
+        details = _exception_details(exc, api_key)
+        error = WereadError(
+            "官方网关网络请求失败（有限重试已用尽）。",
+            kind="network",
+            http_status=http_status,
+            attempts=attempt,
+            elapsed_seconds=time.monotonic() - started,
         )
-    if code != 200:
-        raise WereadError(f"网关返回 HTTP {code}：{text[:200]!r}")
+        _attach_exception_details(error, details)
+        return error
 
+    def unclassified_transport_error(exc, http_status=None):
+        error = WereadError(
+            "请求期间发生未分类异常，未按网络错误重试。",
+            kind="transport_unclassified",
+            http_status=http_status,
+            attempts=attempt,
+            elapsed_seconds=time.monotonic() - started,
+        )
+        _attach_exception_details(error, _exception_details(exc, api_key))
+        return error
+
+    def report_attempt(http_status=None, exc=None, exception_type=None):
+        if diagnostics is not None:
+            info = {
+                "api_name": api_name,
+                "attempt": attempt,
+                "max_attempts": retries + 1,
+                "http_status": http_status,
+                "exception_type": exception_type,
+                "elapsed_seconds": time.monotonic() - started,
+            }
+            if exc is not None:
+                info.update(_exception_details(exc, api_key))
+            diagnostics(info)
+
+    while True:
+        attempt += 1
+        code = None
+        attempt_exception_type = None
+        response = None
+        try:
+            response = _get_session().post(
+                endpoint,
+                data=data,
+                headers=headers,
+                timeout=timeout,
+                verify=True,
+            )
+            code = response.status_code
+            raw = response.content
+        except requests.exceptions.SSLError as exc:
+            report_attempt(http_status=code, exc=exc)
+            message = str(exc).lower()
+            certificate_error = any(token in message for token in (
+                "certificate verify failed",
+                "certificate_verify_failed",
+                "hostname mismatch",
+                "self signed certificate",
+            ))
+            if certificate_error:
+                error = unclassified_transport_error(exc, http_status=code)
+                error.kind = "tls_certificate"
+                raise error from exc
+            if attempt <= retries:
+                time.sleep(min(2 ** (attempt - 1), 8))
+                continue
+            raise network_error(exc, http_status=code) from exc
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+            report_attempt(http_status=code, exc=exc)
+            if attempt <= retries:
+                time.sleep(min(2 ** (attempt - 1), 8))
+                continue
+            raise network_error(exc, http_status=code) from exc
+        except Exception as exc:
+            report_attempt(http_status=code, exc=exc)
+            raise unclassified_transport_error(exc, http_status=code) from exc
+        finally:
+            if response is not None:
+                response.close()
+
+        if code not in (429, 500, 502, 503, 504):
+            report_attempt(
+                http_status=code,
+                exception_type=attempt_exception_type or (
+                    "HTTPError" if code != 200 else None
+                ),
+            )
+        if code in (429, 500, 502, 503, 504) and attempt <= retries:
+            report_attempt(http_status=code, exception_type=attempt_exception_type)
+            time.sleep(min(2 ** (attempt - 1), 8))
+            continue
+        break
+
+    elapsed = time.monotonic() - started
+    text = raw.decode("utf-8", "replace")
     try:
         obj = json.loads(text)
-    except Exception as e:  # noqa: BLE001
-        raise WereadError(f"响应不是 JSON：{text[:200]!r}") from e
-
-    # 文档：返回 upgrade_info 时必须停下并按提示升级，不得忽略
-    if isinstance(obj, dict) and "upgrade_info" in obj:
-        info = obj.get("upgrade_info") or {}
-        msg = info.get("message") if isinstance(info, dict) else str(info)
+    except (TypeError, ValueError) as exc:
+        if code != 200:
+            raise WereadError(
+                "官方网关返回非 JSON 错误响应。",
+                kind="http",
+                http_status=code,
+                attempts=attempt,
+                elapsed_seconds=elapsed,
+            ) from exc
         raise WereadError(
-            f"微信读书要求升级 skill 版本：{msg}\n"
-            f"  当前脚本写的是 {skill_version}。请更新 tools/weread_gateway.py 里的 SKILL_VERSION。"
+            "官方网关成功响应无法解析为 JSON。",
+            kind="response_parse",
+            http_status=code,
+            attempts=attempt,
+            elapsed_seconds=elapsed,
+        ) from exc
+
+    if code != 200:
+        error_code = obj.get("errcode") if isinstance(obj, dict) else None
+        raise WereadError(
+            "官方网关请求失败。",
+            kind="http",
+            http_status=code,
+            errcode=error_code,
+            attempts=attempt,
+            elapsed_seconds=elapsed,
+        )
+    if not isinstance(obj, dict):
+        raise WereadError(
+            "官方网关响应顶层结构不是对象。",
+            kind="response_shape",
+            http_status=code,
+            attempts=attempt,
+            elapsed_seconds=elapsed,
+        )
+    if "upgrade_info" in obj:
+        raise WereadError(
+            "官方网关要求升级。",
+            kind="upgrade_required",
+            http_status=code,
+            errcode=obj.get("errcode"),
+            attempts=attempt,
+            elapsed_seconds=elapsed,
         )
 
-    errcode = obj.get("errcode") if isinstance(obj, dict) else None
+    errcode = obj.get("errcode")
     if errcode not in (0, None):
-        errmsg = obj.get("errmsg") or obj.get("message") or ""
-        raise WereadError(f"网关返回 errcode={errcode}：{errmsg}")
+        raise WereadError(
+            "官方网关返回非零业务错误码。",
+            kind="api_error",
+            http_status=code,
+            errcode=errcode,
+            attempts=attempt,
+            elapsed_seconds=elapsed,
+        )
 
     return obj
 
@@ -117,17 +292,16 @@ def summarize_apis(obj):
     rows = []
     candidates = None
     for key in ("apis", "api_list", "list", "data", "interfaces"):
-        v = obj.get(key)
-        if isinstance(v, list):
-            candidates = v
+        value = obj.get(key) if isinstance(obj, dict) else None
+        if isinstance(value, list):
+            candidates = value
             break
     if candidates is None:
-        # 有时是 {api_name: {...}} 的映射
         for key in ("apis", "api_list", "interfaces", "data"):
-            v = obj.get(key)
-            if isinstance(v, dict):
+            value = obj.get(key) if isinstance(obj, dict) else None
+            if isinstance(value, dict):
                 candidates = [{"api_name": k, **(vv if isinstance(vv, dict) else {})}
-                              for k, vv in v.items()]
+                              for k, vv in value.items()]
                 break
 
     for item in (candidates or []):
@@ -159,5 +333,8 @@ def find_api(rows, *keywords):
 
 
 def redact_error(text):
-    """错误信息里若混入 Key，抹掉。"""
-    return re.sub(r"wrk-[A-Za-z0-9_\-]{8,}", "wrk-***", text or "")
+    """错误信息里若混入 Key 或 Authorization Header，则抹掉。"""
+    text = str(text or "")
+    text = re.sub(r"Bearer\s+[A-Za-z0-9_.\-]+", "Bearer [REDACTED]", text)
+    text = re.sub(r"wrk-[A-Za-z0-9_\-]{8,}", "wrk-***", text)
+    return text

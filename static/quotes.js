@@ -1,7 +1,7 @@
 /* ==========================================================================
    首屏句子的打字机效果
 
-   数据来源：首页 HTML 内联的 #home-quotes（由 Hugo 从 data/quotes.yaml 生成）。
+   手动句子来自首页内联的 #home-quotes；WeRead 只通过 Worker 获取单条随机句子。
 
    行为：
      · 每次刷新随机抽一句（尽量避开刚看过的那句）
@@ -36,6 +36,13 @@
   const homeClockEl = document.querySelector("[data-home-clock]");
   const homeDateEl = document.querySelector("[data-home-date]");
   const homeRoot = host.closest(".home--living");
+  const localHost = window.location
+    && ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const wereadDevEnabled = Boolean(localHost
+    && new URLSearchParams(window.location.search || "").get("wereadDev") === "1");
+  const wereadApiBase = wereadDevEnabled
+    ? "http://127.0.0.1:8765"
+    : String(window.WEREAD_SYNC_API_BASE || "").replace(/\/+$/, "");
   const segmenter = typeof Intl.Segmenter === "function"
     ? new Intl.Segmenter("zh", { granularity: "word" })
     : null;
@@ -277,7 +284,7 @@
     activeItem = item;
     typingFinished = true;
     textEl.textContent = layoutText(String(item.text || "").slice(0, MAX_LEN));
-    setSource(item.source || "");
+    setSource(formatQuoteSource(item));
     if (caretEl) caretEl.classList.add("is-done");
     host.classList.remove("is-loading");
   }
@@ -338,7 +345,7 @@
     activeItem = item;
     typingFinished = false;
     const chars = Array.from(layoutText(String(item.text || "").slice(0, MAX_LEN)));
-    setSource(item.source || "");
+    setSource(formatQuoteSource(item));
     if (caretEl) caretEl.classList.remove("is-done");
 
     if (!chars.length) {
@@ -386,11 +393,11 @@
   /* ---------- 抽签 ---------- */
 
   function pick(list) {
+    if (!Array.isArray(list) || !list.length) return null;
     if (list.length === 1) return list[0];
     let seen = "";
     try { seen = localStorage.getItem(SEEN_KEY) || ""; } catch (e) { /* 隐私模式 */ }
 
-    // 最多试 8 次避开上一句；句库很小时允许重复
     for (let attempt = 0; attempt < 8; attempt += 1) {
       const c = list[Math.floor(Math.random() * list.length)];
       if (String(c.text) !== seen) {
@@ -403,41 +410,158 @@
     return c;
   }
 
+  function normalizeQuote(candidate, sourceType) {
+    if (!candidate || typeof candidate !== "object") return null;
+    const text = String(candidate.text || "").replace(/\s*\|\s*/g, "\n").trim();
+    if (!text) return null;
+    const type = String(candidate.source_type || (sourceType === "manual" ? "manual" : ""));
+    if (type !== sourceType) return null;
+    return {
+      text,
+      source_type: type,
+      source: String(candidate.source || "").trim(),
+      author: String(candidate.author || "").trim(),
+      chapter: String(candidate.chapter || "").trim(),
+      also_sources: Array.isArray(candidate.also_sources)
+        ? candidate.also_sources.filter((source) => source && typeof source === "object")
+        : []
+    };
+  }
+
+  function buildQuoteSources(data) {
+    const sources = [];
+    const appendSource = (key, items) => {
+      const list = Array.isArray(items)
+        ? items.map((item) => normalizeQuote(item, key)).filter(Boolean)
+        : [];
+      if (list.length) sources.push({ key, items: list });
+    };
+
+    if (Array.isArray(data)) {
+      appendSource("manual", data);
+      return sources;
+    }
+    if (data && typeof data === "object") {
+      if (data.manual !== undefined) {
+        appendSource("manual", data.manual);
+        return sources;
+      }
+      appendSource("manual", data.quotes);
+      if (!sources.length) {
+        const fallback = Object.keys(data).flatMap((key) => Array.isArray(data[key]) ? data[key] : []);
+        appendSource("manual", fallback);
+      }
+    }
+    return sources;
+  }
+
+  function formatQuoteSource(item) {
+    if (item.source_type !== "weread") return item.source || "";
+    const allSources = [{
+      source: item.source,
+      author: item.author,
+      chapter: item.chapter
+    }, ...item.also_sources];
+    const lines = [];
+    const seen = new Set();
+    allSources.forEach((source) => {
+      if (!source || typeof source !== "object") return;
+      const title = String(source.source || "").trim();
+      const author = String(source.author || "").trim();
+      const chapter = String(source.chapter || "").trim();
+      const parts = [];
+      if (title) parts.push(`《${title}》`);
+      if (author) parts.push(author);
+      if (chapter) parts.push(chapter);
+      const line = parts.join(" · ");
+      if (line && !seen.has(line)) {
+        seen.add(line);
+        lines.push(line);
+      }
+    });
+    return lines.join("；");
+  }
+
+  function selectQuote(data) {
+    const sources = buildQuoteSources(data);
+    const manual = sources.find((source) => source.key === "manual");
+    return manual ? pick(manual.items) : null;
+  }
+
   /* ---------- 取数 ---------- */
 
-  function loadQuotes() {
+  function normalizeRemoteQuote(candidate) {
+    if (!candidate || typeof candidate !== "object"
+      || candidate.source_type !== "weread"
+      || typeof candidate.text !== "string" || !candidate.text.trim()
+      || candidate.text.length > 20000) return null;
+    return {
+      text: candidate.text.trim(),
+      source_type: "weread",
+      source: typeof candidate.source === "string" ? candidate.source.trim().slice(0, 2000) : "",
+      author: typeof candidate.author === "string" ? candidate.author.trim().slice(0, 2000) : "",
+      chapter: typeof candidate.chapter === "string" ? candidate.chapter.trim().slice(0, 2000) : "",
+      also_sources: []
+    };
+  }
+
+  async function fetchWereadQuote() {
+    if (!wereadApiBase || wereadApiBase.includes("REPLACE_WITH_")) return null;
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    let timeout = 0;
     try {
-      const data = JSON.parse(quotesEl && quotesEl.textContent || "null");
-      if (!Array.isArray(data)) {
-        throw new Error("内联数据缺少 quotes 数组");
-      }
-
-      // 过滤掉空条目（data/quotes.yaml 里可能留了空占位）
-      const list = data
-        .map((q) => ({
-          text: String(q.text || "").replace(/\s*\|\s*/g, "\n").trim(),
-          source: String(q.source || "").trim()
-        }))
-        .filter((q) => q.text);
-
-      if (!list.length) {
-        // empty：句子库是空的 —— 显示兜底句，不显示空白
-        console.warn("[quotes] data/quotes.yaml 里还没有句子，显示兜底文案。");
-        showFull({ text: FALLBACK, source: "" });
-      } else {
-        const item = pick(list);
-        if (reduceMotion) showFull(item);
-        else typeOut(item);
-      }
-    } catch (error) {
-      // error：不打扰访客，显示兜底句并在控制台留下原因
-      const reason = String(error && error.message || error);
-      console.warn(`[quotes] 句子加载失败（${reason}），显示兜底文案。`);
-      showFull({ text: FALLBACK, source: "" });
+      const timeoutResult = new Promise((resolve) => {
+        timeout = setTimeout(() => {
+          if (controller) controller.abort();
+          resolve(null);
+        }, 1800);
+      });
+      const quoteResult = fetch(`${wereadApiBase}/public/quote`, {
+        method: "GET",
+        credentials: "omit",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+        ...(controller ? { signal: controller.signal } : {})
+      }).then(async (response) => {
+        if (!response.ok || Number(response.headers.get("Content-Length") || 0) > 96 * 1024
+          || !/application\/json/i.test(response.headers.get("Content-Type") || "")) return null;
+        const body = await response.text();
+        if (body.length > 96 * 1024) return null;
+        return normalizeRemoteQuote(JSON.parse(body));
+      });
+      return await Promise.race([quoteResult, timeoutResult]);
+    } catch (_) {
+      return null;
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
   }
 
-  // 页面切走时停掉打字，避免回来接着打
+  async function loadQuotes() {
+    let manualItem = null;
+    try {
+      const data = JSON.parse(quotesEl && quotesEl.textContent || "null");
+      if (!Array.isArray(data)
+        && (!data || typeof data !== "object" || !Array.isArray(data.manual))) {
+        throw new Error("invalid_manual_quote_shape");
+      }
+      manualItem = selectQuote(data);
+    } catch (_) {
+      console.warn("[quotes] 手动句子数据无效。");
+    }
+
+    const chooseWeread = Boolean(wereadApiBase)
+      && (!manualItem || Math.random() >= 0.5);
+    const wereadItem = chooseWeread ? await fetchWereadQuote() : null;
+    const item = wereadItem || manualItem;
+    if (item) {
+      if (reduceMotion) showFull(item);
+      else typeOut(item);
+    } else {
+      showFull({ text: FALLBACK, source: "" });
+    }
+  }
+// 页面切走时停掉打字，避免回来接着打
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && typeTimer) {
       clearTimeout(typeTimer);
