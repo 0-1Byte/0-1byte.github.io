@@ -12,10 +12,12 @@ from urllib.parse import urlparse
 
 import requests
 
-from validate_weread_quotes import validate
+from validate_weread_quotes import MAX_RECORDS, validate
 
 MAX_CHUNK_BYTES = 64 * 1024
-MAX_RECORDS = 20000
+MAX_UPLOAD_RECORDS_PER_CHUNK = 200
+MAX_UPLOAD_REQUEST_BYTES = 96 * 1024
+MAX_UPLOAD_CHUNKS = 300
 MAX_DATASET_BYTES = 32 * 1024 * 1024
 WORKER_CONFIG = Path(__file__).resolve().parents[1] / "worker" / "weread-sync" / "wrangler.toml"
 WORKER_HOST_PATTERN = r"^weread-sync-console\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.workers\.dev$"
@@ -25,23 +27,41 @@ def encode_records(records):
     return json.dumps(records, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
+def encode_payload(payload):
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def encode_chunk_request(records, chunk_index=MAX_UPLOAD_CHUNKS - 1):
+    return encode_payload({
+        "upload_id": "0" * 36,
+        "chunk_index": chunk_index,
+        "records": records,
+    })
+
+
+def chunk_fits(records):
+    return (len(records) <= MAX_UPLOAD_RECORDS_PER_CHUNK
+            and len(encode_records(records)) <= MAX_CHUNK_BYTES
+            and len(encode_chunk_request(records)) <= MAX_UPLOAD_REQUEST_BYTES)
+
+
 def make_chunks(items):
     chunks = []
     current = []
     for item in items:
         candidate = current + [item]
-        if len(encode_records(candidate)) > MAX_CHUNK_BYTES:
+        if not chunk_fits(candidate):
             if not current:
                 raise ValueError("single record exceeds upload chunk limit")
             chunks.append(current)
             current = [item]
-            if len(encode_records(current)) > MAX_CHUNK_BYTES:
+            if not chunk_fits(current):
                 raise ValueError("single record exceeds upload chunk limit")
         else:
             current = candidate
     if current:
         chunks.append(current)
-    if len(chunks) > 300:
+    if len(chunks) > MAX_UPLOAD_CHUNKS:
         raise ValueError("dataset exceeds upload chunk limit")
     return chunks
 
@@ -82,7 +102,7 @@ def request(session, base, path, secret, body):
     try:
         response = session.post(
             base + path,
-            data=json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
+            data=encode_payload(body),
             headers={
                 "Authorization": "Bearer " + secret,
                 "Content-Type": "application/json",
@@ -132,11 +152,15 @@ def publish(path):
         })
         started = True
         for index, records in enumerate(chunks):
-            request(session, api, "/internal/upload/chunk", secret, {
+            body = {
                 "upload_id": upload_id,
                 "chunk_index": index,
                 "records": records,
-            })
+            }
+            if (len(records) > MAX_UPLOAD_RECORDS_PER_CHUNK
+                    or len(encode_payload(body)) > MAX_UPLOAD_REQUEST_BYTES):
+                raise ValueError("upload chunk exceeds Worker request limits")
+            request(session, api, "/internal/upload/chunk", secret, body)
             print("上传私有数据批次: {}/{}".format(index + 1, len(chunks)))
         request(session, api, "/internal/upload/complete", secret, {
             "upload_id": upload_id,
@@ -163,7 +187,7 @@ def main():
         publish(args.file)
     except Exception as exc:
         message = str(exc)
-        if not message.startswith(("http_", "transport_", "invalid_",
+        if not message.startswith(("http_", "transport_", "invalid_", "record ",
                                    "WEREAD_", "dataset ", "single ", "missing_")):
             message = type(exc).__name__
         print("私有数据上传失败: {}".format(message))
