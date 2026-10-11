@@ -50,6 +50,7 @@
   const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
   const FALLBACK = "building small things, thinking about large things.";
+  const WEREAD_REQUEST_TIMEOUT_MS = 8000;
 
   const SEEN_KEY = "home-quote-seen";
   const RECENT_BACKGROUND_KEY = "home-background-recent";
@@ -509,12 +510,22 @@
     if (!wereadApiBase || wereadApiBase.includes("REPLACE_WITH_")) return null;
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     let timeout = 0;
+    let timedOut = false;
+    const diagnoseFailure = (reason, status) => {
+      if (reason === "http_status") {
+        console.warn("[quotes] WeRead request failed: http_status", status);
+      } else {
+        console.warn("[quotes] WeRead request failed:", reason);
+      }
+      return null;
+    };
     try {
       const timeoutResult = new Promise((resolve) => {
         timeout = setTimeout(() => {
+          timedOut = true;
           if (controller) controller.abort();
-          resolve(null);
-        }, 1800);
+          resolve({ failure: "timeout" });
+        }, WEREAD_REQUEST_TIMEOUT_MS);
       });
       const quoteResult = fetch(`${wereadApiBase}/public/quote`, {
         method: "GET",
@@ -523,15 +534,27 @@
         headers: { Accept: "application/json" },
         ...(controller ? { signal: controller.signal } : {})
       }).then(async (response) => {
-        if (!response.ok || Number(response.headers.get("Content-Length") || 0) > 96 * 1024
-          || !/application\/json/i.test(response.headers.get("Content-Type") || "")) return null;
+        if (!response.ok) return { failure: "http_status", status: response.status };
+        if (Number(response.headers.get("Content-Length") || 0) > 96 * 1024) {
+          return { failure: "response_too_large" };
+        }
+        if (!/application\/json/i.test(response.headers.get("Content-Type") || "")) {
+          return { failure: "invalid_content_type" };
+        }
         const body = await response.text();
-        if (body.length > 96 * 1024) return null;
-        return normalizeRemoteQuote(JSON.parse(body));
-      });
-      return await Promise.race([quoteResult, timeoutResult]);
-    } catch (_) {
-      return null;
+        if (body.length > 96 * 1024) return { failure: "response_too_large" };
+        let parsed;
+        try {
+          parsed = JSON.parse(body);
+        } catch (_) {
+          return { failure: "invalid_json" };
+        }
+        const item = normalizeRemoteQuote(parsed);
+        return item ? { item } : { failure: "invalid_quote" };
+      }).catch(() => ({ failure: timedOut ? "timeout" : "network_error" }));
+      const result = await Promise.race([quoteResult, timeoutResult]);
+      if (result.failure) return diagnoseFailure(result.failure, result.status);
+      return result.item;
     } finally {
       if (timeout) clearTimeout(timeout);
     }
