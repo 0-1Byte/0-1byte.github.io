@@ -282,6 +282,61 @@ test("private upload rejects unauthenticated, empty and oversized manifests", as
   assert.equal(db.uploads.size, 0);
 });
 
+test("credential preflight routes authenticate before rejecting empty bodies without side effects", async () => {
+  const db = new MemoryDB();
+  let dbCalls = 0;
+  const guardedDb = {
+    prepare(sql) {
+      dbCalls += 1;
+      return db.prepare(sql);
+    },
+    batch(statements) {
+      dbCalls += 1;
+      return db.batch(statements);
+    },
+  };
+  let coordinatorCalls = 0;
+  const service = privateEnv(guardedDb, {
+    REPORT_SECRET: "test-only-report-secret",
+    SYNC_COORDINATOR: {
+      idFromName: (name) => name,
+      get: () => ({
+        fetch: async () => {
+          coordinatorCalls += 1;
+          return Response.json({ accepted: true }, { status: 202 });
+        },
+      }),
+    },
+  });
+
+  const upload = async (authorization) => worker.fetch(
+    uploadRequest("/internal/upload/start", {}, {
+      authorized: authorization === `******`,
+      headers: authorization === `******` ? {} : { Authorization: authorization },
+    }),
+    service,
+  );
+  const report = async (authorization) => worker.fetch(new Request(
+    "https://worker.example/internal/report",
+    {
+      method: "POST",
+      headers: { Authorization: authorization, "Content-Type": "application/json" },
+      body: "{}",
+    },
+  ), service);
+
+  assert.equal((await upload(`******`)).status, 400);
+  assert.equal(dbCalls, 0);
+  assert.equal((await upload("Bearer incorrect")).status, 401);
+  assert.equal(dbCalls, 0);
+
+  assert.equal((await report("Bearer test-only-report-secret")).status, 400);
+  assert.equal(coordinatorCalls, 0);
+  assert.equal((await report("Bearer incorrect")).status, 401);
+  assert.equal(coordinatorCalls, 0);
+  assert.equal(db.uploads.size, 0);
+});
+
 test("invalid or incomplete upload leaves the active private dataset untouched", async () => {
   const db = new MemoryDB();
   db.active = "previous";
