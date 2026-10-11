@@ -634,7 +634,7 @@ async function route(request, env) {
 
   if (url.pathname === "/internal/report" && request.method === "POST") {
     const authorization = request.headers.get("Authorization") || "";
-    const expected = `Bearer ${env.WEREAD_SYNC_REPORT_SECRET}`;
+    const expected = `Bearer ${env.REPORT_SECRET}`;
     if (!env.REPORT_SECRET || !constantTimeEqual(authorization, expected)) {
       return json({ error: "unauthorized" }, 401);
     }

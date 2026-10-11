@@ -742,3 +742,37 @@ test("workflow dispatch uses only the fixed main branch and workflow input", asy
     globalThis.fetch = originalFetch;
   }
 });
+
+test("internal report authenticates with REPORT_SECRET and rejects invalid credentials", async () => {
+  let forwarded = 0;
+  const service = env({
+    REPORT_SECRET: "test-only-report-secret",
+    SYNC_COORDINATOR: {
+      idFromName: (name) => name,
+      get: () => ({
+        fetch: async () => {
+          forwarded += 1;
+          return Response.json({ accepted: true }, { status: 202 });
+        },
+      }),
+    },
+  });
+  const body = JSON.stringify({
+    run_id: "12345",
+    run_attempt: 1,
+    job_status: "success",
+  });
+  const request = (authorization) => new Request("https://worker.example/internal/report", {
+    method: "POST",
+    headers: { Authorization: authorization, "Content-Type": "application/json" },
+    body,
+  });
+
+  const rejected = await worker.fetch(request("Bearer invalid-test-value"), service);
+  assert.equal(rejected.status, 401);
+  assert.equal(forwarded, 0);
+
+  const accepted = await worker.fetch(request("Bearer test-only-report-secret"), service);
+  assert.equal(accepted.status, 202);
+  assert.equal(forwarded, 1);
+});
