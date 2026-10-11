@@ -14,6 +14,7 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const STATIC = path.join(ROOT, "static");
 const src = fs.readFileSync(path.join(STATIC, "quotes.js"), "utf8");
+const layoutSrc = fs.readFileSync(path.join(ROOT, "layouts", "index.html"), "utf8");
 
 let problems = 0;
 const fail = (m) => { problems++; console.log("      ✗ " + m); };
@@ -87,6 +88,11 @@ function setup(opts, serializedQuotes) {
     hidden: false
   };
   const win = {
+    WEREAD_SYNC_API_BASE: opts.apiBase || "",
+    location: {
+      hostname: opts.hostname || "example.com",
+      search: opts.search || ""
+    },
     matchMedia: (q) => ({
       matches: q.includes("reduced-motion")
         ? opts.reduceMotion === true
@@ -144,9 +150,11 @@ async function run(opts, serializedQuotes = "[]") {
   } : null;
 
   const savedDoc = global.document, savedWin = global.window, savedLs = global.localStorage;
+  const savedFetch = global.fetch;
   const savedRandom = Math.random;
   global.document = env.doc;
   global.window = env.win;
+  global.fetch = opts.fetch || savedFetch;
   if (opts.randomValues) {
     let randomIndex = 0;
     Math.random = () => opts.randomValues[randomIndex++] ?? opts.randomValues[opts.randomValues.length - 1] ?? 0.5;
@@ -166,6 +174,7 @@ async function run(opts, serializedQuotes = "[]") {
     if (!clock) await new Promise((r) => setTimeout(r, opts.wait || 300));
   } finally {
     global.document = savedDoc; global.window = savedWin; global.localStorage = savedLs;
+    global.fetch = savedFetch;
     Math.random = savedRandom;
   }
   return { ...env, warns, store, clock };
@@ -177,7 +186,7 @@ function checkBuiltHomepageQuotes() {
   const indexPath = process.argv[2]
     ? path.resolve(process.argv[2])
     : path.join(ROOT, "public", "index.html");
-  console.log(`构建产物集成检查：${indexPath} 内联句子`);
+  console.log(`构建产物隐私检查：${indexPath} 内联手动句子`);
   let html;
   try {
     html = fs.readFileSync(indexPath, "utf8");
@@ -199,20 +208,34 @@ function checkBuiltHomepageQuotes() {
     fail(`#home-quotes 内容不能由一次 JSON.parse() 解析：${error.message}`);
     return;
   }
-  if (!Array.isArray(data)) {
-    fail(`#home-quotes 一次解析后应为数组，实际为 ${typeof data}（可能被双重编码）`);
+  if (!data || typeof data !== "object" || Array.isArray(data)
+    || !Array.isArray(data.manual) || Object.keys(data).some((key) => key !== "manual")) {
+    fail("#home-quotes 只能包含 manual 数组，不得内嵌 WeRead 数据");
     return;
   }
-  if (!data.length) {
-    fail("#home-quotes 数组不能为空");
+  if (!data.manual.every((quote) => quote && typeof quote.text === "string"
+    && quote.text.trim() && typeof quote.source === "string"
+    && quote.source_type === "manual")) {
+    fail("手动来源的句子必须包含 text/source，并使用 source_type=manual");
     return;
   }
-  if (!data.every((quote) => quote && typeof quote.text === "string"
-    && quote.text.trim() && typeof quote.source === "string")) {
-    fail("每个句子项都必须包含非空 text 字符串和 source 字符串");
+  if (/"(?:book_id|chapter_uid|bookmark_id|also_sources)"\s*:/.test(match[1])) {
+    fail("#home-quotes 包含被禁止公开的内部元数据");
     return;
   }
-  ok(`#home-quotes 一次解析得到 ${data.length} 条有效句子`);
+  if (/site\.Data\.weread_quotes|data\/weread_quotes\.json/.test(layoutSrc)) {
+    fail("首页模板仍然读取本地完整 WeRead 数据集");
+    return;
+  }
+  if (fs.existsSync(path.join(path.dirname(indexPath), "data", "weread_quotes.json"))) {
+    fail("构建产物公开目录中存在完整 WeRead JSON 文件");
+    return;
+  }
+  if (!html.includes("admin/weread-sync/config.js")) {
+    fail("首页缺少 Worker 地址配置脚本");
+    return;
+  }
+  ok(`#home-quotes 只包含 manual=${data.manual.length} 条；没有内嵌 WeRead 数据或内部字段`);
 }
 
 /* 出处自带破折号时，应加 data-has-dash 让 CSS 的 ::before 不要重复加前缀。
@@ -325,8 +348,196 @@ async function checkDashGuard() {
     fail(`上一句避让未生效，选中：[${randomPick.els.text.textContent}]`);
   } else ok("刷新抽取随机候选，并避开 localStorage 中的上一句");
 
+  console.log();
+  console.log("0.3 Worker 单条读取、双来源独立随机与降级");
+  const manual = [{ text: "手动来源测试", source: "" }];
+  const remoteQuote = {
+    text: "WeRead来源测试",
+    source_type: "weread",
+    source: "合成测试书",
+    author: "合成作者",
+    chapter: "合成章节",
+    book_id: "must-not-reach-browser"
+  };
+  let remoteRequest = null;
+  const fetchWeread = async (url, options) => {
+    remoteRequest = { url, options };
+    return new Response(JSON.stringify(remoteQuote), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+  const manualOnly = await run({ wait: 1, reduceMotion: true, randomValues: [0] },
+    JSON.stringify({ manual }));
+  const wereadOnly = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example",
+    fetch: fetchWeread
+  }, JSON.stringify({ manual: [] }));
+  if (manualOnly.els.text.textContent !== "手动来源测试") fail("仅手动来源时应显示手动句子");
+  else ok("仅手动来源可正常显示");
+  if (wereadOnly.els.text.textContent !== "WeRead来源测试") fail("仅 WeRead 来源时应显示 WeRead 句子");
+  else ok("仅 WeRead 来源可正常显示");
+  if (wereadOnly.els.source.textContent !== "《合成测试书》 · 合成作者 · 合成章节") {
+    fail("WeRead 出处应按书名、作者、章节显示");
+  } else ok("WeRead 出处使用书名、作者和章节字段");
+  if (!remoteRequest || remoteRequest.url !== "https://worker.example/public/quote"
+    || remoteRequest.options.credentials !== "omit") {
+    fail("首页应以无凭据 GET 请求 Worker 的单条随机接口");
+  } else ok("首页只请求 Worker 单条接口且不发送浏览器凭据");
+
+  console.log("0.3.1 本地开发模式必须显式启用且仅适用于回环主机");
+  let localRequest = null;
+  const localDevFetch = async (url, options) => {
+    localRequest = { url, options };
+    return fetchWeread(url, options);
+  };
+  await run({
+    wait: 1,
+    reduceMotion: true,
+    hostname: "localhost",
+    search: "?wereadDev=1",
+    apiBase: "https://worker.example",
+    randomValues: [0.999],
+    fetch: localDevFetch
+  }, JSON.stringify({ manual }));
+  if (!localRequest || localRequest.url !== "http://127.0.0.1:8765/public/quote") {
+    fail("localhost + wereadDev=1 时应使用固定本地接口");
+  } else if (localRequest.options.cache !== "no-store") {
+    fail("本地接口请求应禁用浏览器缓存");
+  } else ok("localhost + wereadDev=1 启用本地接口并禁用缓存");
+
+  let repeatedLocalRequests = 0;
+  const repeatedLocalFetch = async (url, options) => {
+    repeatedLocalRequests += 1;
+    return fetchWeread(url, options);
+  };
+  const repeatedOne = await run({
+    wait: 1,
+    reduceMotion: true,
+    hostname: "127.0.0.1",
+    search: "?wereadDev=1",
+    randomValues: [0.999],
+    fetch: repeatedLocalFetch
+  }, JSON.stringify({ manual }));
+  const repeatedTwo = await run({
+    wait: 1,
+    reduceMotion: true,
+    hostname: "127.0.0.1",
+    search: "?wereadDev=1",
+    randomValues: [0.999],
+    fetch: repeatedLocalFetch
+  }, JSON.stringify({ manual }));
+  if (repeatedLocalRequests !== 2
+    || repeatedOne.els.text.textContent !== "WeRead来源测试"
+    || repeatedTwo.els.text.textContent !== "WeRead来源测试") {
+    fail("每次新的首页初始化都应重新请求并展示本地 WeRead 单条结果");
+  } else ok("重复初始化各自重新请求并显示 WeRead 结果");
+
+  let nonLocalRequest = null;
+  await run({
+    wait: 1,
+    reduceMotion: true,
+    hostname: "0-1byte.github.io",
+    search: "?wereadDev=1",
+    apiBase: "https://worker.example",
+    randomValues: [0.999],
+    fetch: async (url, options) => {
+      nonLocalRequest = { url, options };
+      return fetchWeread(url, options);
+    }
+  }, JSON.stringify({ manual }));
+  if (!nonLocalRequest || nonLocalRequest.url !== "https://worker.example/public/quote") {
+    fail("非本机主机即使带开发参数也必须只请求 Worker");
+  } else ok("非本机主机忽略开发参数并继续请求 Worker");
+
+  let noFlagRequest = null;
+  await run({
+    wait: 1,
+    reduceMotion: true,
+    hostname: "127.0.0.1",
+    apiBase: "https://worker.example",
+    randomValues: [0.999],
+    fetch: async (url, options) => {
+      noFlagRequest = { url, options };
+      return fetchWeread(url, options);
+    }
+  }, JSON.stringify({ manual }));
+  if (!noFlagRequest || noFlagRequest.url !== "https://worker.example/public/quote") {
+    fail("本机未显式启用时必须继续使用配置的 Worker");
+  } else ok("本机未提供 wereadDev=1 时仍请求 Worker");
+  if (JSON.stringify(wereadOnly.els.source.textContent).includes("must-not-reach-browser")) {
+    fail("浏览器不得显示 Worker 白名单之外的字段");
+  } else ok("浏览器忽略 Worker 响应中的内部字段");
+
+  const legacyWeread = await run({ wait: 1, reduceMotion: true },
+    JSON.stringify({ manual: [], weread: [{ text: "旧记录", source: "weread" }] }));
+  if (!legacyWeread.els.text.textContent.includes("building small things")) {
+    fail("旧内嵌 WeRead 数据不得被作为有效来源");
+  } else ok("忽略旧内嵌 WeRead 数据，显示兜底句");
+
+  let manualSelections = 0;
+  let wereadSelections = 0;
+  for (let i = 0; i < 200; i += 1) {
+    const selected = await run({
+      wait: 1,
+      reduceMotion: true,
+      apiBase: "https://worker.example",
+      randomValues: [i % 2 === 0 ? 0 : 0.999],
+      fetch: fetchWeread
+    }, JSON.stringify({
+      manual: [{ text: "手动池较小", source: "" }]
+    }));
+    if (selected.els.text.textContent === "手动池较小") manualSelections += 1;
+    if (selected.els.source.textContent.indexOf("《合成测试书》") === 0) wereadSelections += 1;
+  }
+  if (manualSelections !== 100 || wereadSelections !== 100) {
+    fail(`来源概率应各约 50%，本次 manual=${manualSelections} weread=${wereadSelections}`);
+  } else ok(`200 次可控抽取按来源各 50%（manual=${manualSelections}, weread=${wereadSelections}）`);
+
+  const missingWeread = await run({ wait: 1, reduceMotion: true, randomValues: [0] },
+    JSON.stringify({ manual: [{ text: "手动回退", source: "" }] }));
+  if (missingWeread.els.text.textContent !== "手动回退") fail("WeRead 来源缺失时应回退到手动来源");
+  else ok("WeRead 数据缺失时回退到手动来源");
+
+  const serviceUnavailable = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example",
+    randomValues: [0.999],
+    fetch: async () => new Response("{}", { status: 503 })
+  }, JSON.stringify({ manual: [{ text: "服务失败回退", source: "" }] }));
+  if (serviceUnavailable.els.text.textContent !== "服务失败回退") {
+    fail("Worker 不可用时应回退到手动来源");
+  } else ok("Worker 失败时平稳回退到手动句子");
+
+  const timedOutRequest = await run({
+    fakeTimers: true,
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example",
+    randomValues: [0.999],
+    fetch: () => new Promise(() => {}),
+    onInit: ({ clock }) => clock.runNext()
+  }, JSON.stringify({ manual: [{ text: "超时后回退", source: "" }] }));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  if (timedOutRequest.els.text.textContent !== "超时后回退") {
+    fail("Worker 超时时应回退到手动来源");
+  } else ok("Worker 超时后平稳回退到手动句子");
+
+  const bothEmpty = await run({ wait: 1, reduceMotion: true }, JSON.stringify({ manual: [] }));
+  if (bothEmpty.els.text.textContent.replace(/\s+/g, " ").trim()
+    !== "building small things, thinking about large things.") {
+    fail("两个来源都为空时应显示兜底句");
+  } else ok("两个来源均为空时显示兜底句");
+
   console.log("A. 打字过程（逐帧观察文本长度）");
-  const long = { text: "这是一句用来观察打字过程的话。", source: "《测试》· 某人" };
+  const long = {
+    text: "这是一句用来观察打字过程的话。",
+    source_type: "manual",
+    source: "合成手动出处"
+  };
   let typingInitialText = null;
   let typingInitialDelay = null;
   const typing = await run({
@@ -372,8 +583,11 @@ async function checkDashGuard() {
   else ok("长句逐字输出并完整结束");
   if (!typing.els.caret._classes.has("is-done")) fail("打完后光标未标记 is-done");
   else ok("打完后光标变暗（is-done）");
-  if (typing.els.source.textContent !== "《测试》· 某人") fail("出处未显示");
-  else ok(`出处显示：${typing.els.source.textContent}`);
+  if (typing.els.source.textContent
+    !== "合成手动出处") {
+    fail("手动句子出处显示错误");
+  }
+  else ok("手动句子出处维持原有显示行为");
 
   console.log();
   console.log("A.1 短句逐字输出");
@@ -397,12 +611,9 @@ async function checkDashGuard() {
   console.log();
   console.log("C. empty：句子库为空");
   const empty = await run({ wait: 400 }, quotesFetch([]));
-  console.log(`      文本 = [${empty.els.text.textContent}]`);
   if (empty.els.text.textContent.replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("空句子库时应显示完整兜底句");
   } else ok("保留兜底句，页面不空白");
-  if (!empty.warns.some((w) => w.includes("quotes"))) fail("空句子库时应留一条 console.warn");
-  else ok(`console.warn：${empty.warns[0].slice(0, 50)}`);
 
   console.log();
   console.log("D. error：内联数据无效");
@@ -411,18 +622,19 @@ async function checkDashGuard() {
   if (err.els.text.textContent.replace(/\s+/g, " ").trim() !== "building small things, thinking about large things.") {
     fail("请求失败时应显示完整兜底句");
   } else ok("请求失败时显示兜底句");
-  if (!err.warns.some((w) => w.includes("加载失败"))) fail("失败时应留一条 console.warn");
+  if (!err.warns.some((w) => w.includes("手动句子数据无效"))) fail("无效内联数据应记录安全诊断");
   else ok(`console.warn：${err.warns[0].slice(0, 60)}`);
 
   console.log();
   console.log("E. 格式不对（缺 quotes 数组）");
   const badShape = await run({ wait: 400 }, JSON.stringify({ groups: [] }));
-  if (!badShape.warns.some((w) => w.includes("加载失败"))) fail("缺 quotes 时应走 error 分支");
+  if (!badShape.warns.some((w) => w.includes("手动句子数据无效"))) fail("缺手动句子数组时应走错误分支");
   else ok("走 error 分支并保留原句");
 
   console.log();
   console.log("F. prefers-reduced-motion：直接显示整句");
-  const rm = await run({ wait: 250, reduceMotion: true }, quotesFetch([long]));
+  const rm = await run({ wait: 250, reduceMotion: true },
+    JSON.stringify([{ ...long, source_type: "manual", source: "" }]));
   console.log(`      250ms 时文本长度 = ${Array.from(rm.els.text.textContent).length}`);
   if (rm.els.text.textContent !== long.text) fail("减少动效时应一次显示整句");
   else ok("一次显示整句，不打字");

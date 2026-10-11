@@ -4,7 +4,7 @@
   结构：只有那句随机句子（+ 可选的一段说明）。
 
   关于首屏句子（打字机）：
-    句子从 data/quotes.yaml 随机抽取，由 static/quotes.js 运行时渲染。
+    手动句子从 data/quotes.yaml 注入；WeRead 仅由 Worker 返回单条随机句子。
     数据准备好之前句子区保持隐藏，避免固定句子参与首屏绘制。
 
   曾经的 currently 与 writing 两块已按反馈移除（首页太乱）：
@@ -41,7 +41,7 @@
   {{- end }}
 {{- end }}
 
-{{- $quotes := slice }}
+{{- $manualQuotes := slice }}
 {{- range $quote := site.Data.quotes }}
   {{- $text := "" }}
   {{- $source := "" }}
@@ -53,7 +53,11 @@
   {{- end }}
   {{- $text = $text | strings.TrimSpace }}
   {{- if $text }}
-    {{- $quotes = $quotes | append (dict "text" $text "source" ($source | strings.TrimSpace)) }}
+    {{- $manualQuotes = $manualQuotes | append (dict
+      "text" $text
+      "source_type" "manual"
+      "source" ($source | strings.TrimSpace)
+    ) }}
   {{- end }}
 {{- end }}
 
@@ -65,7 +69,8 @@
     <span class="home-atmosphere-shade"></span>
     <span class="home-atmosphere-grain"></span>
   </div>
-  {{- printf `<script type="application/json" id="home-quotes">%s</script>` ($quotes | jsonify) | safeHTML }}
+  {{- printf `<script type="application/json" id="home-quotes">%s</script>` (dict "manual" $manualQuotes | jsonify) | safeHTML }}
+  <script src="{{ "admin/weread-sync/config.js" | relURL }}"></script>
 
   {{- /*
     为什么 hero 上多一个 hero--quote 修饰类：

@@ -1,0 +1,271 @@
+name: Sync WeRead private quotes
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run offline checks or synchronize the private D1 dataset"
+        required: true
+        type: choice
+        options:
+          - sync
+          - check
+        default: sync
+      request_id:
+        description: "Console-generated correlation ID"
+        required: false
+        type: string
+        default: ""
+
+run-name: WeRead sync ${{ inputs.request_id }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weread-sync-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          submodules: recursive
+
+      - name: Verify private sync code is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            tools/sync_weread_quotes.py
+            tools/weread_gateway.py
+            tools/weread_secret.py
+            tools/test_sync_weread_quotes.py
+            tools/test_validate_weread_quotes.py
+            tools/test_private_quote_delivery.py
+            tools/requirements-weread.txt
+            tools/validate_weread_quotes.py
+            tools/publish_weread_quotes.py
+            tools/verify_quotes.js
+            layouts/index.html
+            static/quotes.js
+            static/admin/weread-sync/config.js
+            static/admin/weread-sync/index.html
+            static/admin/weread-sync/app.js
+            static/admin/weread-sync/style.css
+            worker/weread-sync/src/index.js
+            worker/weread-sync/wrangler.toml
+            worker/weread-sync/package.json
+            worker/weread-sync/test/worker.test.js
+            worker/weread-sync/README.md
+            worker/weread-sync/migrations/0001_private_quotes.sql
+          )
+          for file in "${required[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "::error::Required private sync file is missing from main: $file"
+              exit 1
+            fi
+          done
+          if [[ -e data/weread_quotes.json ]]; then
+            echo "::error::A public-repository WeRead dataset is present; refusing to build or publish it"
+            exit 1
+          fi
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install WeRead dependencies
+        run: python -m pip install -r tools/requirements-weread.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.146.0"
+          extended: true
+
+      - name: Run offline tests and syntax checks
+        run: |
+          python tools/test_sync_weread_quotes.py
+          python tools/test_validate_weread_quotes.py
+          python tools/test_private_quote_delivery.py
+          npm --prefix worker/weread-sync test
+          python -m py_compile tools/weread_gateway.py tools/sync_weread_quotes.py tools/test_sync_weread_quotes.py tools/validate_weread_quotes.py tools/publish_weread_quotes.py tools/test_private_quote_delivery.py
+          node --check static/quotes.js
+          node --check tools/verify_quotes.js
+
+      - name: Verify pinned Worker origin
+        if: inputs.mode == 'sync'
+        env:
+          WEREAD_SYNC_API_BASE: ${{ vars.WEREAD_SYNC_API_BASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import re
+          import tomllib
+          from urllib.parse import urlsplit
+
+          with open("worker/weread-sync/wrangler.toml", "rb") as source:
+              expected = tomllib.load(source)["vars"]["WORKER_ORIGIN"]
+          actual = os.environ.get("WEREAD_SYNC_API_BASE", "")
+          parsed = urlsplit(actual)
+          if (parsed.scheme != "https" or parsed.netloc != parsed.hostname
+                  or parsed.path or parsed.query or parsed.fragment
+                  or not re.fullmatch(
+                      r"weread-sync-console\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.workers\.dev",
+                      parsed.hostname or "", re.IGNORECASE)
+                  or actual != expected):
+              raise SystemExit("WEREAD_SYNC_API_BASE must exactly match the pinned Worker origin.")
+          print("Pinned Worker origin is valid.")
+          PY
+
+      - name: Verify official gateway connectivity
+        if: inputs.mode == 'sync'
+        env:
+          WEREAD_API_KEY: ${{ secrets.WEREAD_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          import time
+          sys.path.insert(0, "tools")
+          from weread_gateway import API_NOTEBOOKS, WereadError, call
+          from weread_secret import load_key
+
+          key, endpoint = load_key()
+          started = time.monotonic()
+          try:
+              result = call(endpoint, key, API_NOTEBOOKS, {"count": 1}, retries=0)
+          except WereadError as exc:
+              print("Gateway preflight failed: type={} http={} elapsed={:.2f}s".format(
+                  exc.kind, exc.http_status if exc.http_status is not None else "-",
+                  time.monotonic() - started))
+              raise SystemExit(1)
+          if not isinstance(result.get("books"), list):
+              print("Gateway preflight failed: unexpected response shape")
+              raise SystemExit(1)
+          print("Gateway preflight succeeded: HTTP 200, response shape valid, elapsed={:.2f}s".format(
+              time.monotonic() - started))
+          PY
+
+      - name: Synchronize into runner temporary storage
+        if: inputs.mode == 'sync'
+        id: synchronize
+        env:
+          WEREAD_API_KEY: ${{ secrets.WEREAD_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/weread_quotes.json"
+          python tools/sync_weread_quotes.py --output "$output" 2>&1 | tee "$RUNNER_TEMP/weread-sync.log"
+          python - "$RUNNER_TEMP/weread-sync.log" "$GITHUB_OUTPUT" <<'PY'
+          import re
+          import sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          values = {
+              "notebooks": r"扫描笔记本总数:\s*(\d+)",
+              "eligible_books": r"有个人划线的书籍:\s*(\d+)",
+              "read_books": r"成功读取划线的书籍:\s*(\d+)",
+              "highlights": r"获取的非空划线数量:\s*(\d+)",
+              "quotes": r"去重后的句子数量:\s*(\d+)",
+              "unmapped_chapters": r"未映射章节划线数量:\s*(\d+)",
+              "ambiguous_chapter_ids": r"章节 ID 标题冲突数量:\s*(\d+)",
+          }
+          found = {}
+          for key, pattern in values.items():
+              match = re.search(pattern, text)
+              if not match:
+                  raise SystemExit("Sync summary is incomplete: {}".format(key))
+              found[key] = match.group(1)
+          with open(sys.argv[2], "a", encoding="utf-8") as output:
+              for key, value in found.items():
+                  output.write("{}={}\n".format(key, value))
+          PY
+
+      - name: Validate private dataset
+        if: inputs.mode == 'sync'
+        id: data_validation
+        run: python tools/validate_weread_quotes.py --file "$RUNNER_TEMP/weread_quotes.json" --github-output "$GITHUB_OUTPUT"
+
+      - name: Build and verify manual-only homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          hugo --minify --destination "$RUNNER_TEMP/site"
+          node tools/verify_quotes.js "$RUNNER_TEMP/site/index.html"
+          test -f "$RUNNER_TEMP/site/admin/weread-sync/index.html"
+          test ! -e "$RUNNER_TEMP/site/data/weread_quotes.json"
+
+      - name: Upload validated dataset to private D1 storage
+        if: inputs.mode == 'sync'
+        env:
+          WEREAD_SYNC_API_BASE: ${{ vars.WEREAD_SYNC_API_BASE }}
+          WEREAD_UPLOAD_SECRET: ${{ secrets.WEREAD_UPLOAD_SECRET }}
+        run: python tools/publish_weread_quotes.py --file "$RUNNER_TEMP/weread_quotes.json"
+
+      - name: Send safe run summary to the console
+        if: always() && inputs.mode == 'sync'
+        env:
+          WEREAD_SYNC_API_BASE: ${{ vars.WEREAD_SYNC_API_BASE }}
+          REPORT_URL: ${{ vars.WEREAD_SYNC_REPORT_URL }}
+          REPORT_SECRET: ${{ secrets.WEREAD_SYNC_REPORT_SECRET }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          JOB_STATUS: ${{ job.status }}
+          NOTEBOOKS: ${{ steps.synchronize.outputs.notebooks }}
+          ELIGIBLE_BOOKS: ${{ steps.synchronize.outputs.eligible_books }}
+          READ_BOOKS: ${{ steps.synchronize.outputs.read_books }}
+          HIGHLIGHTS: ${{ steps.synchronize.outputs.highlights }}
+          QUOTES: ${{ steps.synchronize.outputs.quotes }}
+          MISSING_AUTHOR: ${{ steps.data_validation.outputs.missing_author }}
+          MISSING_CHAPTER: ${{ steps.data_validation.outputs.missing_chapter }}
+          MISSING_CHAPTERS: ${{ steps.synchronize.outputs.unmapped_chapters }}
+          AMBIGUOUS_CHAPTERS: ${{ steps.synchronize.outputs.ambiguous_chapter_ids }}
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          url = os.environ.get("REPORT_URL", "")
+          secret = os.environ.get("REPORT_SECRET", "")
+          if not url or not secret:
+              print("Console summary callback is not configured.")
+              raise SystemExit(0)
+          expected_url = os.environ.get("WEREAD_SYNC_API_BASE", "").rstrip("/") + "/internal/report"
+          if url != expected_url:
+              print("Console summary callback must match the pinned Worker report endpoint.")
+              raise SystemExit(0)
+          numeric = ("NOTEBOOKS", "ELIGIBLE_BOOKS", "READ_BOOKS", "HIGHLIGHTS",
+                     "QUOTES", "MISSING_AUTHOR", "MISSING_CHAPTER",
+                     "MISSING_CHAPTERS", "AMBIGUOUS_CHAPTERS")
+          body = {"run_id": os.environ["RUN_ID"],
+                  "run_attempt": int(os.environ["RUN_ATTEMPT"]),
+                  "job_status": os.environ["JOB_STATUS"]}
+          for name in numeric:
+              value = os.environ.get(name, "")
+              if value.isdigit():
+                  body[name.lower()] = int(value)
+          request = urllib.request.Request(
+              url, data=json.dumps(body).encode("utf-8"), method="POST",
+              headers={"Authorization": "Bearer " + secret,
+                       "Content-Type": "application/json"})
+          try:
+              with urllib.request.urlopen(request, timeout=8) as response:
+                  print("Console summary callback status={}".format(response.status))
+          except Exception as error:
+              print("Console summary callback failed: {}".format(type(error).__name__))
+          PY
