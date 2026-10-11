@@ -21,7 +21,7 @@ const remoteQuote = {
   chapter: "Synthetic chapter"
 };
 
-function browserFor(fetchImpl, randomValue = 0.9) {
+function browserFor(fetchImpl, { randomValue = 0.9, search = "", apiBase = USER_AGENT_ORIGIN } = {}) {
   const warnings = [];
   const text = { textContent: "" };
   const source = {
@@ -29,6 +29,21 @@ function browserFor(fetchImpl, randomValue = 0.9) {
     hidden: true,
     setAttribute() {},
     removeAttribute() {}
+  };
+  const debugValues = new Map();
+  const retryButton = { addEventListener(_name, callback) { this.callback = callback; } };
+  const debugPanel = {
+    hidden: true,
+    querySelectorAll() {
+      return ["version", "api", "request", "http", "duration", "validated", "failure"]
+        .map((key) => ({
+          getAttribute() { return key; },
+          set textContent(value) { debugValues.set(key, value); }
+        }));
+    },
+    querySelector(selector) {
+      return selector === "[data-weread-debug-retry]" ? retryButton : null;
+    }
   };
   const classList = { add() {}, remove() {} };
   const host = {
@@ -44,6 +59,7 @@ function browserFor(fetchImpl, randomValue = 0.9) {
     getElementById(id) {
       if (id === "home-focus") return host;
       if (id === "home-quotes") return { textContent: JSON.stringify({ manual: [manualQuote] }) };
+      if (id === "weread-debug") return debugPanel;
       return null;
     },
     querySelector(selector) {
@@ -56,8 +72,8 @@ function browserFor(fetchImpl, randomValue = 0.9) {
   math.random = () => randomValue;
   const localStorage = { getItem() { return ""; }, setItem() {} };
   const window = {
-    WEREAD_SYNC_API_BASE: USER_AGENT_ORIGIN,
-    location: { hostname: "0-1byte.github.io", search: "" },
+    WEREAD_SYNC_API_BASE: apiBase,
+    location: { hostname: "0-1byte.github.io", search },
     matchMedia(query) {
       return { matches: query === "(prefers-reduced-motion: reduce)" };
     },
@@ -65,6 +81,7 @@ function browserFor(fetchImpl, randomValue = 0.9) {
   };
   const context = {
     AbortController,
+    URL,
     URLSearchParams,
     Intl,
     Math: math,
@@ -73,6 +90,7 @@ function browserFor(fetchImpl, randomValue = 0.9) {
     String,
     Array,
     Set,
+    Object,
     Promise,
     navigator: { hardwareConcurrency: 8 },
     document,
@@ -88,7 +106,7 @@ function browserFor(fetchImpl, randomValue = 0.9) {
     clearTimeout
   };
   vm.runInNewContext(quoteScript, context);
-  return { text, source, warnings };
+  return { text, source, warnings, debugPanel, debugValues, retryButton };
 }
 
 function response(status, body, contentType = "application/json") {
@@ -107,6 +125,7 @@ function response(status, body, contentType = "application/json") {
 }
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 15));
+const visibleText = (browser) => browser.text.textContent.replace(/\s/g, "");
 
 test("homepage displays a validated Worker quote when the request succeeds", async () => {
   let requestUrl = "";
@@ -118,61 +137,107 @@ test("homepage displays a validated Worker quote when the request succeeds", asy
   });
   await tick();
   assert.equal(requestUrl, `${USER_AGENT_ORIGIN}/public/quote`);
-  assert.equal(browser.text.textContent.replace(/\s/g, ""), "RemoteWeReadquote");
+  assert.equal(visibleText(browser), "RemoteWeReadquote");
   assert.equal(browser.warnings.length, 0);
 });
 
-test("homepage keeps the manual quote and diagnoses a Worker timeout", async () => {
-  const browser = browserFor(() => new Promise(() => {}));
-  await tick();
-  assert.equal(browser.text.textContent.replace(/\s/g, ""), "Manualfallbackquote");
-  assert.deepEqual(browser.warnings[0], [
-    "[quotes] WeRead request failed:",
-    "timeout"
-  ]);
-});
-
-test("homepage keeps the manual quote and diagnoses HTTP and malformed JSON responses", async (t) => {
-  await t.test("HTTP status", async () => {
-    const browser = browserFor(async () => response(503, ""));
-    await tick();
-    assert.equal(browser.text.textContent.replace(/\s/g, ""), "Manualfallbackquote");
-    assert.deepEqual(browser.warnings[0], [
-      "[quotes] WeRead request failed: http_status",
-      503
-    ]);
-  });
-  await t.test("malformed JSON", async () => {
-    const browser = browserFor(async () => response(200, "{"));
-    await tick();
-    assert.equal(browser.text.textContent.replace(/\s/g, ""), "Manualfallbackquote");
-    assert.deepEqual(browser.warnings[0], [
-      "[quotes] WeRead request failed:",
-      "invalid_json"
-    ]);
-  });
-});
-
-test("homepage keeps the manual quote and diagnoses network failures without logging details", async () => {
+test("diagnostic mode always requests, displays safe status, and supports retry", async () => {
+  let calls = 0;
   const browser = browserFor(async () => {
-    throw new TypeError("sensitive request detail");
-  });
+    calls += 1;
+    return response(200, JSON.stringify(remoteQuote));
+  }, { randomValue: 0.1, search: "?wereadDebug=1" });
   await tick();
-  assert.equal(browser.text.textContent.replace(/\s/g, ""), "Manualfallbackquote");
-  assert.deepEqual(browser.warnings[0], [
-    "[quotes] WeRead request failed:",
-    "network_error"
-  ]);
-  assert.equal(JSON.stringify(browser.warnings).includes("sensitive"), false);
+  assert.equal(calls, 1);
+  assert.equal(visibleText(browser), "RemoteWeReadquote");
+  assert.equal(browser.debugPanel.hidden, false);
+  assert.equal(browser.debugValues.get("version"), "已加载 v12");
+  assert.equal(browser.debugValues.get("api"), "已配置：weread-sync-console.weread-chen.workers.dev");
+  assert.equal(browser.debugValues.get("request"), "已发起");
+  assert.equal(browser.debugValues.get("http"), "200");
+  assert.equal(browser.debugValues.get("validated"), "是");
+  assert.equal(browser.debugValues.get("failure"), "无");
+  assert.equal(JSON.stringify([...browser.debugValues.values()]).includes(remoteQuote.text), false);
+
+  browser.retryButton.callback();
+  await tick();
+  assert.equal(calls, 2);
 });
 
-test("random selection can still show the manual quote without requesting WeRead", async () => {
+test("diagnostic mode distinguishes an unconfigured API from a failed request", async () => {
   let called = false;
   const browser = browserFor(async () => {
     called = true;
     return response(200, JSON.stringify(remoteQuote));
-  }, 0.1);
+  }, { search: "?wereadDebug=1", apiBase: "" });
   await tick();
   assert.equal(called, false);
-  assert.equal(browser.text.textContent.replace(/\s/g, ""), "Manualfallbackquote");
+  assert.equal(visibleText(browser), "Manualfallbackquote");
+  assert.equal(browser.debugValues.get("api"), "未配置");
+  assert.equal(browser.debugValues.get("request"), "未发起");
+  assert.equal(browser.debugValues.get("http"), "无");
+  assert.equal(browser.debugValues.get("failure"), "API 地址未配置");
+});
+
+test("homepage keeps the manual quote and diagnoses timeout", async () => {
+  const browser = browserFor(() => new Promise(() => {}), { search: "?wereadDebug=1" });
+  await tick();
+  assert.equal(visibleText(browser), "Manualfallbackquote");
+  assert.equal(browser.debugValues.get("request"), "已发起");
+  assert.equal(browser.debugValues.get("failure"), "请求超时");
+  assert.equal(browser.warnings[0][1], "timeout");
+});
+
+test("diagnostic mode classifies HTTP 429, HTTP 503, and other HTTP errors", async (t) => {
+  for (const [status, expected] of [[429, "HTTP 429 限流"], [503, "HTTP 503 服务暂不可用"], [502, "其他 HTTP 错误"]]) {
+    await t.test(String(status), async () => {
+      const browser = browserFor(async () => response(status, "not displayed"), {
+        search: "?wereadDebug=1"
+      });
+      await tick();
+      assert.equal(browser.debugValues.get("http"), String(status));
+      assert.equal(browser.debugValues.get("failure"), expected);
+      assert.equal(visibleText(browser), "Manualfallbackquote");
+    });
+  }
+});
+
+test("diagnostic mode identifies CORS/network failures without exposing error details", async () => {
+  const browser = browserFor(async () => {
+    throw new TypeError("sensitive response detail");
+  }, { search: "?wereadDebug=1" });
+  await tick();
+  assert.equal(browser.debugValues.get("failure"), "网络/CORS 错误");
+  assert.equal(visibleText(browser), "Manualfallbackquote");
+  assert.equal(JSON.stringify(browser.warnings).includes("sensitive"), false);
+});
+
+test("diagnostic mode classifies content type, malformed JSON, and invalid quote data", async (t) => {
+  const cases = [
+    ["content type", response(200, "{}", "text/plain"), "内容类型错误"],
+    ["invalid JSON", response(200, "{"), "JSON 格式错误"],
+    ["invalid quote", response(200, JSON.stringify({ source_type: "manual", text: "not a WeRead quote" })),
+      "WeRead 数据校验失败"]
+  ];
+  for (const [name, value, expected] of cases) {
+    await t.test(name, async () => {
+      const browser = browserFor(async () => value, { search: "?wereadDebug=1" });
+      await tick();
+      assert.equal(browser.debugValues.get("validated"), "否");
+      assert.equal(browser.debugValues.get("failure"), expected);
+      assert.equal(visibleText(browser), "Manualfallbackquote");
+    });
+  }
+});
+
+test("ordinary random selection still may choose manual without requesting WeRead", async () => {
+  let called = false;
+  const browser = browserFor(async () => {
+    called = true;
+    return response(200, JSON.stringify(remoteQuote));
+  }, { randomValue: 0.1 });
+  await tick();
+  assert.equal(called, false);
+  assert.equal(visibleText(browser), "Manualfallbackquote");
+  assert.equal(browser.debugPanel.hidden, true);
 });

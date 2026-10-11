@@ -35,7 +35,10 @@
   const homeTimeEl = document.querySelector("[data-home-time]");
   const homeClockEl = document.querySelector("[data-home-clock]");
   const homeDateEl = document.querySelector("[data-home-date]");
+  const wereadDebugPanel = document.getElementById("weread-debug");
   const homeRoot = host.closest(".home--living");
+  const wereadDebugEnabled = Boolean(window.location
+    && new URLSearchParams(window.location.search || "").get("wereadDebug") === "1");
   const localHost = window.location
     && ["localhost", "127.0.0.1"].includes(window.location.hostname);
   const wereadDevEnabled = Boolean(localHost
@@ -51,6 +54,7 @@
 
   const FALLBACK = "building small things, thinking about large things.";
   const WEREAD_REQUEST_TIMEOUT_MS = 8000;
+  const QUOTES_SCRIPT_VERSION = "12";
 
   const SEEN_KEY = "home-quote-seen";
   const RECENT_BACKGROUND_KEY = "home-background-recent";
@@ -61,6 +65,7 @@
   let typeTimer = 0;
   let recentBackgrounds = [];
   let measureText = createMeasurer();
+  let quoteLoadGeneration = 0;
 
   const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const lowMotion = reduceMotion
@@ -506,19 +511,71 @@
     };
   }
 
+  const debugFields = wereadDebugPanel
+    ? Object.fromEntries(Array.from(wereadDebugPanel.querySelectorAll("[data-weread-debug]"))
+      .map((element) => [element.getAttribute("data-weread-debug"), element]))
+    : {};
+
+  function updateWereadDebug(result, pending = false) {
+    if (!wereadDebugEnabled || !wereadDebugPanel) return;
+    wereadDebugPanel.hidden = false;
+    let apiStatus = "未配置";
+    if (wereadApiBase && !wereadApiBase.includes("REPLACE_WITH_")) {
+      try {
+        const parsedApi = new URL(wereadApiBase);
+        apiStatus = parsedApi.protocol === "https:"
+          ? `已配置：${parsedApi.hostname}`
+          : "地址格式无效";
+      } catch (_) {
+        apiStatus = "地址格式无效";
+      }
+    }
+    const values = {
+      version: `已加载 v${QUOTES_SCRIPT_VERSION}`,
+      api: apiStatus,
+      request: pending
+        ? apiStatus.startsWith("已配置") ? "正在请求" : "未发起"
+        : result && result.attempted ? "已发起" : "未发起",
+      http: pending ? "等待响应" : result && result.httpStatus !== null
+        ? String(result.httpStatus) : "无",
+      duration: result && Number.isFinite(result.durationMs)
+        ? `${result.durationMs} 毫秒` : "—",
+      validated: result && result.validated ? "是" : pending ? "等待校验" : "否",
+      failure: pending ? "无" : result ? result.failureLabel : "等待请求"
+    };
+    Object.entries(values).forEach(([key, value]) => {
+      if (debugFields[key]) debugFields[key].textContent = value;
+    });
+  }
+
   async function fetchWereadQuote() {
-    if (!wereadApiBase || wereadApiBase.includes("REPLACE_WITH_")) return null;
+    const startedAt = Date.now();
+    const result = {
+      item: null,
+      attempted: false,
+      httpStatus: null,
+      durationMs: null,
+      validated: false,
+      failure: "",
+      failureLabel: "无"
+    };
+    const fail = (code, label, status = null) => {
+      result.failure = code;
+      result.failureLabel = label;
+      result.httpStatus = status;
+      result.durationMs = Date.now() - startedAt;
+      console.warn("[quotes] WeRead request failed:", code, ...(status ? [status] : []));
+      return result;
+    };
+    if (!wereadApiBase || wereadApiBase.includes("REPLACE_WITH_")) {
+      result.failure = "api_not_configured";
+      result.failureLabel = "API 地址未配置";
+      return result;
+    }
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     let timeout = 0;
     let timedOut = false;
-    const diagnoseFailure = (reason, status) => {
-      if (reason === "http_status") {
-        console.warn("[quotes] WeRead request failed: http_status", status);
-      } else {
-        console.warn("[quotes] WeRead request failed:", reason);
-      }
-      return null;
-    };
+    result.attempted = true;
     try {
       const timeoutResult = new Promise((resolve) => {
         timeout = setTimeout(() => {
@@ -534,33 +591,71 @@
         headers: { Accept: "application/json" },
         ...(controller ? { signal: controller.signal } : {})
       }).then(async (response) => {
-        if (!response.ok) return { failure: "http_status", status: response.status };
+        if (!response.ok) {
+          if (response.status === 429) return { failure: "http_429", status: response.status };
+          if (response.status === 503) return { failure: "http_503", status: response.status };
+          return { failure: "http_other", status: response.status };
+        }
         if (Number(response.headers.get("Content-Length") || 0) > 96 * 1024) {
-          return { failure: "response_too_large" };
+          return { failure: "response_too_large", status: response.status };
         }
         if (!/application\/json/i.test(response.headers.get("Content-Type") || "")) {
-          return { failure: "invalid_content_type" };
+          return { failure: "invalid_content_type", status: response.status };
         }
         const body = await response.text();
-        if (body.length > 96 * 1024) return { failure: "response_too_large" };
+        if (body.length > 96 * 1024) {
+          return { failure: "response_too_large", status: response.status };
+        }
         let parsed;
         try {
           parsed = JSON.parse(body);
         } catch (_) {
-          return { failure: "invalid_json" };
+          return { failure: "invalid_json", status: response.status };
         }
         const item = normalizeRemoteQuote(parsed);
-        return item ? { item } : { failure: "invalid_quote" };
-      }).catch(() => ({ failure: timedOut ? "timeout" : "network_error" }));
-      const result = await Promise.race([quoteResult, timeoutResult]);
-      if (result.failure) return diagnoseFailure(result.failure, result.status);
-      return result.item;
+        return item
+          ? { item, status: response.status }
+          : { failure: "invalid_quote", status: response.status };
+      }).catch(() => ({ failure: timedOut ? "timeout" : "network_cors_error" }));
+      const responseResult = await Promise.race([quoteResult, timeoutResult]);
+      if (responseResult.failure) {
+        const labels = {
+          timeout: "请求超时",
+          http_429: "HTTP 429 限流",
+          http_503: "HTTP 503 服务暂不可用",
+          http_other: "其他 HTTP 错误",
+          network_cors_error: "网络/CORS 错误",
+          response_too_large: "响应过大",
+          invalid_content_type: "内容类型错误",
+          invalid_json: "JSON 格式错误",
+          invalid_quote: "WeRead 数据校验失败"
+        };
+        return fail(responseResult.failure, labels[responseResult.failure] || "请求失败",
+          responseResult.status ?? null);
+      }
+      result.item = responseResult.item || null;
+      result.httpStatus = responseResult.status ?? null;
+      result.validated = Boolean(result.item);
+      result.durationMs = Date.now() - startedAt;
+      result.failureLabel = result.validated ? "无" : "WeRead 数据校验失败";
+      if (!result.validated) {
+        result.failure = "invalid_quote";
+        console.warn("[quotes] WeRead request failed: invalid_quote");
+      }
+      return result;
+    } catch (_) {
+      return fail("network_cors_error", "网络/CORS 错误");
     } finally {
       if (timeout) clearTimeout(timeout);
     }
   }
 
-  async function loadQuotes() {
+  async function loadQuotes(forceWeread = false) {
+    const generation = ++quoteLoadGeneration;
+    const retryButton = wereadDebugEnabled && wereadDebugPanel
+      ? wereadDebugPanel.querySelector("[data-weread-debug-retry]")
+      : null;
+    if (retryButton) retryButton.disabled = true;
     let manualItem = null;
     try {
       const data = JSON.parse(quotesEl && quotesEl.textContent || "null");
@@ -573,16 +668,41 @@
       console.warn("[quotes] 手动句子数据无效。");
     }
 
-    const chooseWeread = Boolean(wereadApiBase)
-      && (!manualItem || Math.random() >= 0.5);
-    const wereadItem = chooseWeread ? await fetchWereadQuote() : null;
-    const item = wereadItem || manualItem;
+    const chooseWeread = wereadDebugEnabled || forceWeread
+      || (Boolean(wereadApiBase) && (!manualItem || Math.random() >= 0.5));
+    let result = {
+      item: null,
+      attempted: false,
+      httpStatus: null,
+      durationMs: null,
+      validated: false,
+      failure: "not_selected",
+      failureLabel: "本次随机选择了手动句子"
+    };
+    if (chooseWeread) {
+      updateWereadDebug(null, true);
+      result = await fetchWereadQuote();
+    }
+    if (generation !== quoteLoadGeneration) return;
+    if (retryButton) retryButton.disabled = false;
+    updateWereadDebug(result);
+    const item = result.item || manualItem;
     if (item) {
       if (reduceMotion) showFull(item);
       else typeOut(item);
     } else {
       showFull({ text: FALLBACK, source: "" });
     }
+  }
+  if (wereadDebugEnabled && wereadDebugPanel) {
+    wereadDebugPanel.hidden = false;
+    const debugRetryButton = wereadDebugPanel.querySelector("[data-weread-debug-retry]");
+    if (debugRetryButton) {
+      debugRetryButton.addEventListener("click", () => {
+        loadQuotes(true);
+      });
+    }
+    updateWereadDebug(null, true);
   }
 // 页面切走时停掉打字，避免回来接着打
   document.addEventListener("visibilitychange", () => {

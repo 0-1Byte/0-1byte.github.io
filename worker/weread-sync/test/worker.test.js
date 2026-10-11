@@ -442,27 +442,6 @@ test("public quote endpoint is read-only, rate limited, and rejects other origin
   const service = privateEnv(db, {
     PUBLIC_QUOTE_LIMITER: { limit: async () => ({ success: false }) }
   });
-
-  test("public quote CORS preflight allows only the configured site origin", async () => {
-    const service = privateEnv(new MemoryDB());
-    const allowed = await worker.fetch(new Request("https://worker.example/public/quote", {
-      method: "OPTIONS",
-      headers: {
-        Origin: "https://0-1byte.github.io",
-        "Access-Control-Request-Method": "GET",
-        "Access-Control-Request-Headers": "accept"
-      }
-    }), service);
-    assert.equal(allowed.status, 204);
-    assert.equal(allowed.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
-    assert.equal(allowed.headers.get("Access-Control-Allow-Headers"), "Accept");
-
-    const rejected = await worker.fetch(new Request("https://worker.example/public/quote", {
-      method: "OPTIONS",
-      headers: { Origin: "https://attacker.example" }
-    }), service);
-    assert.equal(rejected.status, 403);
-  });
   const limited = await worker.fetch(new Request("https://worker.example/public/quote", {
     headers: { Origin: "https://0-1byte.github.io", "CF-Connecting-IP": "192.0.2.11" }
   }), service);
@@ -476,6 +455,45 @@ test("public quote endpoint is read-only, rate limited, and rejects other origin
     headers: { Origin: "https://0-1byte.github.io" }
   }), service);
   assert.equal(writeMethod.status, 405);
+});
+
+test("public quote CORS preflight allows only the configured site origin", async () => {
+  const service = privateEnv(new MemoryDB());
+  const allowed = await worker.fetch(new Request("https://worker.example/public/quote", {
+    method: "OPTIONS",
+    headers: {
+      Origin: "https://0-1byte.github.io",
+      "Access-Control-Request-Method": "GET",
+      "Access-Control-Request-Headers": "accept"
+    }
+  }), service);
+  assert.equal(allowed.status, 204);
+  assert.equal(allowed.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
+  assert.equal(allowed.headers.get("Access-Control-Allow-Headers"), "Accept");
+
+  const rejected = await worker.fetch(new Request("https://worker.example/public/quote", {
+    method: "OPTIONS",
+    headers: { Origin: "https://attacker.example" }
+  }), service);
+  assert.equal(rejected.status, 403);
+});
+
+test("public quote D1 failures return safe JSON with the configured CORS header", async () => {
+  const service = privateEnv({
+    prepare() {
+      return { first: async () => { throw new Error("private database details"); } };
+    }
+  });
+  const response = await worker.fetch(new Request("https://worker.example/public/quote", {
+    headers: {
+      Origin: "https://0-1byte.github.io",
+      "CF-Connecting-IP": "192.0.2.12"
+    }
+  }), service);
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
+  assert.match(response.headers.get("Content-Type"), /application\/json/i);
+  assert.deepEqual(await response.json(), { error: "quote_unavailable" });
 });
 
 test("unauthenticated API access is rejected", async () => {

@@ -288,26 +288,31 @@ async function publicQuote(request, env) {
   if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
   const cors = publicCorsHeaders(request, env);
   if (!cors) return json({ error: "origin_not_allowed" }, 403);
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const rate = await env.PUBLIC_QUOTE_LIMITER.limit({ key: ip });
-  if (!rate.success) {
-    return json({ error: "rate_limited" }, 429, { ...cors, "Retry-After": "60" });
-  }
-  const row = await env.DB.prepare(
-    "SELECT q.text, q.source, q.author, q.chapter FROM weread_quotes q "
-      + "JOIN weread_active_dataset a ON a.singleton = 1 AND a.dataset_id = q.dataset_id "
-      + "ORDER BY random() LIMIT 1",
-  ).first();
-  if (!row || !validText(row.text, 20000)) {
+  try {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const rate = await env.PUBLIC_QUOTE_LIMITER.limit({ key: ip });
+    if (!rate.success) {
+      return json({ error: "rate_limited" }, 429, { ...cors, "Retry-After": "60" });
+    }
+    const row = await env.DB.prepare(
+      "SELECT q.text, q.source, q.author, q.chapter FROM weread_quotes q "
+        + "JOIN weread_active_dataset a ON a.singleton = 1 AND a.dataset_id = q.dataset_id "
+        + "ORDER BY random() LIMIT 1",
+    ).first();
+    if (!row || !validText(row.text, 20000)) {
+      return json({ error: "quote_unavailable" }, 503, cors);
+    }
+    return json({
+      source_type: "weread",
+      text: row.text,
+      source: typeof row.source === "string" ? row.source : "",
+      author: typeof row.author === "string" ? row.author : "",
+      chapter: typeof row.chapter === "string" ? row.chapter : "",
+    }, 200, cors);
+  } catch (_) {
+    console.error("[weread] public quote service unavailable");
     return json({ error: "quote_unavailable" }, 503, cors);
   }
-  return json({
-    source_type: "weread",
-    text: row.text,
-    source: typeof row.source === "string" ? row.source : "",
-    author: typeof row.author === "string" ? row.author : "",
-    chapter: typeof row.chapter === "string" ? row.chapter : "",
-  }, 200, cors);
 }
 
 async function uploadStart(request, env) {
