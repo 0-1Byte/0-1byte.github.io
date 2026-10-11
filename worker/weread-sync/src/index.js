@@ -80,12 +80,12 @@ function constantTimeEqual(left, right) {
   return diff === 0;
 }
 
-function siteCookie(name, value, maxAge) {
-  return `${name}=${value}; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+function siteCookie(name, value, maxAge, sameSite = "Lax") {
+  return `${name}=${value}; Path=/; Secure; HttpOnly; SameSite=${sameSite}; Max-Age=${maxAge}`;
 }
 
-function clearCookie(name) {
-  return siteCookie(name, "", 0);
+function clearCookie(name, sameSite = "Lax") {
+  return siteCookie(name, "", 0, sameSite);
 }
 
 function siteOrigin(env) {
@@ -574,7 +574,7 @@ async function route(request, env) {
       "Cache-Control": "no-store",
     });
     headers.append("Set-Cookie", siteCookie("__Host-weread-session",
-      await signedValue(session, env.SESSION_SECRET), SESSION_SECONDS));
+      await signedValue(session, env.SESSION_SECRET), SESSION_SECONDS, "None"));
     headers.append("Set-Cookie", clearCookie("__Host-weread-oauth-state"));
     return new Response(null, { status: 302, headers });
   }
@@ -626,7 +626,7 @@ async function route(request, env) {
       }
       return json({ authenticated: false }, 200, {
         ...cors,
-        "Set-Cookie": clearCookie("__Host-weread-session"),
+        "Set-Cookie": clearCookie("__Host-weread-session", "None"),
       });
     }
     return json({ error: "not_found" }, 404, cors);
