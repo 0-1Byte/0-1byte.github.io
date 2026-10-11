@@ -1,0 +1,65 @@
+.weread-debug {
+  width: min(100% - 2rem, 36rem);
+  margin: 1.5rem auto 2rem;
+  padding: 1rem;
+  color: #e8e8e8;
+  background: rgb(18 22 29 / 94%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 0.75rem;
+  font: 0.875rem/1.45 system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.weread-debug[hidden] {
+  display: none;
+}
+
+.weread-debug h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.weread-debug dl {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 0.45rem 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.weread-debug dl div {
+  display: contents;
+}
+
+.weread-debug dt {
+  color: #b9c0cc;
+}
+
+.weread-debug dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.weread-debug button {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  color: #101318;
+  background: #f2f4f8;
+  border: 0;
+  border-radius: 0.45rem;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+@media (max-width: 420px) {
+  .weread-debug {
+    width: calc(100% - 1.5rem);
+    padding: 0.85rem;
+  }
+
+  .weread-debug dl {
+    grid-template-columns: minmax(5.5rem, 0.8fr) minmax(0, 1.2fr);
+    gap: 0.4rem 0.5rem;
+  }
+}

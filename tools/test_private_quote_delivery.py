@@ -63,8 +63,11 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertNotIn("data/weread_quotes.json", script)
         self.assertIn('dict "manual" $manualQuotes | jsonify', template)
         self.assertNotIn('"weread" $wereadQuotes', template)
-        self.assertIn('"quotes.js" | relURL }}?v=11', head)
+        self.assertIn('"quotes.js" | relURL }}?v=12', head)
         self.assertIn("const WEREAD_REQUEST_TIMEOUT_MS = 8000;", script)
+        self.assertIn('get("wereadDebug") === "1"', script)
+        self.assertIn('id="weread-debug"', template)
+        self.assertIn("quotes-debug.css", head)
 
     def test_workflow_uploads_only_to_worker_and_never_commits_dataset(self):
         workflow = (ROOT / ".github" / "workflows" / "sync-weread.yml").read_text(encoding="utf-8")

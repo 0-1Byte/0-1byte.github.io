@@ -94,6 +94,43 @@
     <span data-home-clock></span>
     <span data-home-date></span>
   </time>
+  <aside class="weread-debug" id="weread-debug" hidden aria-live="polite">
+    <h2>WeRead 连接诊断</h2>
+    <dl>
+      <div><dt>脚本</dt><dd data-weread-debug="version">—</dd></div>
+      <div><dt>Worker 地址</dt><dd data-weread-debug="api">—</dd></div>
+      <div><dt>请求</dt><dd data-weread-debug="request">—</dd></div>
+      <div><dt>HTTP 状态</dt><dd data-weread-debug="http">—</dd></div>
+      <div><dt>耗时</dt><dd data-weread-debug="duration">—</dd></div>
+      <div><dt>数据校验</dt><dd data-weread-debug="validated">—</dd></div>
+      <div><dt>结果</dt><dd data-weread-debug="failure">—</dd></div>
+    </dl>
+    <button type="button" data-weread-debug-retry>重新请求 WeRead</button>
+  </aside>
+  <script>
+    if (new URLSearchParams(window.location.search).get("wereadDebug") === "1") {
+      const panel = document.getElementById("weread-debug");
+      if (panel) {
+        panel.hidden = false;
+        panel.querySelector('[data-weread-debug="version"]').textContent = "未加载";
+        const configuredApi = window.WEREAD_SYNC_API_BASE;
+        let apiStatus = "未配置";
+        if (configuredApi) {
+          try {
+            apiStatus = `已配置：${new URL(configuredApi).hostname}`;
+          } catch (_) {
+            apiStatus = "地址格式无效";
+          }
+        }
+        panel.querySelector('[data-weread-debug="api"]').textContent = apiStatus;
+        panel.querySelector('[data-weread-debug="request"]').textContent = "未启动";
+        panel.querySelector('[data-weread-debug="http"]').textContent = "无";
+        panel.querySelector('[data-weread-debug="duration"]').textContent = "—";
+        panel.querySelector('[data-weread-debug="validated"]').textContent = "否";
+        panel.querySelector('[data-weread-debug="failure"]').textContent = "脚本尚未运行";
+      }
+    }
+  </script>
 
   {{- /*
     首页到此为止：只有那句随机句子（+ 可选的一段说明）。

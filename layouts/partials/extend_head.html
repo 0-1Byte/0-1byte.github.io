@@ -18,7 +18,8 @@
 {{- /* 首屏句子的打字机效果，只有首页需要。
        句子数据已由 layouts/index.html 内联，首页不再等待 /nav.json。 */ -}}
 {{- if .IsHome }}
-<script src="{{ "quotes.js" | relURL }}?v=11" defer></script>
+<link rel="stylesheet" href="{{ "quotes-debug.css" | relURL }}?v=1">
+<script src="{{ "quotes.js" | relURL }}?v=12" defer></script>
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">
