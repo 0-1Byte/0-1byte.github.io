@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111318">
+  <meta name="robots" content="noindex, nofollow">
+  <title>WeRead 连接诊断</title>
+  <link rel="stylesheet" href="/weread-debug.css">
+  <script src="/admin/weread-sync/config.js" defer></script>
+  <script src="/weread-debug.js" defer></script>
+</head>
+<body>
+  <main class="diagnostic">
+    <header class="diagnostic__header">
+      <a class="diagnostic__home" href="/">Chen</a>
+      <p class="diagnostic__eyebrow">连接检查</p>
+      <h1>WeRead 诊断</h1>
+      <p class="diagnostic__intro">只检查单条公开接口响应是否可用，不显示书摘内容。</p>
+    </header>
+
+    <section class="diagnostic__panel" id="weread-debug" aria-labelledby="diagnostic-title">
+      <h2 id="diagnostic-title">请求状态</h2>
+      <p class="diagnostic__status" data-weread-debug="failure" aria-live="polite">诊断脚本尚未运行</p>
+      <dl class="diagnostic__details">
+        <div><dt>诊断 HTML</dt><dd data-weread-debug="html">已加载</dd></div>
+        <div><dt>诊断 JavaScript</dt><dd data-weread-debug="script">诊断脚本尚未运行</dd></div>
+        <div><dt>Worker 配置</dt><dd data-weread-debug="api">等待脚本检查</dd></div>
+        <div><dt>请求</dt><dd data-weread-debug="request">尚未发起</dd></div>
+        <div><dt>HTTP 状态</dt><dd data-weread-debug="http">—</dd></div>
+        <div><dt>请求耗时</dt><dd data-weread-debug="duration">—</dd></div>
+        <div><dt>JSON 格式</dt><dd data-weread-debug="json">未检查</dd></div>
+        <div><dt>WeRead 数据校验</dt><dd data-weread-debug="validated">未检查</dd></div>
+        <div><dt>失败原因</dt><dd data-weread-debug="reason">尚未诊断</dd></div>
+      </dl>
+      <button class="diagnostic__retry" type="button" data-weread-debug-retry disabled>
+        重新请求
+      </button>
+      <p class="diagnostic__privacy">此页不会展示或记录响应正文、书摘、密钥或 Cookie。</p>
+    </section>
+  </main>
+  <footer class="diagnostic__footer">若问题仍在，请将本页显示的状态发给网站维护者。</footer>
+</body>
+</html>
