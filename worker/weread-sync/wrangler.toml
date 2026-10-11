@@ -5,18 +5,18 @@ workers_dev = true
 
 [vars]
 SITE_ORIGIN = "https://0-1byte.github.io"
-WORKER_ORIGIN = "https://weread-sync-console.REPLACE_WITH_CF_SUBDOMAIN.workers.dev"
+WORKER_ORIGIN = "https://weread-sync-console.weread-chen.workers.dev"
 GITHUB_OWNER = "0-1byte"
 GITHUB_REPO = "0-1byte.github.io"
 GITHUB_WORKFLOW = "sync-weread.yml"
 GITHUB_BRANCH = "main"
-ADMIN_GITHUB_LOGIN = "REPLACE_WITH_YOUR_GITHUB_LOGIN"
+ADMIN_GITHUB_LOGIN = "0-1Byte"
 TRIGGER_COOLDOWN_SECONDS = "600"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "weread-private-quotes"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "5653452d-0e4f-402a-af7c-95004c6459a3"
 migrations_dir = "migrations"
 
 [[ratelimits]]

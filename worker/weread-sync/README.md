@@ -58,13 +58,12 @@ Create a GitHub OAuth App:
 
 - Homepage URL: `https://0-1byte.github.io/admin/weread-sync/`
 - Authorization callback URL: `<WORKER_ORIGIN>/auth/callback`, for example
-  `https://weread-sync-console.<account-subdomain>.workers.dev/auth/callback`
+  `https://weread-sync-console.weread-chen.workers.dev/auth/callback`
 
 Configure this repository variable:
 
-- `WEREAD_SYNC_API_BASE`: the Worker HTTPS origin, with no path or trailing
-  slash. It must exactly match `WORKER_ORIGIN` in `wrangler.toml` and use the
-  `https://weread-sync-console.<account-subdomain>.workers.dev` host.
+- `WEREAD_SYNC_API_BASE`: `https://weread-sync-console.weread-chen.workers.dev`.
+  It must exactly match `WORKER_ORIGIN` in `wrangler.toml`.
 - `WEREAD_SYNC_REPORT_URL`: `<WORKER_ORIGIN>/internal/report`.
 
 Configure these repository Actions secrets:
@@ -82,16 +81,16 @@ not receive write permissions.
 
 ## Cloudflare configuration
 
-1. Create a D1 database named `weread-private-quotes`. Set its generated ID in
-   `worker/weread-sync/wrangler.toml` at `database_id`.
-2. Apply `migrations/0001_private_quotes.sql` to that database before deploying.
-3. Set `PUBLIC_QUOTE_LIMITER` to a unique positive integer namespace ID for
-   this Cloudflare account (the sample `1001` must be checked/replaced if used
-   elsewhere). The configured limit is 30 requests per 60 seconds per
-   Cloudflare location and client key.
-4. Keep the fixed `SITE_ORIGIN`, repository, workflow, and branch values.
+1. The `weread-private-quotes` D1 database already exists with ID
+   `5653452d-0e4f-402a-af7c-95004c6459a3`. Migration
+   `0001_private_quotes.sql` has been applied and its tables verified remotely.
+2. The configured `PUBLIC_QUOTE_LIMITER` namespace ID is `1001`, assigned to
+   this Worker. The account had no deployed Worker scripts before this
+   deployment, so no prior binding used that ID. The limit is 30 requests per
+   60 seconds per Cloudflare location and client key.
+3. Keep the fixed `SITE_ORIGIN`, repository, workflow, and branch values.
    Configure `ADMIN_GITHUB_LOGIN` for the sole allowed GitHub account.
-5. Create Worker secrets:
+4. Create Worker secrets:
 
    - `GITHUB_TOKEN`: narrowly scoped token for reading Actions status and
      dispatching the fixed workflow; grant only this repository `Actions: read`
@@ -103,20 +102,23 @@ not receive write permissions.
    - `UPLOAD_SECRET`: independent random upload bearer secret; never reuse
      `REPORT_SECRET`.
 
-Enable `workers.dev` for the Cloudflare account, then set the same canonical
-origin in `wrangler.toml` (`WORKER_ORIGIN`), the GitHub repository variable
+The Cloudflare account's workers.dev subdomain is `weread-chen`. The canonical
+Worker origin is
+`https://weread-sync-console.weread-chen.workers.dev`; keep it identical in
+`wrangler.toml` (`WORKER_ORIGIN`), the GitHub repository variable
 (`WEREAD_SYNC_API_BASE`), and `static/admin/weread-sync/config.js`. The Worker
 rejects OAuth requests sent to an origin other than the pinned one, and the
 uploader refuses any target that differs from the pin or is not the expected
 Worker name under `workers.dev`. The OAuth callback URL is exactly
-`<WORKER_ORIGIN>/auth/callback`. No secret belongs in the public config file.
+`https://weread-sync-console.weread-chen.workers.dev/auth/callback`. No secret
+belongs in the public config file.
 
 ## Safe rollout order
 
 1. Merge only the reviewed code files; do not publish `data/weread_quotes.json`
    or unrelated worktree files.
-2. Create the D1 database, apply the migration, reserve a rate-limit namespace,
-   configure the Worker secrets/vars, and deploy the Worker.
+2. Configure the Worker secrets/vars and deploy the Worker. The D1 database and
+   migration are already in place.
 3. Create the OAuth App and set its callback to the deployed Worker host.
 4. Configure the GitHub variable and Actions secrets above. Do not add a
    publish token.
