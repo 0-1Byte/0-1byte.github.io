@@ -262,7 +262,8 @@ jobs:
           request = urllib.request.Request(
               url, data=json.dumps(body).encode("utf-8"), method="POST",
               headers={"Authorization": "Bearer " + secret,
-                       "Content-Type": "application/json"})
+                       "Content-Type": "application/json",
+                       "User-Agent": "0-1byte-weread-sync/1.0 (+https://0-1byte.github.io/)"})
           try:
               with urllib.request.urlopen(request, timeout=8) as response:
                   print("Console summary callback status={}".format(response.status))

@@ -19,6 +19,7 @@ MAX_UPLOAD_RECORDS_PER_CHUNK = 200
 MAX_UPLOAD_REQUEST_BYTES = 96 * 1024
 MAX_UPLOAD_CHUNKS = 300
 MAX_DATASET_BYTES = 32 * 1024 * 1024
+USER_AGENT = "0-1byte-weread-sync/1.0 (+https://0-1byte.github.io/)"
 WORKER_CONFIG = Path(__file__).resolve().parents[1] / "worker" / "weread-sync" / "wrangler.toml"
 WORKER_HOST_PATTERN = r"^weread-sync-console\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.workers\.dev$"
 
@@ -107,6 +108,7 @@ def request(session, base, path, secret, body):
                 "Authorization": "Bearer " + secret,
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "User-Agent": USER_AGENT,
             },
             timeout=(8, 45),
             allow_redirects=False,

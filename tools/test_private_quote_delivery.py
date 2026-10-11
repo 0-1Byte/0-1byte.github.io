@@ -8,10 +8,12 @@ from publish_weread_quotes import (
     MAX_CHUNK_BYTES,
     MAX_UPLOAD_RECORDS_PER_CHUNK,
     MAX_UPLOAD_REQUEST_BYTES,
+    USER_AGENT,
     api_base,
     encode_chunk_request,
     encode_records,
     make_chunks,
+    request,
 )
 
 
@@ -33,6 +35,24 @@ def small_quote(index):
 
 
 class PrivateQuoteDeliveryTests(unittest.TestCase):
+    def test_upload_requests_send_the_expected_user_agent(self):
+        class Response:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return {"accepted": True}
+
+        class Session:
+            def post(self, _url, **kwargs):
+                self.kwargs = kwargs
+                return Response()
+
+        session = Session()
+        request(session, "https://worker.example", "/internal/upload/start",
+                "synthetic-secret", {})
+        self.assertEqual(session.kwargs["headers"]["User-Agent"], USER_AGENT)
+
     def test_home_template_does_not_load_the_complete_weread_file(self):
         template = (ROOT / "layouts" / "index.html").read_text(encoding="utf-8")
         script = (ROOT / "static" / "quotes.js").read_text(encoding="utf-8")

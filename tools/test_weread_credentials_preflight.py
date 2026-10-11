@@ -4,7 +4,7 @@ import unittest
 from urllib.error import HTTPError
 from pathlib import Path
 
-from weread_credentials_preflight import check_endpoint
+from weread_credentials_preflight import USER_AGENT, check_endpoint
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,6 +30,7 @@ class CredentialPreflightTests(unittest.TestCase):
             captured["body"] = request.data
             captured["authorization"] = request.get_header("Authorization")
             captured["content_type"] = request.get_header("Content-type")
+            captured["user_agent"] = request.get_header("User-agent")
             captured["timeout"] = timeout
             return Response(400)
 
@@ -40,6 +41,7 @@ class CredentialPreflightTests(unittest.TestCase):
         self.assertEqual(captured["body"], b"{}")
         self.assertEqual(captured["authorization"], "Bearer synthetic-secret")
         self.assertEqual(captured["content_type"], "application/json")
+        self.assertEqual(captured["user_agent"], USER_AGENT)
         self.assertEqual(captured["timeout"], 15)
 
     def test_report_preflight_recognizes_http_error_status_without_reading_body(self):
@@ -65,6 +67,7 @@ class CredentialPreflightTests(unittest.TestCase):
             captured["method"] = request.method
             captured["body"] = request.data
             captured["authorization"] = request.get_header("Authorization")
+            captured["user_agent"] = request.get_header("User-agent")
             return Response(400)
 
         self.assertEqual(
@@ -75,6 +78,7 @@ class CredentialPreflightTests(unittest.TestCase):
         self.assertEqual(captured["method"], "POST")
         self.assertEqual(captured["body"], b"{}")
         self.assertTrue(captured["authorization"].startswith("Bearer "))
+        self.assertEqual(captured["user_agent"], USER_AGENT)
 
     def test_only_expected_authenticated_invalid_body_status_passes(self):
         def response_with(status):
@@ -98,6 +102,10 @@ class CredentialPreflightTests(unittest.TestCase):
         self.assertIn("except urllib.error.HTTPError as error:", workflow)
         self.assertIn(
             'print("Console summary callback failed: HTTP {}".format(error.code))',
+            workflow,
+        )
+        self.assertIn(
+            '"User-Agent": "0-1byte-weread-sync/1.0 (+https://0-1byte.github.io/)"',
             workflow,
         )
         self.assertNotIn("error.read()", workflow)

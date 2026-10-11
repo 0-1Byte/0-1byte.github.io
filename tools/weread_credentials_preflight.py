@@ -17,6 +17,7 @@ from urllib.request import (
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKER_CONFIG = ROOT / "worker" / "weread-sync" / "wrangler.toml"
+USER_AGENT = "0-1byte-weread-sync/1.0 (+https://0-1byte.github.io/)"
 ENDPOINTS = {
     "upload": ("/internal/upload/start", "WEREAD_UPLOAD_SECRET"),
     "report": ("/internal/report", "WEREAD_SYNC_REPORT_SECRET"),
@@ -61,6 +62,7 @@ def check_endpoint(name, secret, origin, opener=open_without_redirects):
             "Authorization": "Bearer " + secret,
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": USER_AGENT,
         },
     )
     try:
