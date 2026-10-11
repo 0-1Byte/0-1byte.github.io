@@ -4,10 +4,32 @@ import json
 import unittest
 from pathlib import Path
 
-from publish_weread_quotes import MAX_CHUNK_BYTES, api_base, encode_records, make_chunks
+from publish_weread_quotes import (
+    MAX_CHUNK_BYTES,
+    MAX_UPLOAD_RECORDS_PER_CHUNK,
+    MAX_UPLOAD_REQUEST_BYTES,
+    api_base,
+    encode_chunk_request,
+    encode_records,
+    make_chunks,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def small_quote(index):
+    return {
+        "text": "synthetic-{}".format(index),
+        "source_type": "weread",
+        "source": "Synthetic Book",
+        "author": "",
+        "chapter": "",
+        "book_id": "synthetic-book",
+        "chapter_uid": "",
+        "bookmark_id": "synthetic-mark-{}".format(index),
+        "also_sources": [],
+    }
 
 
 class PrivateQuoteDeliveryTests(unittest.TestCase):
@@ -51,7 +73,28 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertGreater(len(chunks), 1)
         self.assertEqual(sum(len(chunk) for chunk in chunks), len(synthetic))
         self.assertTrue(all(len(encode_records(chunk)) <= MAX_CHUNK_BYTES for chunk in chunks))
+        self.assertTrue(all(len(chunk) <= MAX_UPLOAD_RECORDS_PER_CHUNK for chunk in chunks))
+        self.assertTrue(all(
+            len(encode_chunk_request(chunk)) <= MAX_UPLOAD_REQUEST_BYTES
+            for chunk in chunks
+        ))
         self.assertTrue(all("synthetic" in json.dumps(chunk, ensure_ascii=False) for chunk in chunks))
+
+    def test_exactly_200_records_fit_one_chunk(self):
+        chunks = make_chunks([small_quote(index) for index in range(200)])
+        self.assertEqual([len(chunk) for chunk in chunks], [200])
+        self.assertLessEqual(
+            len(encode_chunk_request(chunks[0])),
+            MAX_UPLOAD_REQUEST_BYTES,
+        )
+
+    def test_201_records_split_at_worker_record_limit(self):
+        chunks = make_chunks([small_quote(index) for index in range(201)])
+        self.assertEqual([len(chunk) for chunk in chunks], [200, 1])
+        self.assertTrue(all(
+            len(encode_chunk_request(chunk)) <= MAX_UPLOAD_REQUEST_BYTES
+            for chunk in chunks
+        ))
 
     def test_worker_is_single_quote_read_only_api_and_d1_backed(self):
         worker = (ROOT / "worker" / "weread-sync" / "src" / "index.js").read_text(encoding="utf-8")
