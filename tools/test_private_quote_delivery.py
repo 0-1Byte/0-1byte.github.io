@@ -55,6 +55,7 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
 
     def test_home_template_does_not_load_the_complete_weread_file(self):
         template = (ROOT / "layouts" / "index.html").read_text(encoding="utf-8")
+        head = (ROOT / "layouts" / "partials" / "extend_head.html").read_text(encoding="utf-8")
         script = (ROOT / "static" / "quotes.js").read_text(encoding="utf-8")
         self.assertNotIn("site.Data.weread_quotes", template)
         self.assertNotIn("data/weread_quotes.json", template)
@@ -62,6 +63,8 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertNotIn("data/weread_quotes.json", script)
         self.assertIn('dict "manual" $manualQuotes | jsonify', template)
         self.assertNotIn('"weread" $wereadQuotes', template)
+        self.assertIn('"quotes.js" | relURL }}?v=11', head)
+        self.assertIn("const WEREAD_REQUEST_TIMEOUT_MS = 8000;", script)
 
     def test_workflow_uploads_only_to_worker_and_never_commits_dataset(self):
         workflow = (ROOT / ".github" / "workflows" / "sync-weread.yml").read_text(encoding="utf-8")
