@@ -5,7 +5,7 @@
 #   1) Hugo 生成的页面（首页 / 文章页 / 404）→ layouts/partials/site_nav.html
 #   2) static/ 下的合集页 → static/site-nav.js 读取 /nav.json
 #
-# 结构：五个分组（listen / read / watch / play / make），每个分组下挂实际页面。
+# 结构：五个顶级分组（listen / read / watch / play / make），以及 writing。
 # 旧 URL（/music/ /book/ /works/ /docu/ /film/ /tv/）全部保持原样，不新增别名。
 #
 # children 的 desc 用于下拉菜单中的可见补充说明。
@@ -30,14 +30,7 @@ groups:
 
   - key: watch
     label: watch
-    children:
-      # 这三项刻意不写 desc：下拉里只留 Film / TV / Docu。
-      - name: Film
-        href: /film/
-      - name: TV
-        href: /tv/
-      - name: Docu
-        href: /docu/
+    href: /watch/
 
   - key: play
     label: play

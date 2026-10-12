@@ -21,11 +21,15 @@
 {{- $groups := slice }}
 {{- range site.Data.nav.groups }}
   {{- if not .pending }}
-  {{- $children := slice }}
-  {{- range .children }}
-  {{- $children = $children | append (dict "name" .name "href" .href "desc" (.desc | default "")) }}
+  {{- if .href }}
+    {{- $groups = $groups | append (dict "key" .key "label" .label "href" .href) }}
+  {{- else }}
+    {{- $children := slice }}
+    {{- range .children }}
+    {{- $children = $children | append (dict "name" .name "href" .href "desc" (.desc | default "")) }}
+    {{- end }}
+    {{- $groups = $groups | append (dict "key" .key "label" .label "children" $children) }}
   {{- end }}
-  {{- $groups = $groups | append (dict "key" .key "label" .label "children" $children) }}
   {{- end }}
 {{- end }}
 

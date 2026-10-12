@@ -136,43 +136,44 @@
 
 .hnav-menu {
   position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
+  top: calc(100% + 8px);
+  left: 50%;
   z-index: 30;
   box-sizing: border-box;
-  width: 124px;
+  width: 78px;
   max-width: calc(100vw - 24px);
   margin: 0;
-  padding: 6px;
+  padding: 4px;
   display: grid;
-  gap: 2px;
+  gap: 0;
   list-style: none;
-  background: rgba(28, 29, 31, .94);
-  border: 1px solid rgba(255, 255, 255, .11);
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, .24);
+  background: rgba(28, 31, 36, .88);
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-4px);
+  transform: translate(-50%, -4px);
   transition: opacity 150ms ease,
               visibility 150ms ease,
-              transform 150ms var(--ease-out);
+              transform 150ms var(--ease-out),
+              background-color 150ms ease;
 }
 
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .hnav-menu {
-    background: rgba(28, 29, 31, .68);
-    -webkit-backdrop-filter: blur(16px) saturate(125%);
-    backdrop-filter: blur(16px) saturate(125%);
+    background: rgba(28, 31, 36, .50);
+    -webkit-backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: blur(20px) saturate(125%);
   }
 }
 
 /* 桌面：悬停或键盘聚焦时展开 */
 @media (hover: hover) {
-  .hnav-item--has-menu:hover > .hnav-menu {
+  .hnav-item--has-menu:hover:not(.is-dismissed) > .hnav-menu {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
   .hnav-item--has-menu:hover > .hnav-link--toggle .hnav-caret {
     transform: rotate(180deg);
@@ -180,28 +181,30 @@
 }
 
 /* 点击展开（移动端与键盘用户） */
-.hnav-item.is-open > .hnav-menu,
-.hnav-item--has-menu:focus-within > .hnav-menu {
+.hnav-item.is-open:not(.is-dismissed) > .hnav-menu,
+.hnav-item--has-menu:focus-within:not(.is-dismissed) > .hnav-menu {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 
 .hnav-item.is-open > .hnav-link--toggle .hnav-caret,
-.hnav-item--has-menu:focus-within > .hnav-link--toggle .hnav-caret {
+.hnav-item--has-menu:focus-within:not(.is-dismissed) > .hnav-link--toggle .hnav-caret {
   transform: rotate(180deg);
 }
 
 /* ---------- 下拉项字体 ----------
    顶层是手写体 Dancing Script，下拉项若回落成默认无衬线会明显断裂。
    Dancing Script 只有拉丁字形，中文会由后续字体兜底 ——
-   所以这里显式给出「Dancing Script + 正文无衬线」的组合：
-   拉丁文字（Film / TV / Docu）保持手写体，中文描述走正文无衬线，
-   两级之间不再出现第三种字体。 */
+   所以这里显式给出「Dancing Script + 正文无衬线」的组合，
+   拉丁文字保持手写体，中文描述走正文无衬线。 */
 
 .hnav-menu a {
-  display: block;
-  padding: 7px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 4px;
   border-radius: var(--radius-sm);
   transition: color 150ms ease, background-color 150ms ease;
 }
@@ -231,9 +234,9 @@
 
 .hnav-menu-name {
   color: var(--text);
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .hnav-menu-desc {
@@ -248,7 +251,15 @@
 
 @media (max-width: 600px) {
   .header {
+    align-items: flex-start;
     gap: 16px;
+    height: auto;
+    min-height: 68px;
+  }
+
+  .header-nav,
+  .hnav-list {
+    align-items: flex-start;
   }
 
   /* 原先这里有 .header-nav { padding-right: 38px }，为移动端的主题按钮让位。
@@ -286,35 +297,57 @@
     font-size: 17px;
   }
 
-  /* 移动端下拉：改成 fixed 定位。
-     原因同上 —— 父级有 overflow 就会裁掉绝对定位子元素，
-     而 .header 本身也是 68px 定高。fixed 让它脱离这两个容器，
-     位置由 site-nav.js 依据按钮的 getBoundingClientRect() 设置。 */
-  .hnav-menu--sheet {
-    position: fixed;
-    top: 0;              /* 由 JS 覆盖 */
-    left: 0;             /* 由 JS 覆盖 */
-    width: 124px;        /* JS 读取此宽度并限制在视口内 */
-    max-height: 70vh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    /* 换行后的导航可能压到菜单上，层级要压过 .hnav 的 z-index */
+  /* 触控菜单保持在 Watch 下方；预留真实流内空间，避免压住首页短句。 */
+  .hnav-item--has-menu::after {
+    content: "";
+    display: block;
+    height: 0;
+    transition: height 150ms ease;
+  }
+
+  .hnav-item--has-menu.is-open:not(.is-dismissed)::after,
+  .hnav-item--has-menu:focus-within:not(.is-dismissed)::after {
+    height: 138px;
+  }
+
+  @media (hover: hover) {
+    .hnav-item--has-menu:hover:not(.is-dismissed)::after {
+      height: 138px;
+    }
+  }
+
+  .hnav-menu {
+    top: calc(100% - 138px + 8px);
+    left: 50%;
+    width: 116px;
+    max-height: none;
+    overflow: visible;
     z-index: 60;
+    background: rgba(28, 31, 36, .88);
   }
 
-  .hnav-menu--sheet .hnav-menu-name {
-    font-size: 16px;
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .hnav-menu {
+      background: rgba(28, 31, 36, .52);
+      -webkit-backdrop-filter: blur(20px) saturate(125%);
+      backdrop-filter: blur(20px) saturate(125%);
+    }
   }
 
-  .hnav-menu--sheet a {
-    padding: 7px 11px;
+  .hnav-menu a {
+    justify-content: center;
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 6px;
+  }
+
+  .hnav-menu-name {
+    font-size: 15px;
+    line-height: 1.15;
   }
 }
 
-/* 超窄屏（<=360px，如旧款 iPhone SE）：
-   换行后的导航按 17px 会折成三行、需要约 73px，而 .header 是 68px 定高，
-   会被撑破。这里把导航收紧一档，让它回到两行。
-   定高保持 68px —— 桌面端依赖它（下拉菜单按 100% 相对按钮定位）。 */
+/* 超窄屏（<=360px，如旧款 iPhone SE）时收紧顶层导航以避免横向溢出。 */
 @media (max-width: 360px) {
   .logo a {
     font-size: 24px;
@@ -336,6 +369,10 @@
   .hnav-caret,
   .hnav-link,
   .hnav-menu a {
+    transition: none;
+  }
+
+  .hnav-item--has-menu::after {
     transition: none;
   }
 }

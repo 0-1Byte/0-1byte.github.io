@@ -15,9 +15,13 @@
   <ul class="hnav-list">
     {{- range $groups }}
     {{- if not .pending }}
-    {{- $children := .children }}
-    {{- $only := index $children 0 }}
+    {{- $children := .children | default (slice) }}
     {{- $multi := gt (len $children) 1 }}
+    {{- $href := .href }}
+    {{- if not $href }}
+      {{- $only := index $children 0 }}
+      {{- $href = $only.href }}
+    {{- end }}
     <li class="hnav-item{{ if $multi }} hnav-item--has-menu{{ end }}"
         data-group="{{ .key }}">
       {{- if $multi }}
@@ -40,8 +44,8 @@
         {{- end }}
       </ul>
       {{- else }}
-      {{- /* 单子项：分组标签直接指向该页 */}}
-      <a class="hnav-link" href="{{ $only.href | relURL }}"><span>{{ .label }}</span></a>
+      {{- /* 直接链接或单子项：分组标签指向该页 */}}
+      <a class="hnav-link" href="{{ $href | relURL }}"><span>{{ .label }}</span></a>
       {{- end }}
     </li>
     {{- end }}

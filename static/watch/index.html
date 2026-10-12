@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <script>
+    (() => {
+      let saved = "";
+      try { saved = localStorage.getItem("pref-theme") || ""; } catch (error) { /* 隐私模式忽略 */ }
+      const dark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    })();
+  </script>
+  <link rel="stylesheet" href="/theme.css?v=1">
+  <link rel="stylesheet" href="/site-nav.css?v=7">
+  <link rel="stylesheet" href="/collection-states.css?v=2">
+  <link rel="stylesheet" href="/back-to-top.css?v=1">
+  <link rel="preload" href="/film/films.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+  <link rel="preload" href="/tv/tvs.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+  <link rel="preload" href="/docu/docus.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+  <link rel="stylesheet" href="/watch/style.css?v=1">
+  <title>Watch — Chen</title>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="logo">
+        <a href="/" accesskey="h">Chen</a>
+      </div>
+      <div class="header-nav">
+        <div class="site-nav" data-site-nav></div>
+      </div>
+    </header>
+    <main>
+      <section class="hero">
+        <h1>Things I like to watch.</h1>
+        <p class="count" id="watch-count" aria-live="polite">Loading titles…</p>
+      </section>
+      <nav class="category-filters" id="category-filters" aria-label="Filter by category"></nav>
+      <div id="watch-grid" class="watch-grid"></div>
+      <div id="empty" class="empty" hidden>No titles in this category yet.</div>
+      <div id="source-errors" class="source-errors" aria-live="polite" hidden></div>
+    </main>
+    <footer class="footer"><span>Chen</span><span id="year"></span></footer>
+  </div>
+  <script src="/site-nav.js?v=8" defer></script>
+  <script src="/collection-common.js?v=1" defer></script>
+  <script src="/covers.js?v=2" defer></script>
+  <script src="/watch/script.js?v=2" defer></script>
+  <script src="/back-to-top.js?v=1" defer></script>
+</body>
+</html>

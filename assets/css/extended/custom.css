@@ -134,14 +134,15 @@
 }
 
 /* 导航字体/尺寸由 static/site-nav.css（.hnav-*）统一负责 ——
-   阶段 3 起顶层导航是 listen/read/watch/make 分组，不再是 #menu 扁平菜单。
+   阶段 3 起顶层导航由 data/nav.yaml 驱动。
 
    header 的布局同理收敛到了 site-nav.css（.header / .header-nav / .logo /
    .theme-toggle），Hugo 页面与 static/ 合集页共用同一份，
    因此这里不再重复定义，避免两处实现打架。
-   仅保留 PaperMod 自身 nav 容器的宽度约束。 */
+   PaperMod 的宽度与高度约束只应用于外层 Header 导航容器；
+   若匹配内部 .hnav，它会被抬高而列表仍贴着顶部排列。 */
 
-nav {
+header.header > nav.header-nav {
     position: relative;
     max-width: var(--nav-width) !important;
     margin: 0 auto !important;
@@ -151,8 +152,12 @@ nav {
 }
 
 @media screen and (max-width: 767px) {
-    nav {
+    header.header > nav.header-nav {
         min-height: 76px !important;
+    }
+
+    header.header--home > nav.header-nav {
+        flex-wrap: nowrap;
     }
 }
 
@@ -213,4 +218,3 @@ html[data-theme="dark"] .post-entry {
         display: grid !important;
     }
 }
-

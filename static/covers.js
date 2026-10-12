@@ -27,10 +27,10 @@
     return parts.length ? `/${parts[0]}/` : "/";
   })();
 
-  const resolveAsset = path => {
+  const resolveAsset = (path, base = BASE) => {
     if (!path) return "";
     if (/^(https?:)?\/\//.test(path) || path.startsWith("/")) return path;
-    return BASE + path.replace(/^\.?\//, "");
+    return base + path.replace(/^\.?\//, "");
   };
 
   const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -45,6 +45,7 @@
     const widths = opt.widths || [240, 320, 480];
     /* 合集页封面 2:3 竖版，桌面四列时显示约 235x353 */
     const sizes = opt.sizes || "(max-width: 600px) 45vw, (max-width: 850px) 31vw, 235px";
+    const assetBase = options.assetBase || BASE;
 
     const index = options.index || 0;
     const eager = index < (options.eagerCount ?? 4);
@@ -52,7 +53,7 @@
       ? 'loading="eager" fetchpriority="high"'
       : 'loading="lazy"';
 
-    const fallback = resolveAsset(options.cover);
+    const fallback = resolveAsset(options.cover, assetBase);
     const base = String(options.img ?? "").trim();
     const alt = escape(options.alt);
     /* 显式尺寸：封面容器已用 aspect-ratio 固定比例，这里再声明 width/height
@@ -72,12 +73,12 @@
 
     const dir = opt.assetDir || "covers/opt";
     const srcset = widths
-      .map(w => `${BASE}${dir}/${base}-${w}.webp ${w}w`)
+      .map(w => `${assetBase}${dir}/${base}-${w}.webp ${w}w`)
       .join(", ");
 
     return `<img
           class="cover"
-          src="${escape(`${BASE}${dir}/${base}-480.webp`)}"
+          src="${escape(`${assetBase}${dir}/${base}-480.webp`)}"
           srcset="${escape(srcset)}"
           sizes="${escape(sizes)}"
           alt="${alt}"

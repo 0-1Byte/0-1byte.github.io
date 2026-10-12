@@ -461,10 +461,14 @@ void main() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const nav = await res.json();
       if (!nav || !Array.isArray(nav.groups)) throw new Error("nav.json 格式不对（缺少 groups 数组）");
-
       const href = {};
       nav.groups.forEach((g) => {
-        if (g.pending || !Array.isArray(g.children) || !g.children.length) return;
+        if (g.pending) return;
+        if (g.href) {
+          href[g.key] = g.href;
+          return;
+        }
+        if (!Array.isArray(g.children) || !g.children.length) return;
         href[g.key] = g.children[0].href;
       });
 

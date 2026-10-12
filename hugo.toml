@@ -102,7 +102,8 @@ relativeURLs = false
 
 # 导航已改由 data/nav.yaml 驱动（阶段 3 信息架构重组）。
 # 原来的 [[menu.main]] 扁平菜单（Music/Book/Works/Docu/Film/TV）已废弃：
-# 现在顶层是 listen / read / watch / make / think 五个分组，
-# watch 带 Film/TV/Docu 下拉。结构只有一处来源，避免与合集页硬编码导航漂移。
+# 现在顶层是 listen / read / watch / play / make 五个分组，以及 writing；
+# watch 直接链接到 /watch/，Film / TV / Docu 在该页面内筛选。
+# 结构只有一处来源，避免与合集页硬编码导航漂移。
 #
 # 旧 URL 全部保持不变：/music/ /book/ /works/ /docu/ /film/ /tv/

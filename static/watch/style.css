@@ -1,0 +1,187 @@
+* { box-sizing:border-box; }
+html,body {
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+}
+body {
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease;
+}
+a { color:inherit; text-decoration:none; }
+.page {
+  width:min(1040px,calc(100% - 48px));
+  min-height:100vh;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+}
+.header {
+  position:relative;
+  height:68px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+}
+.hero {
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:30px;
+  padding:70px 0 30px;
+}
+.hero h1 {
+  margin:0;
+  font-family:'Dancing Script',cursive;
+  font-size:24px;
+  line-height:32px;
+  font-weight:700;
+}
+.count {
+  flex:none;
+  margin:0 0 4px;
+  color:var(--muted);
+  font-size:11px;
+}
+.category-filters {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:0 0 13px;
+}
+.category-filter {
+  min-height:30px;
+  padding:5px 10px;
+  border:0;
+  border-radius:var(--radius-sm);
+  background:transparent;
+  color:var(--muted);
+  font:inherit;
+  font-size:12px;
+  line-height:1.4;
+  cursor:pointer;
+  transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease;
+}
+.category-filter:hover,.category-filter[aria-pressed="true"] {
+  background:var(--surface-2);
+  color:var(--text);
+}
+.category-filter:focus-visible {
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.watch-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:42px 23px;
+  padding:9px 0 0;
+}
+.watch-card { min-width:0; }
+.watch-card[hidden] { display:none; }
+.cover-link { display:block; }
+.cover-wrap {
+  position:relative;
+  aspect-ratio:2/3;
+  overflow:hidden;
+  border-radius:var(--radius);
+  background:var(--surface-2);
+}
+.cover {
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  transition:transform var(--motion-slow) var(--ease-out),opacity var(--motion-slow) ease;
+}
+.watch-card:hover .cover { transform:scale(1.025); opacity:.72; }
+.watch-overlay {
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:8px;
+  padding:22px;
+  background:var(--overlay);
+  color:#fff;
+  text-align:center;
+  opacity:0;
+  transform:translateY(8px);
+  pointer-events:none;
+  backdrop-filter:blur(3px);
+  transition:opacity var(--motion-fade) ease,transform var(--motion-slow) var(--ease-out);
+}
+.watch-overlay p {
+  margin:0;
+  font-size:12px;
+  line-height:1.45;
+}
+.watch-overlay span {
+  display:inline-block;
+  margin-right:7px;
+  color:rgba(255,255,255,.66);
+  font-size:10px;
+  letter-spacing:.12em;
+}
+.watch-card:hover .watch-overlay,.watch-card:focus-within .watch-overlay { opacity:1; transform:translateY(0); }
+.watch-info { padding:11px 1px 0; }
+.watch-info h2 {
+  margin:0;
+  font-size:13px;
+  line-height:1.4;
+  font-weight:650;
+}
+.external {
+  position:absolute;
+  right:9px;
+  bottom:9px;
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.9);
+  color:#111;
+  font-size:12px;
+  opacity:0;
+  transition:opacity var(--motion-fast) ease;
+}
+.watch-card:hover .external { opacity:1; }
+.empty,.source-errors {
+  padding:30px 0;
+  color:var(--muted);
+  font-size:12px;
+}
+.source-errors .collection-state { margin:0 0 12px; }
+.footer {
+  margin-top:auto;
+  padding:86px 0 26px;
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted);
+  font-size:10px;
+}
+@media (max-width:850px) {
+  .watch-grid {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:32px 18px;
+  }
+}
+@media (max-width:600px) {
+  .page { width:min(100% - 28px,1040px); }
+  .hero {
+    padding:56px 0 24px;
+    align-items:start;
+  }
+  .hero h1 { font-size:24px; line-height:32px; }
+  .count { margin-top:28px; }
+  .category-filters { gap:4px; padding-bottom:10px; }
+  .category-filter { min-height:32px; padding:5px 9px; }
+  .watch-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:30px 14px;
+  }
+  .footer { padding-top:58px; }
+}

@@ -35,7 +35,10 @@
   function buildGroup(group) {
     const children = group.children || [];
     const multi = children.length > 1;
-    const active = children.some(c => isActive(c.href));
+    const directHref = group.href || (children.length === 1 ? children[0].href : "");
+    const active = directHref
+      ? isActive(directHref)
+      : children.some(c => isActive(c.href));
 
     if (multi) {
       const items = children.map(c => `
@@ -57,10 +60,9 @@
       </li>`;
     }
 
-    const only = children[0];
     return `
       <li class="hnav-item${active ? " is-active" : ""}" data-group="${esc(group.key)}">
-        <a class="hnav-link" href="${esc(only.href)}">
+        <a class="hnav-link" href="${esc(directHref)}">
           <span>${esc(group.label)}</span>
         </a>
       </li>`;
@@ -93,93 +95,31 @@
   }
 
   /* ------------------------------------------------------------------
-     下拉菜单的移动端定位
-
-     为什么需要 JS：
-       下拉是 position: absolute，而移动端它有两个会把它裁掉的父级 ——
-         · .hnav 在窄屏曾是横向滚动容器（overflow-x: auto 会把
-           overflow-y 也算成 auto）
-         · .header 是 68px 定高
-       所以窄屏改用 position: fixed（在 CSS 里由 .hnav-menu--sheet 触发），
-       位置在这里按触发按钮的实际位置算出来。
-       桌面端维持纯 CSS 的绝对定位，不经过这里。
+     下拉菜单展开
+     手机端菜单锚定在所属导航项下方；CSS 为它在导航流中预留空间，
+     所以不需要 fixed 定位或按视口坐标测量。
      ------------------------------------------------------------------ */
 
   const MOBILE_QUERY = "(max-width: 600px)";
-  const VIEWPORT_MARGIN = 12;   // 菜单与视口边缘的最小距离
-
-  function isNarrow() {
-    return typeof window.matchMedia === "function"
-      && window.matchMedia(MOBILE_QUERY).matches;
-  }
-
-  function positionSheet(btn, menu) {
-    const rect = btn.getBoundingClientRect();
-    const width = Math.min(menu.getBoundingClientRect().width || 124,
-      window.innerWidth - VIEWPORT_MARGIN * 2);
-
-    // 左对齐到按钮，但不越出视口
-    let left = rect.left;
-    if (left + width > window.innerWidth - VIEWPORT_MARGIN) {
-      left = window.innerWidth - VIEWPORT_MARGIN - width;
-    }
-    if (left < VIEWPORT_MARGIN) left = VIEWPORT_MARGIN;
-
-    // 高度自适应，但不超过剩余视口
-    const top = rect.bottom + 6;
-    const available = window.innerHeight - top - VIEWPORT_MARGIN;
-
-    menu.style.left = `${Math.round(left)}px`;
-    menu.style.top = `${Math.round(top)}px`;
-    menu.style.width = `${Math.round(width)}px`;
-    menu.style.maxHeight = `${Math.max(80, Math.round(available))}px`;
-  }
-
-  function clearSheet(menu) {
-    menu.classList.remove("hnav-menu--sheet");
-    menu.style.left = "";
-    menu.style.top = "";
-    menu.style.width = "";
-    menu.style.maxHeight = "";
-  }
 
   function closeAll(host) {
-    host.querySelectorAll(".hnav-item.is-open").forEach(item => {
+    host.querySelectorAll(".hnav-item--has-menu").forEach(item => {
       item.classList.remove("is-open");
+      item.classList.add("is-dismissed");
       const b = item.querySelector(".hnav-link--toggle");
       if (b) b.setAttribute("aria-expanded", "false");
-      const m = item.querySelector(".hnav-menu");
-      if (m) clearSheet(m);
     });
-  }
-
-  /* 事件目标是否属于导航。
-     注意要单独看 --sheet：移动端菜单是 position: fixed，
-     虽然 DOM 上仍在 host 里，但为了不依赖这一点，
-     这里显式把它算作「内部」，避免点菜单项时先被判定为外部而收起。 */
-  function isInsideNav(host, target) {
-    if (!target) return false;
-    if (host.contains(target)) return true;
-    return !!(target.closest && target.closest(".hnav-menu--sheet"));
   }
 
   /* 下拉：桌面悬停由 CSS 负责，这里处理点击/键盘（移动端主要靠它） */
   function bindToggles(host) {
     host.querySelectorAll(".hnav-link--toggle").forEach(btn => {
       const item = btn.closest(".hnav-item");
-      const menu = item.querySelector(".hnav-menu");
 
       const setOpen = open => {
         item.classList.toggle("is-open", open);
+        item.classList.toggle("is-dismissed", !open);
         btn.setAttribute("aria-expanded", String(open));
-        if (!menu) return;
-        if (open && isNarrow()) {
-          // 先加 class 让 CSS 的 fixed 定位生效，再量位置
-          menu.classList.add("hnav-menu--sheet");
-          positionSheet(btn, menu);
-        } else if (!open) {
-          clearSheet(menu);
-        }
       };
 
       btn.addEventListener("click", event => {
@@ -187,10 +127,20 @@
         setOpen(!item.classList.contains("is-open"));
       });
 
+      item.addEventListener("pointerenter", () => {
+        item.classList.remove("is-dismissed");
+      });
+
+      item.addEventListener("focusin", () => {
+        item.classList.remove("is-dismissed");
+      });
+
       item.addEventListener("keydown", event => {
         if (event.key === "Escape") {
+          event.preventDefault();
           setOpen(false);
           btn.focus();
+          item.classList.add("is-dismissed");
         }
       });
 
@@ -199,20 +149,10 @@
         if (!item.contains(event.relatedTarget)) setOpen(false);
       });
 
-      // 展开状态下视口变化（旋转屏幕、软键盘弹出）需要重算位置
-      window.addEventListener("resize", () => {
-        if (item.classList.contains("is-open") && menu && isNarrow()) {
-          positionSheet(btn, menu);
-        }
-      }, { passive: true });
-
-      // 从窗口宽度看，要跨过 600px 时把 sheet 状态清掉，
-      // 否则桌面端会残留 fixed 定位
+      // 视口跨越移动断点时关闭菜单，避免保留不合适的展开状态。
       if (typeof window.matchMedia === "function") {
         const mq = window.matchMedia(MOBILE_QUERY);
-        const onChange = () => {
-          if (!mq.matches) setOpen(false);
-        };
+        const onChange = () => setOpen(false);
         if (mq.addEventListener) mq.addEventListener("change", onChange);
         else if (mq.addListener) mq.addListener(onChange);
       }
@@ -220,14 +160,12 @@
 
     // 点击别处收起
     document.addEventListener("click", event => {
-      if (!isInsideNav(host, event.target)) closeAll(host);
+      if (!host.contains(event.target)) closeAll(host);
     });
 
-    // 滚动时收起：fixed 定位不跟随页面滚动，留着会飘在错误的位置
-    // （菜单自身内部的滚动也会冒泡到 window，所以先判断目标是否在菜单里）
+    // 页面滚动时收起已展开菜单。
     window.addEventListener("scroll", event => {
-      if (isInsideNav(host, event.target)) return;
-      closeAll(host);
+      if (!host.contains(event.target)) closeAll(host);
     }, { passive: true, capture: true });
   }
 
