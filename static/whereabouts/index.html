@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f4ef">
+  <meta name="description" content="查一个地名，顺手看看它在哪里。">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="./styles.css">
+  <title>地理一瞥 Whereabouts</title>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+  <script src="./core.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="地理一瞥首页">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span>地理一瞥 <span class="brand-en">Whereabouts</span></span>
+      </a>
+      <details class="guide">
+        <summary aria-label="使用与安装说明">使用说明</summary>
+        <div class="guide-panel">
+          <h2>随手查一个地方</h2>
+          <p>从其他 App 分享文字，或直接粘贴地名。较长的分享内容只留在本页，先挑出地名再查。</p>
+          <h3>添加到主屏幕</h3>
+          <p><strong>Android：</strong>在 Chrome 打开本页，使用浏览器菜单中的“安装应用”或“添加到主屏幕”。安装后，本应用会出现在系统分享面板中；是否可分享取决于来源 App。非常长的分享可能受浏览器 URL 长度限制；如果分享失败，可复制地名后直接粘贴。</p>
+          <p><strong>iPhone / iPad：</strong>Safari 的分享目标不支持此类网页应用。可先用 Safari 打开本页，点“分享”→“添加到主屏幕”；也可创建下面的快捷指令。</p>
+          <h3>iOS 快捷指令（一次设置）</h3>
+          <ol>
+            <li>打开“快捷指令”，点“+”新建，展开快捷指令详情并开启“在共享表单中显示”；接收类型选“文本”和“URL”。</li>
+            <li>添加“URL 编码”操作，输入快捷指令收到的“输入”。</li>
+            <li>添加“URL”操作，填写 <code>https://0-1byte.github.io/whereabouts/?text=</code>，在等号后插入“URL 编码”的结果。</li>
+            <li>添加“打开 URL”操作并命名为“地理一瞥”。以后在其他 App 选中内容，点“分享”→“地理一瞥”。</li>
+          </ol>
+          <p>短分享会预填并查询；长文本会留在本机供你整理。分享 URL 时请手动选择地名。很长的文本可能受系统 URL 长度限制，遇到失败时请只复制地名。不同 iOS 版本的操作名称可能略有不同。</p>
+          <h3>数据与隐私</h3>
+          <p>地名搜索由 Wikipedia / Wikimedia API 处理；只有你提交的查询词会发送给维基百科，分享原文和浏览记录不会上传。位置坐标取自对应百科条目，缺失时不推测。地图由 OpenStreetMap 瓦片提供；地图加载失败不影响外部地图入口。查询需要网络连接。</p>
+          <button class="guide-close" type="button">知道了</button>
+        </div>
+      </details>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">CURIOSITY WITHOUT INTERRUPTION</p>
+      <h1 id="page-title">哪里让你感到好奇？</h1>
+      <p class="lede">一个地名，一眼看看它在哪里。</p>
+      <form id="search-form" class="search-form" novalidate>
+        <label class="visually-hidden" for="place-query">搜索地名</label>
+        <div class="input-wrap">
+          <input id="place-query" name="place" type="search" maxlength="100" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="哪里让你感到好奇？">
+          <button id="clear-query" class="clear-button" type="button" aria-label="清空输入" hidden>清空</button>
+          <button class="submit-button" type="submit">看看 <span aria-hidden="true">↗</span></button>
+        </div>
+        <p class="hint">选中地名后分享给我，或直接粘贴 <span>·</span> 中文、English 都可以</p>
+      </form>
+    </section>
+
+    <section id="share-context" class="share-context" aria-live="polite" hidden>
+      <div class="share-context-heading">
+        <span>分享内容仅保留在此页面</span>
+        <button id="clear-context" type="button">清除</button>
+      </div>
+      <details>
+        <summary>查看分享的上下文</summary>
+        <pre id="context-text"></pre>
+      </details>
+      <p>请从中整理一个地名再搜索；原文不会发送给维基百科。</p>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <nav id="fallback-links" class="map-links fallback-links" aria-label="用地名搜索外部地图" hidden></nav>
+    <section id="results" class="results" aria-label="地点查询结果" hidden>
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow">SEARCH RESULTS</p>
+          <h2 id="results-title"></h2>
+        </div>
+        <span id="result-count" class="result-count"></span>
+      </div>
+      <p id="ranking-note" class="ranking-note" hidden></p>
+      <div id="candidate-list" class="candidate-list"></div>
+      <article id="place-detail" class="place-detail" aria-live="polite"></article>
+    </section>
+
+    <footer class="privacy-note">
+      <span>不登录 · 不记录 · 不上传原文</span>
+      <span>地名搜索：Wikimedia · 地图：© OpenStreetMap</span>
+    </footer>
+  </main>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js").catch(function (error) {
+          console.error("无法注册离线应用外壳：", error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
