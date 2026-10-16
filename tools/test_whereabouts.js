@@ -46,6 +46,17 @@ test("ranking favors exact matches while keeping same-name candidates selectable
   assert.ok(candidates.some((candidate) => candidate.title === "Georgia (U.S. state)"));
 });
 
+test("a disambiguation article does not outrank selectable geographic matches", () => {
+  const candidates = core.rankCandidates([
+    { title: "Georgia", isDisambiguation: true, coordinates: null },
+    { title: "Georgia (country)", coordinates: { lat: 42, lon: 43 } },
+    { title: "Georgia (U.S. state)", coordinates: { lat: 32, lon: -83 } }
+  ], "Georgia", "Georgia");
+  assert.equal(candidates[0].title, "Georgia (country)");
+  assert.equal(candidates.at(-1).title, "Georgia");
+  assert.equal(candidates.at(-1).isDisambiguation, true);
+});
+
 test("local article context can adjust ranking without altering the query", () => {
   const ranked = core.rankCandidates([
     { title: "Georgia (country)", extract: "A country in the Caucasus region." },

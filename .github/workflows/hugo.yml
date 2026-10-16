@@ -27,6 +27,8 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+      - name: Verify Whereabouts lookup and result rendering
+        run: node --test tools/test_whereabouts.js tools/test_whereabouts_ui.js
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

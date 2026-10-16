@@ -94,7 +94,11 @@
         score += contextScore(candidate, context);
         return { ...candidate, score };
       })
-      .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+      .sort((a, b) =>
+        Number(Boolean(a.isDisambiguation)) - Number(Boolean(b.isDisambiguation)) ||
+        b.score - a.score ||
+        a.title.localeCompare(b.title)
+      );
   }
 
   function apiUrl(endpoint, params) {
@@ -163,7 +167,8 @@
         sourceLabel: wiki.label,
         language,
         aliases: redirects.filter((redirect) => redirect.to === page.title).map((redirect) => redirect.from),
-        wikidataId: page.pageprops && page.pageprops.wikibase_item || ""
+        wikidataId: page.pageprops && page.pageprops.wikibase_item || "",
+        isDisambiguation: Boolean(page.pageprops && Object.prototype.hasOwnProperty.call(page.pageprops, "disambiguation"))
       }));
   }
 

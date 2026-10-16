@@ -10,6 +10,8 @@
   const results = document.getElementById("results");
   const resultsTitle = document.getElementById("results-title");
   const resultCount = document.getElementById("result-count");
+  const candidateSummaryCount = document.getElementById("candidate-summary-count");
+  const candidatePicker = document.getElementById("candidate-picker");
   const candidateList = document.getElementById("candidate-list");
   const detail = document.getElementById("place-detail");
   const fallbackLinks = document.getElementById("fallback-links");
@@ -77,24 +79,36 @@
       return;
     }
 
-    const { lat, lon } = candidate.coordinates;
-    map = window.L.map(mapElement, { scrollWheelZoom: false }).setView([lat, lon], zoomFor(candidate));
-    window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
-    }).addTo(map);
-    window.L.circleMarker([lat, lon], {
-      radius: 8,
-      color: "#fffefa",
-      weight: 3,
-      fillColor: "#315640",
-      fillOpacity: 1
-    }).addTo(map).bindTooltip(candidate.title, { permanent: true, direction: "top", offset: [0, -8] });
-    map.on("tileerror", () => showMapError(frame, "地图瓦片加载失败；你仍可通过下方链接查看地图。"));
-    mapObserver = new ResizeObserver(() => {
-      if (map) map.invalidateSize({ pan: false });
-    });
-    mapObserver.observe(mapElement);
+    try {
+      const { lat, lon } = candidate.coordinates;
+      const currentMap = window.L.map(mapElement, { scrollWheelZoom: false }).setView([lat, lon], zoomFor(candidate));
+      map = currentMap;
+      const tileLayer = window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>'
+      });
+      tileLayer.on("tileerror", () => showMapError(frame, "地图瓦片加载失败；你仍可通过下方链接查看地图。"));
+      tileLayer.addTo(currentMap);
+      window.L.circleMarker([lat, lon], {
+        radius: 8,
+        color: "#fffefa",
+        weight: 3,
+        fillColor: "#315640",
+        fillOpacity: 1
+      }).addTo(currentMap).bindTooltip(candidate.title, { permanent: true, direction: "top", offset: [0, -8] });
+      mapObserver = new ResizeObserver(() => currentMap.invalidateSize({ pan: false }));
+      mapObserver.observe(mapElement);
+      requestAnimationFrame(() => {
+        if (map === currentMap) currentMap.invalidateSize({ pan: false });
+      });
+    } catch (error) {
+      if (map) {
+        map.remove();
+        map = null;
+      }
+      console.error("无法初始化 Leaflet 地图：", error);
+      showMapError(frame, "交互地图暂不可用。你仍可通过下方链接在外部地图中查看。");
+    }
   }
 
   function showMapError(frame, message) {
@@ -114,6 +128,13 @@
       button.setAttribute("aria-pressed", String(button === selectedButton));
     });
 
+    detail.append(textElement(
+      "p",
+      "selected-label",
+      selectedButton === candidateList.querySelector(".candidate")
+        ? "暂选结果 · 最相关匹配"
+        : "已切换候选地点"
+    ));
     const title = textElement("h3", "detail-title", candidate.title);
     detail.append(title);
     if (candidate.aliases && candidate.aliases.length) {
@@ -134,7 +155,7 @@
       const { lat, lon } = candidate.coordinates;
       detail.append(textElement("p", "coordinate", `坐标 ${lat.toFixed(5)}, ${lon.toFixed(5)} · 来源：${candidate.sourceLabel}`));
     } else {
-      detail.append(textElement("p", "no-coordinates", "此条目没有可验证的地理坐标，因此不显示地图标记；你仍可查看来源或用地名打开外部地图。"));
+      detail.append(textElement("p", "no-coordinates", "暂无可靠坐标，因此不显示地图标记；你仍可查看来源或用地名打开外部地图。"));
     }
 
     detail.append(textElement("p", "detail-heading", "简明背景"));
@@ -177,8 +198,10 @@
     results.hidden = false;
     resultsTitle.textContent = query;
     resultCount.textContent = `${candidates.length} 个候选`;
+    candidateSummaryCount.textContent = `· ${candidates.length} 个`;
     candidateList.replaceChildren();
     detail.replaceChildren();
+    candidatePicker.open = false;
 
     rankingNote.hidden = !context;
     rankingNote.textContent = rankingNote.hidden
@@ -201,7 +224,8 @@
       button.addEventListener("click", () => renderDetail(candidate, button));
       candidateList.append(button);
     }
-    detail.append(textElement("p", "select-prompt", "请选择一个候选地点，查看有来源支持的坐标与地理背景。"));
+    const selectedButton = candidateList.querySelector(".candidate");
+    if (selectedButton) renderDetail(candidates[0], selectedButton);
   }
 
   async function search(query) {
@@ -242,7 +266,7 @@
       if (response.errors.length) {
         setStatus(`显示可用结果，但部分来源暂不可用：${response.errors.join("；")}`, "warning");
       } else {
-        setStatus(`找到 ${response.candidates.length} 个候选地点；请选择最符合你所指的地方。`);
+        setStatus(`找到 ${response.candidates.length} 个候选地点；已显示最相关的暂选结果，可展开切换。`);
       }
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       results.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });

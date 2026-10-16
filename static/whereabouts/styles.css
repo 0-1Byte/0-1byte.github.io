@@ -394,26 +394,72 @@ summary:focus-visible {
 
 .candidate-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
-  gap: 9px;
-  margin: 14px 0 21px;
+  max-height: 224px;
+  overflow: auto;
+  margin: 0;
+  border-top: 1px solid var(--line);
 }
 
 .candidate {
   width: 100%;
-  min-height: 92px;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  background: #fffefa;
+  min-height: 56px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
 }
 
 .candidate[aria-pressed="true"] {
-  border-color: var(--accent);
   background: var(--soft);
   box-shadow: inset 3px 0 var(--accent);
+}
+
+.candidate-picker {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  background: #fffefa;
+}
+
+.candidate-picker > summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 13px;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.candidate-picker > summary::-webkit-details-marker {
+  display: none;
+}
+
+.candidate-picker > summary::after {
+  content: "+";
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.candidate-picker[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.candidate-picker[open] > summary::after {
+  content: "−";
+}
+
+.candidate-summary-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 450;
 }
 
 .candidate-title {
@@ -441,15 +487,15 @@ summary:focus-visible {
 }
 
 .place-detail {
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
+  padding-top: 13px;
 }
 
-.select-prompt {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
+.selected-label {
+  margin: 0 0 5px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .04em;
 }
 
 .detail-title {
@@ -479,7 +525,7 @@ summary:focus-visible {
 
 .map {
   width: 100%;
-  height: clamp(220px, 55vw, 320px);
+  height: clamp(220px, 65vw, 270px);
   background: #e6e9e1;
 }
 
@@ -641,14 +687,6 @@ summary:focus-visible {
 
   .results {
     margin-top: 15px;
-  }
-
-  .candidate-list {
-    grid-template-columns: 1fr;
-  }
-
-  .candidate {
-    min-height: 78px;
   }
 
   .privacy-note {
