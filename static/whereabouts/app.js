@@ -264,11 +264,12 @@
         return;
       }
       renderCandidates(response.candidates, cleanQuery);
-      if (response.errors.length) {
-        setStatus(`显示可用结果，但部分来源暂不可用：${response.errors.join("；")}`, "warning");
-      } else {
-        setStatus(`找到 ${response.candidates.length} 个候选地点；已显示最相关的暂选结果，可展开切换。`);
+      // A successful fallback is a successful user outcome. Keep provider errors out of the
+      // main UI; only expose source failures if no usable candidate can be displayed.
+      if (response.errors.length && window.console && typeof window.console.warn === "function") {
+        window.console.warn("Whereabouts used a fallback data source:", response.errors);
       }
+      setStatus(`找到 ${response.candidates.length} 个候选地点；已显示最相关的暂选结果，可展开切换。`);
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       results.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
     } catch (error) {
