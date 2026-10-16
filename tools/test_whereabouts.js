@@ -112,7 +112,7 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
     requests.push(parsed);
     assert.equal(parsed.hostname, "photon.komoot.io");
     assert.equal(parsed.searchParams.get("limit"), "8");
-    assert.equal(parsed.searchParams.get("lang"), "zh");
+    assert.equal(parsed.searchParams.has("lang"), false, "avoid an unsupported language parameter");
     const query = parsed.searchParams.get("q");
     if (query === "上海") {
       return {
@@ -182,6 +182,30 @@ test("translated Photon results preserve provider relevance order without treati
   assert.deepEqual(core.rankCandidates([second, first], "Praha", "").map((item) => item.title), ["布拉格", "其他地点"]);
   assert.equal(first.matchedName, "");
   assert.equal(first.aliases.includes("Praha"), false);
+});
+
+
+test("HTTP 400 diagnostics are preserved while fallback sources remain available", async () => {
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.hostname === "photon.komoot.io") {
+      return {
+        ok: false,
+        status: 400,
+        json: async () => ({ message: "Language is not supported" })
+      };
+    }
+    if (parsed.hostname === "zh.wikipedia.org" || parsed.hostname === "en.wikipedia.org") {
+      return { ok: true, json: async () => ({ query: { search: [] } }) };
+    }
+    if (parsed.hostname === "www.wikidata.org") {
+      return { ok: true, json: async () => ({ search: [] }) };
+    }
+    throw new Error("Unexpected host " + parsed.hostname);
+  };
+  const result = await core.searchLocations("上海", "", { fetch: fetchMock });
+  assert.equal(result.candidates.length, 0);
+  assert.ok(result.errors.some((message) => message.includes("HTTP 400：Language is not supported")));
 });
 
 test("lookup handles a missing-coordinate result and partial service failure", async () => {
