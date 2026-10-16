@@ -164,7 +164,7 @@ function createLeafletStub() {
   return { leaflet, instances };
 }
 
-function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locationSearch = "" }) {
+function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locationSearch = "", responseErrors = {} }) {
   const ids = [
     "search-form", "place-query", "clear-query", "status", "results", "results-title",
     "result-count", "candidate-summary-count", "candidate-picker", "candidate-list",
@@ -202,7 +202,7 @@ function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locat
         ...core,
         MAX_QUERY_LENGTH: 100,
         async searchLocations(query) {
-          return { candidates: searchResults[query] || [], errors: [] };
+          return { candidates: searchResults[query] || [], errors: responseErrors[query] || [] };
         }
       },
       L: leaflet,
@@ -385,4 +385,19 @@ test("Shanghai search immediately renders the correct city map", async () => {
   assert.equal(app.elements["place-detail"].querySelector(".detail-title").textContent, "上海市");
   assert.deepEqual(Array.from(instances[0].center), [31.2304, 121.4737]);
   assert.match(app.elements["place-detail"].textContent, /上海市/u);
+});
+
+
+
+test("a successful fallback is shown without alarming HTTP errors", async () => {
+  const { leaflet, instances } = createLeafletStub();
+  const app = createApp({
+    leaflet,
+    searchResults: { "上海": [candidate("上海市", 31.2304, 121.4737)] },
+    responseErrors: { "上海": ["地图地名库：HTTP 400", "Wikidata：响应超时"] }
+  });
+  await app.search("上海");
+  assert.equal(app.elements["place-detail"].querySelector(".detail-title").textContent, "上海市");
+  assert.doesNotMatch(app.elements.status.textContent, /HTTP 400|超时|不可用/u);
+  assert.deepEqual(Array.from(instances[0].center), [31.2304, 121.4737]);
 });
