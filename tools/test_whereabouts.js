@@ -161,7 +161,7 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
   const prague = await core.searchLocations("Praha", "", { fetch: fetchMock });
   assert.equal(prague.candidates[0].title, "布拉格");
   assert.equal(prague.candidates[0].matchedName, "");
-  assert.ok(prague.candidates[0].aliases.includes("Praha"));
+  assert.ok(requests.some((url) => url.searchParams.get("q") === "Praha"), "native-language query must reach the geocoder");
   assert.equal(prague.candidates[0].coordinates.lat, 50.0755);
   assert.equal(prague.candidates[0].coordinates.lon, 14.4378);
   assert.ok(prague.candidates[0].coordinates.dim > 30000);
