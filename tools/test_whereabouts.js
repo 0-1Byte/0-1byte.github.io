@@ -19,7 +19,7 @@ test("share payload decodes Chinese text and reserved URL characters", () => {
 test("short shared place names tolerate punctuation and URLs", () => {
   assert.equal(core.isShortShareText("苏瓦乌基走廊"), true);
   assert.equal(core.isShortShareText("Where is Patagonia?"), true);
-  assert.equal(core.isShortShareText("Kraków — Poland\nhttps://example.com/story"), true);
+  assert.equal(core.isShortShareText("Praha — Poland\nhttps://example.com/story"), true);
   assert.equal(core.isShortShareText("A long article without punctuation ".repeat(3)), false);
   assert.equal(core.isShortShareText("A brief article about Patagonia with several extra words"), false);
   assert.equal(core.isShortShareText("https://example.com/georgia"), false);
@@ -27,7 +27,7 @@ test("short shared place names tolerate punctuation and URLs", () => {
 
 test("share query is extracted from text, URL-wrapped text, or title fallback", () => {
   assert.equal(core.extractShareQuery({ text: "霍尔木兹海峡" }), "霍尔木兹海峡");
-  assert.equal(core.extractShareQuery({ text: "Kraków\nhttps://example.com/story" }), "Kraków");
+  assert.equal(core.extractShareQuery({ text: "Praha\nhttps://example.com/story" }), "Praha");
   assert.equal(core.extractShareQuery({
     text: "https://example.com/story",
     title: "苏瓦乌基走廊",
@@ -138,12 +138,18 @@ test("lookup handles a missing-coordinate result and partial service failure", a
 });
 test("article extracts stay brief and do not end mid-word", async () => {
   const longText = `${"A concise location summary with neighboring regions. ".repeat(14)}`;
-  const fetchMock = async (url) => ({
-    ok: true,
-    json: async () => new URL(url).searchParams.has("list")
-      ? { query: { search: [{ title: "Example place" }] } }
-      : { query: { pages: [{ title: "Example place", extract: longText }] } }
-  });
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.hostname === "www.wikidata.org") {
+      return { ok: true, json: async () => ({ search: [] }) };
+    }
+    return {
+      ok: true,
+      json: async () => parsed.searchParams.has("list")
+        ? { query: { search: [{ title: "Example place" }] } }
+        : { query: { pages: [{ title: "Example place", extract: longText }] } }
+    };
+  };
   const result = await core.searchLocations("Example place", "", { fetch: fetchMock });
   assert.ok(result.candidates[0].extract.length <= 421);
   assert.match(result.candidates[0].extract, /…$/u);
@@ -174,9 +180,9 @@ test("Wikidata finds a place by its native-language alias", async () => {
         json: async () => ({
           search: [{
             id: "Q243",
-            label: "克拉科夫",
+            label: "布拉格",
             description: "波兰南部城市",
-            match: { type: "alias", language: "pl", text: "Kraków" },
+            match: { type: "alias", language: "cs", text: "Praha" },
             score: 100
           }]
         })
@@ -190,15 +196,15 @@ test("Wikidata finds a place by its native-language alias", async () => {
             Q243: {
               id: "Q243",
               labels: {
-                zh: { language: "zh", value: "克拉科夫" },
-                en: { language: "en", value: "Kraków" },
-                pl: { language: "pl", value: "Kraków" }
+                zh: { language: "zh", value: "布拉格" },
+                en: { language: "en", value: "Praha" },
+                cs: { language: "cs", value: "Praha" }
               },
               descriptions: {
                 zh: { language: "zh", value: "波兰南部城市" },
                 en: { language: "en", value: "city in southern Poland" }
               },
-              aliases: { pl: [{ language: "pl", value: "Kraków" }] },
+              aliases: { cs: [{ language: "cs", value: "Praha" }] },
               claims: {
                 P625: [{
                   rank: "preferred",
@@ -227,12 +233,12 @@ test("Wikidata finds a place by its native-language alias", async () => {
     throw new Error("Unexpected host " + parsed.hostname);
   };
 
-  const result = await core.searchLocations("Kraków", "", { fetch: fetchMock });
+  const result = await core.searchLocations("Praha", "", { fetch: fetchMock });
   const place = result.candidates[0];
-  assert.equal(place.title, "克拉科夫");
-  assert.equal(place.matchedName, "Kraków");
-  assert.equal(place.matchedLanguage, "pl");
-  assert.ok(place.aliases.includes("Kraków"));
+  assert.equal(place.title, "布拉格");
+  assert.equal(place.matchedName, "Praha");
+  assert.equal(place.matchedLanguage, "cs");
+  assert.ok(place.aliases.includes("Praha"));
   assert.deepEqual(place.coordinates, { lat: 50.0614, lon: 19.9366, dim: 1113.2 });
   assert.equal(requests.some((url) => url.searchParams.get("action") === "wbsearchentities"), true);
 });
