@@ -22,6 +22,7 @@
   let map = null;
   let mapObserver = null;
   let querySequence = 0;
+  const queryCache = new Map();
 
   function setStatus(message, kind) {
     status.textContent = message || "";
@@ -247,9 +248,9 @@
     rankingNote.hidden = true;
     resetMap();
     setBusy(true);
-    setStatus("正在查找中英文地名与条目信息…");
+    setStatus("正在地图地名库中快速定位…");
     try {
-      const response = await core.searchLocations(cleanQuery, context);
+      const response = await core.searchLocations(cleanQuery, context, { cache: queryCache });
       if (currentSequence !== querySequence) return;
       if (!response.candidates.length) {
         results.hidden = true;

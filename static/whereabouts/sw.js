@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "whereabouts-shell-v4";
+const CACHE_NAME = "whereabouts-shell-v5";
 const SHELL = [
   "/whereabouts/",
   "/whereabouts/index.html",

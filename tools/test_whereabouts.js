@@ -104,9 +104,74 @@ test("API queries send only the submitted place term and request public CORS", (
   assert.equal(url.searchParams.has("context"), false);
 });
 
+
+test("Photon fast path resolves Shanghai in Chinese and Praha in its native name", async () => {
+  const requests = [];
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    requests.push(parsed);
+    assert.equal(parsed.hostname, "photon.komoot.io");
+    assert.equal(parsed.searchParams.get("limit"), "8");
+    assert.equal(parsed.searchParams.get("lang"), "zh");
+    const query = parsed.searchParams.get("q");
+    if (query === "上海") {
+      return {
+        ok: true,
+        json: async () => ({
+          features: [{
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [121.4737, 31.2304] },
+            properties: {
+              name: "上海市", city: "上海市", state: "上海市", country: "中国",
+              osm_type: "R", osm_id: 12345, osm_key: "place", osm_value: "city",
+              extent: [120.85, 30.67, 122.1, 31.87]
+            }
+          }]
+        })
+      };
+    }
+    if (query === "Praha") {
+      return {
+        ok: true,
+        json: async () => ({
+          features: [{
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [14.4378, 50.0755] },
+            properties: {
+              name: "布拉格", city: "布拉格", state: "Prague", country: "捷克",
+              osm_type: "R", osm_id: 1085, osm_key: "place", osm_value: "city",
+              extent: [14.22, 49.94, 14.71, 50.18]
+            }
+          }]
+        })
+      };
+    }
+    return { ok: true, json: async () => ({ features: [] }) };
+  };
+
+  const shanghai = await core.searchLocations("上海", "", { fetch: fetchMock });
+  assert.equal(shanghai.candidates.length, 1);
+  assert.equal(shanghai.candidates[0].title, "上海市");
+  assert.equal(shanghai.candidates[0].coordinates.lat, 31.2304);
+  assert.equal(shanghai.candidates[0].coordinates.lon, 121.4737);
+  assert.ok(shanghai.candidates[0].coordinates.dim > 130000);
+  assert.match(shanghai.candidates[0].extract, /中国/u);
+  assert.ok(shanghai.candidates[0].sourceUrl.endsWith("/relation/12345"));
+
+  const prague = await core.searchLocations("Praha", "", { fetch: fetchMock });
+  assert.equal(prague.candidates[0].title, "布拉格");
+  assert.equal(prague.candidates[0].matchedName, "Praha");
+  assert.ok(prague.candidates[0].aliases.includes("Praha"));
+  assert.equal(prague.candidates[0].coordinates.lat, 50.0755);
+  assert.equal(prague.candidates[0].coordinates.lon, 14.4378);
+  assert.ok(prague.candidates[0].coordinates.dim > 30000);
+  assert.equal(requests.length, 2, "successful geocoder results should not wait for encyclopedia fallbacks");
+});
+
 test("lookup handles a missing-coordinate result and partial service failure", async () => {
   const fetchMock = async (url) => {
     const parsed = new URL(url);
+    if (parsed.hostname === "photon.komoot.io") return { ok: true, json: async () => ({ features: [] }) };
     if (parsed.hostname === "en.wikipedia.org") {
       if (parsed.searchParams.get("list") === "search") {
         return { ok: true, json: async () => ({ query: { search: [{ title: "Patagonia" }] } }) };
@@ -160,11 +225,12 @@ test("English queries search the English encyclopedia first", async () => {
   const urls = [];
   const fetchMock = async (url) => {
     urls.push(url);
-    return { ok: true, json: async () => ({ query: { search: [] } }) };
+    return { ok: true, json: async () => new URL(url).hostname === "photon.komoot.io" ? ({ features: [] }) : ({ query: { search: [] } }) };
   };
   await core.searchLocations("Patagonia", "", { fetch: fetchMock });
-  assert.match(urls[0], /^https:\/\/en\.wikipedia\.org\//);
-  assert.match(urls[1], /^https:\/\/zh\.wikipedia\.org\//);
+  const wikipediaUrls = urls.filter((url) => /(?:en|zh)\.wikipedia\.org/u.test(url));
+  assert.match(wikipediaUrls[0], /^https:\/\/en\.wikipedia\.org\//);
+  assert.match(wikipediaUrls[1], /^https:\/\/zh\.wikipedia\.org\//);
   assert.ok(urls.some((url) => url.includes("www.wikidata.org") && url.includes("wbsearchentities")));
 });
 
@@ -174,6 +240,7 @@ test("Wikidata finds a place by its native-language alias", async () => {
   const fetchMock = async (url) => {
     const parsed = new URL(url);
     requests.push(parsed);
+    if (parsed.hostname === "photon.komoot.io") return { ok: true, json: async () => ({ features: [] }) };
     if (parsed.hostname === "www.wikidata.org" && parsed.searchParams.get("action") === "wbsearchentities") {
       return {
         ok: true,

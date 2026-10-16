@@ -4,7 +4,10 @@
   const MAX_QUERY_LENGTH = 100;
   const MAX_EXTRACT_LENGTH = 420;
   const MAX_RESULTS_PER_LANGUAGE = 6;
-  const REQUEST_TIMEOUT_MS = 8000;
+  const REQUEST_TIMEOUT_MS = 5000;
+  const PHOTON_TIMEOUT_MS = 2200;
+  const FALLBACK_TIMEOUT_MS = 3500;
+  const PHOTON_ENDPOINT = "https://photon.komoot.io/api/";
   const WIKIDATA_ENDPOINT = "https://www.wikidata.org/w/api.php";
   const WIKIPEDIA = {
     zh: { label: "中文维基百科", endpoint: "https://zh.wikipedia.org/w/api.php" },
@@ -147,9 +150,8 @@
     try {
       const response = await fetchImpl(url, {
         signal: controller.signal,
-        credentials: "omit",
-        headers: { "Api-User-Agent": "Whereabouts/1.0 (https://0-1byte.github.io/whereabouts/)" }
-      });
+        credentials: "omit"
+});
       if (!response.ok) throw new Error(`数据服务返回 HTTP ${response.status}`);
       const data = await response.json();
       if (data.error) throw new Error(data.error.info || "数据服务返回错误");
@@ -355,7 +357,98 @@
   }
 
   
-  async function searchLocations(query, context, options) {
+  function photonFeatureToCandidate(feature, query) {
+    const properties = feature && feature.properties || {};
+    const point = feature && feature.geometry && feature.geometry.coordinates;
+    if (!Array.isArray(point) || point.length < 2) return null;
+    const lon = Number(point[0]);
+    const lat = Number(point[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+        Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+
+    const title = String(properties.name || properties.city || properties.state || query).trim();
+    if (!title) return null;
+
+    const adminParts = [
+      properties.district,
+      properties.city,
+      properties.county,
+      properties.state,
+      properties.country
+    ].filter((part, index, values) =>
+      part && normalize(part) !== normalize(title) &&
+      values.findIndex((value) => normalize(value) === normalize(part)) === index
+    );
+    const kind = [properties.osm_key, properties.osm_value].filter(Boolean).join(": ");
+    const description = [
+      adminParts.length ? "行政区划：" + adminParts.join(" · ") : "",
+      kind ? "地理类型：" + kind : ""
+    ].filter(Boolean).join("。");
+
+    const typeByCode = { N: "node", W: "way", R: "relation" };
+    const osmType = typeByCode[String(properties.osm_type || "").toUpperCase()];
+    const osmId = String(properties.osm_id || "");
+    const sourceUrl = osmType && /^\d+$/u.test(osmId)
+      ? "https://www.openstreetmap.org/" + osmType + "/" + osmId
+      : "https://www.openstreetmap.org/?mlat=" + encodeURIComponent(lat) +
+        "&mlon=" + encodeURIComponent(lon) + "#map=8/" + lat + "/" + lon;
+
+    let dim = null;
+    const extent = properties.extent;
+    if (Array.isArray(extent) && extent.length === 4) {
+      const span = Math.max(
+        Math.abs(Number(extent[2]) - Number(extent[0])) * 111320 *
+          Math.cos(lat * Math.PI / 180),
+        Math.abs(Number(extent[3]) - Number(extent[1])) * 111320
+      );
+      if (Number.isFinite(span) && span > 0) dim = span;
+    }
+
+    const aliases = new Set();
+    const matchedName = String(query || "").trim();
+    if (matchedName && normalize(matchedName) !== normalize(title)) aliases.add(matchedName);
+    for (const alias of [properties.localname, properties.alt_name, properties.int_name]) {
+      if (alias && normalize(alias) !== normalize(title)) aliases.add(String(alias));
+    }
+
+    return {
+      title,
+      matchedName,
+      matchedLanguage: "",
+      aliases: [...aliases],
+      extract: conciseExtract(description),
+      coordinates: { lat, lon, dim },
+      sourceUrl,
+      sourceLabel: "OpenStreetMap · Photon",
+      language: "multilingual",
+      wikidataId: properties.extra && properties.extra.wikidata || "",
+      isDisambiguation: false,
+      geocoderRank: 1
+    };
+  }
+
+  async function searchPhoton(query, fetchImpl, timeoutMs) {
+    const url = new URL(PHOTON_ENDPOINT);
+    url.searchParams.set("q", query);
+    url.searchParams.set("limit", "8");
+    url.searchParams.set("lang", "zh");
+    const data = await requestJson(url.toString(), fetchImpl, timeoutMs || PHOTON_TIMEOUT_MS);
+    const seen = new Set();
+    const candidates = [];
+    for (const feature of data.features || []) {
+      const candidate = photonFeatureToCandidate(feature, query);
+      if (!candidate) continue;
+      const identity = candidate.sourceUrl ||
+        (normalize(candidate.title) + "|" + normalize(candidate.extract) + "|" +
+          candidate.coordinates.lat.toFixed(3) + "," + candidate.coordinates.lon.toFixed(3));
+      if (seen.has(identity)) continue;
+      seen.add(identity);
+      candidates.push(candidate);
+    }
+    return candidates;
+  }
+
+    async function searchLocations(query, context, options) {
     const cleanQuery = String(query || "").trim();
     if (!cleanQuery) throw new Error("请输入一个地名。");
     if (cleanQuery.length > MAX_QUERY_LENGTH) {
@@ -363,25 +456,47 @@
     }
 
     const fetchImpl = options && options.fetch || root.fetch.bind(root);
-    const timeoutMs = options && options.timeoutMs;
+    const requestedTimeout = options && options.timeoutMs;
+    const cache = options && options.cache;
+    const queryKey = normalize(cleanQuery);
+    const cached = cache && cache.get(queryKey);
+    if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) {
+      return { candidates: rankCandidates(cached.candidates, cleanQuery, context), errors: [...cached.errors] };
+    }
+    if (cached && cache) cache.delete(queryKey);
+
+    let photonError = "";
+    try {
+      const photonCandidates = await searchPhoton(cleanQuery, fetchImpl, requestedTimeout || PHOTON_TIMEOUT_MS);
+      if (photonCandidates.length) {
+        const ranked = rankCandidates(mergeCandidates(photonCandidates), cleanQuery, context);
+        if (cache) {
+          cache.set(queryKey, { candidates: ranked, errors: [], cachedAt: Date.now() });
+          if (cache.size > 40) cache.delete(cache.keys().next().value);
+        }
+        return { candidates: ranked, errors: [] };
+      }
+    } catch (error) {
+      photonError = "地图地名库：" + error.message;
+    }
+
     const candidates = [];
-    const errors = [];
+    const errors = photonError ? [photonError] : [];
     let successfulSources = 0;
     const languages = /[\p{Script=Han}]/u.test(cleanQuery) ? ["zh", "en"] : ["en", "zh"];
-
+    const fallbackTimeout = requestedTimeout || FALLBACK_TIMEOUT_MS;
     const tasks = languages.map(async (language) => {
       try {
-        const results = await searchLanguage(cleanQuery, language, fetchImpl, timeoutMs);
+        const results = await searchLanguage(cleanQuery, language, fetchImpl, fallbackTimeout);
         successfulSources += 1;
         candidates.push(...results);
       } catch (error) {
         errors.push(WIKIPEDIA[language].label + "：" + error.message);
       }
     });
-
     tasks.push((async () => {
       try {
-        const result = await searchWikidata(cleanQuery, fetchImpl, timeoutMs);
+        const result = await searchWikidata(cleanQuery, fetchImpl, fallbackTimeout);
         successfulSources += 1;
         candidates.push(...result.candidates);
         if (result.error) errors.push(result.error);
@@ -394,6 +509,10 @@
     const ranked = rankCandidates(mergeCandidates(candidates), cleanQuery, context);
     if (!ranked.length && successfulSources === 0) {
       throw new Error(errors.join("；") || "地名数据源暂时不可用，请稍后重试。");
+    }
+    if (cache) {
+      cache.set(queryKey, { candidates: ranked, errors, cachedAt: Date.now() });
+      if (cache.size > 40) cache.delete(cache.keys().next().value);
     }
     return { candidates: ranked, errors };
   }
@@ -422,6 +541,8 @@
     MAX_QUERY_LENGTH,
     apiUrl,
     findCoordinates,
+    photonFeatureToCandidate,
+    searchPhoton,
     cleanSharedText,
     extractShareQuery,
     findWikidataCoordinates,

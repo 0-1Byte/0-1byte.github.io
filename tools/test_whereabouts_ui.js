@@ -370,3 +370,19 @@ test("sharing a selected place automatically searches from text or title without
   assert.equal(fromTitle.elements["place-detail"].querySelector(".detail-title").textContent, "霍尔木兹海峡");
   assert.equal(titleLeaflet.instances.length, 1);
 });
+
+
+
+test("Shanghai search immediately renders the correct city map", async () => {
+  const { leaflet, instances } = createLeafletStub();
+  const app = createApp({
+    leaflet,
+    searchResults: {
+      "上海": [candidate("上海市", 31.2304, 121.4737, "行政区划：中国")]
+    }
+  });
+  await app.search("上海");
+  assert.equal(app.elements["place-detail"].querySelector(".detail-title").textContent, "上海市");
+  assert.deepEqual(Array.from(instances[0].center), [31.2304, 121.4737]);
+  assert.match(app.elements["place-detail"].textContent, /上海市/u);
+});
