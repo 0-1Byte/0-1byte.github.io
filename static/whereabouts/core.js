@@ -6,7 +6,7 @@
   const MAX_RESULTS_PER_LANGUAGE = 6;
   const REQUEST_TIMEOUT_MS = 5000;
   const PHOTON_TIMEOUT_MS = 2200;
-  const FALLBACK_TIMEOUT_MS = 3500;
+  const FALLBACK_TIMEOUT_MS = 2500;
   const PHOTON_ENDPOINT = "https://photon.komoot.io/api/";
   const WIKIDATA_ENDPOINT = "https://www.wikidata.org/w/api.php";
   const WIKIPEDIA = {
@@ -127,6 +127,8 @@
       .sort((a, b) =>
         Number(Boolean(a.isDisambiguation)) - Number(Boolean(b.isDisambiguation)) ||
         b.score - a.score ||
+        (Number.isFinite(a.geocoderRank) ? a.geocoderRank : Number.MAX_SAFE_INTEGER) -
+          (Number.isFinite(b.geocoderRank) ? b.geocoderRank : Number.MAX_SAFE_INTEGER) ||
         a.title.localeCompare(b.title)
       );
   }
@@ -357,7 +359,7 @@
   }
 
   
-  function photonFeatureToCandidate(feature, query) {
+  function photonFeatureToCandidate(feature, query, geocoderRank) {
     const properties = feature && feature.properties || {};
     const point = feature && feature.geometry && feature.geometry.coordinates;
     if (!Array.isArray(point) || point.length < 2) return null;
@@ -405,8 +407,7 @@
     }
 
     const aliases = new Set();
-    const matchedName = String(query || "").trim();
-    if (matchedName && normalize(matchedName) !== normalize(title)) aliases.add(matchedName);
+    const matchedName = "";
     for (const alias of [properties.localname, properties.alt_name, properties.int_name]) {
       if (alias && normalize(alias) !== normalize(title)) aliases.add(String(alias));
     }
@@ -423,7 +424,7 @@
       language: "multilingual",
       wikidataId: properties.extra && properties.extra.wikidata || "",
       isDisambiguation: false,
-      geocoderRank: 1
+      geocoderRank: Number.isFinite(geocoderRank) ? geocoderRank : Number.MAX_SAFE_INTEGER
     };
   }
 
@@ -435,8 +436,9 @@
     const data = await requestJson(url.toString(), fetchImpl, timeoutMs || PHOTON_TIMEOUT_MS);
     const seen = new Set();
     const candidates = [];
+    let geocoderRank = 0;
     for (const feature of data.features || []) {
-      const candidate = photonFeatureToCandidate(feature, query);
+      const candidate = photonFeatureToCandidate(feature, query, geocoderRank++);
       if (!candidate) continue;
       const identity = candidate.sourceUrl ||
         (normalize(candidate.title) + "|" + normalize(candidate.extract) + "|" +

@@ -168,6 +168,22 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
   assert.equal(requests.length, 2, "successful geocoder results should not wait for encyclopedia fallbacks");
 });
 
+
+test("translated Photon results preserve provider relevance order without treating the query as every alias", () => {
+  const first = core.photonFeatureToCandidate({
+    geometry: { coordinates: [14.4378, 50.0755] },
+    properties: { name: "布拉格", country: "捷克", osm_type: "R", osm_id: 1085 }
+  }, "Praha", 0);
+  const second = core.photonFeatureToCandidate({
+    geometry: { coordinates: [12.5, 48.9] },
+    properties: { name: "其他地点", country: "捷克", osm_type: "R", osm_id: 999 }
+  }, "Praha", 1);
+
+  assert.deepEqual(core.rankCandidates([second, first], "Praha", "").map((item) => item.title), ["布拉格", "其他地点"]);
+  assert.equal(first.matchedName, "");
+  assert.equal(first.aliases.includes("Praha"), false);
+});
+
 test("lookup handles a missing-coordinate result and partial service failure", async () => {
   const fetchMock = async (url) => {
     const parsed = new URL(url);
