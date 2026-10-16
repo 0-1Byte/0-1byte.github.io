@@ -290,24 +290,29 @@
     const payload = core.readSharePayload(location.search);
     if (!payload.text && !payload.url && !payload.title) return;
 
-    const sharedText = payload.text.trim();
-    const pieces = [payload.title, payload.url].filter(Boolean);
-    context = pieces.join("\n");
-    shareContext.hidden = false;
-    contextText.textContent = [sharedText, ...pieces].filter(Boolean).join("\n\n");
-    history.replaceState(null, "", `${location.pathname}${location.hash}`);
+    const sharedText = String(payload.text || "").trim();
+    const title = String(payload.title || "").trim();
+    const query = core.extractShareQuery(payload);
+    context = title && core.normalize(title) !== core.normalize(query) ? title : "";
+    shareContext.hidden = Boolean(query);
+    contextText.textContent = [sharedText, title, payload.url].filter(Boolean).join("\n\n");
+    history.replaceState(null, "", location.pathname + location.hash);
 
-    if (core.isShortShareText(sharedText)) {
-      input.value = sharedText;
-      setTimeout(() => search(sharedText), 0);
-    } else {
-      input.value = "";
-      input.focus({ preventScroll: true });
-      setStatus("已收到分享内容。请从中挑出一个地名填入上方，再开始查询。");
+    if (query) {
+      // A selected place name should go straight to search, without another tap or retyping.
+      input.value = query;
+      updateClearButton();
+      setStatus("已收到「" + query + "」，正在自动定位…");
+      void search(query);
+      return;
     }
-    updateClearButton();
-  }
 
+    input.value = "";
+    updateClearButton();
+    input.focus({ preventScroll: true });
+    shareContext.hidden = false;
+    setStatus("已收到分享内容。若分享的是整篇文章，请从下方内容中选出地名；选中单个地名分享时会自动查询。");
+  }
   function updateClearButton() {
     clearButton.hidden = !input.value;
   }

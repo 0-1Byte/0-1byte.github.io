@@ -164,7 +164,7 @@ function createLeafletStub() {
   return { leaflet, instances };
 }
 
-function createApp({ leaflet = createLeafletStub().leaflet, searchResults }) {
+function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locationSearch = "" }) {
   const ids = [
     "search-form", "place-query", "clear-query", "status", "results", "results-title",
     "result-count", "candidate-summary-count", "candidate-picker", "candidate-list",
@@ -208,7 +208,7 @@ function createApp({ leaflet = createLeafletStub().leaflet, searchResults }) {
       L: leaflet,
       matchMedia: () => ({ matches: true })
     },
-    location: { search: "", pathname: "/whereabouts/" },
+    location: { search: locationSearch, pathname: "/whereabouts/" },
     history: { replaceState() {} },
     URLSearchParams,
     ResizeObserver: class {
@@ -341,4 +341,32 @@ test("missing Leaflet and tile failures show an explanation while preserving ext
   instances[0].tileLayer.emit("tileerror");
   assert.match(appWithTiles.elements["place-detail"].querySelector(".map-error").textContent, /瓦片加载失败/u);
   assert.equal(appWithTiles.elements["place-detail"].querySelectorAll(".map-link").length, 3);
+});
+
+
+test("sharing a selected place automatically searches from text or title without retyping", async () => {
+  const { leaflet, instances } = createLeafletStub();
+  const fromText = createApp({
+    leaflet,
+    locationSearch: "?text=Krak%C3%B3w%0Ahttps%3A%2F%2Fexample.com%2Fstory&title=Local+news&url=https%3A%2F%2Fexample.com%2Fstory",
+    searchResults: { "Kraków": [candidate("克拉科夫", 50.0614, 19.9366)] }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(fromText.elements["place-query"].value, "Kraków");
+  assert.equal(fromText.elements.results.hidden, false);
+  assert.equal(fromText.elements["place-detail"].querySelector(".detail-title").textContent, "克拉科夫");
+  assert.equal(fromText.elements["share-context"].hidden, true);
+  assert.equal(instances.length, 1);
+
+  const titleLeaflet = createLeafletStub();
+  const fromTitle = createApp({
+    leaflet: titleLeaflet.leaflet,
+    locationSearch: "?text=https%3A%2F%2Fexample.com%2Fstory&title=%E9%9C%8D%E5%B0%94%E6%9C%A8%E5%85%B9%E6%B5%B7%E5%B3%A1&url=https%3A%2F%2Fexample.com%2Fstory",
+    searchResults: { "霍尔木兹海峡": [candidate("霍尔木兹海峡", 26.56, 56.25)] }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(fromTitle.elements["place-query"].value, "霍尔木兹海峡");
+  assert.equal(fromTitle.elements.results.hidden, false);
+  assert.equal(fromTitle.elements["place-detail"].querySelector(".detail-title").textContent, "霍尔木兹海峡");
+  assert.equal(titleLeaflet.instances.length, 1);
 });

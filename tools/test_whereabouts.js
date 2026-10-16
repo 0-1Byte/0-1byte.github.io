@@ -16,14 +16,29 @@ test("share payload decodes Chinese text and reserved URL characters", () => {
   });
 });
 
-test("short shared place names can be searched but article text is held for editing", () => {
+test("short shared place names tolerate punctuation and URLs", () => {
   assert.equal(core.isShortShareText("苏瓦乌基走廊"), true);
-  assert.equal(core.isShortShareText("Where is Patagonia?"), false);
+  assert.equal(core.isShortShareText("Where is Patagonia?"), true);
+  assert.equal(core.isShortShareText("Kraków — Poland\nhttps://example.com/story"), true);
   assert.equal(core.isShortShareText("A long article without punctuation ".repeat(3)), false);
   assert.equal(core.isShortShareText("A brief article about Patagonia with several extra words"), false);
   assert.equal(core.isShortShareText("https://example.com/georgia"), false);
 });
 
+test("share query is extracted from text, URL-wrapped text, or title fallback", () => {
+  assert.equal(core.extractShareQuery({ text: "霍尔木兹海峡" }), "霍尔木兹海峡");
+  assert.equal(core.extractShareQuery({ text: "Kraków\nhttps://example.com/story" }), "Kraków");
+  assert.equal(core.extractShareQuery({
+    text: "https://example.com/story",
+    title: "苏瓦乌基走廊",
+    url: "https://example.com/story"
+  }), "苏瓦乌基走廊");
+  assert.equal(core.extractShareQuery({ text: "", title: "Strait of Hormuz" }), "Strait of Hormuz");
+  assert.equal(core.extractShareQuery({
+    text: "A whole article body which has many words ".repeat(5),
+    title: "A short article headline"
+  }), "");
+});
 test("unverified or non-earth coordinates are not returned", () => {
   assert.deepEqual(core.findCoordinates({ coordinates: [{ lat: 31.2, lon: 61.1, globe: "earth" }] }), {
     lat: 31.2,
@@ -90,17 +105,30 @@ test("API queries send only the submitted place term and request public CORS", (
 });
 
 test("lookup handles a missing-coordinate result and partial service failure", async () => {
-  const responses = [
-    { query: { search: [{ title: "Patagonia" }] } },
-    { query: {
-      redirects: [{ from: "Patagonia region", to: "Patagonia" }],
-      pages: [{ title: "Patagonia", extract: "A region at the southern end of South America.", fullurl: "https://en.wikipedia.org/wiki/Patagonia" }]
-    } }
-  ];
-  const fetchMock = async () => ({
-    ok: true,
-    json: async () => responses.shift()
-  });
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.hostname === "en.wikipedia.org") {
+      if (parsed.searchParams.get("list") === "search") {
+        return { ok: true, json: async () => ({ query: { search: [{ title: "Patagonia" }] } }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          query: {
+            redirects: [{ from: "Patagonia region", to: "Patagonia" }],
+            pages: [{
+              title: "Patagonia",
+              extract: "A region at the southern end of South America.",
+              fullurl: "https://en.wikipedia.org/wiki/Patagonia"
+            }]
+          }
+        })
+      };
+    }
+    if (parsed.hostname === "zh.wikipedia.org") throw new Error("simulated offline");
+    if (parsed.hostname === "www.wikidata.org") return { ok: true, json: async () => ({ search: [] }) };
+    throw new Error("Unexpected host " + parsed.hostname);
+  };
   const result = await core.searchLocations("Patagonia", "", { fetch: fetchMock });
   assert.equal(result.candidates[0].title, "Patagonia");
   assert.equal(result.candidates[0].coordinates, null);
@@ -108,7 +136,6 @@ test("lookup handles a missing-coordinate result and partial service failure", a
   assert.deepEqual(result.candidates[0].aliases, ["Patagonia region"]);
   assert.equal(result.errors.length, 1);
 });
-
 test("article extracts stay brief and do not end mid-word", async () => {
   const longText = `${"A concise location summary with neighboring regions. ".repeat(14)}`;
   const fetchMock = async (url) => ({
@@ -132,6 +159,82 @@ test("English queries search the English encyclopedia first", async () => {
   await core.searchLocations("Patagonia", "", { fetch: fetchMock });
   assert.match(urls[0], /^https:\/\/en\.wikipedia\.org\//);
   assert.match(urls[1], /^https:\/\/zh\.wikipedia\.org\//);
+  assert.ok(urls.some((url) => url.includes("www.wikidata.org") && url.includes("wbsearchentities")));
+});
+
+
+test("Wikidata finds a place by its native-language alias", async () => {
+  const requests = [];
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    requests.push(parsed);
+    if (parsed.hostname === "www.wikidata.org" && parsed.searchParams.get("action") === "wbsearchentities") {
+      return {
+        ok: true,
+        json: async () => ({
+          search: [{
+            id: "Q243",
+            label: "克拉科夫",
+            description: "波兰南部城市",
+            match: { type: "alias", language: "pl", text: "Kraków" },
+            score: 100
+          }]
+        })
+      };
+    }
+    if (parsed.hostname === "www.wikidata.org" && parsed.searchParams.get("action") === "wbgetentities") {
+      return {
+        ok: true,
+        json: async () => ({
+          entities: {
+            Q243: {
+              id: "Q243",
+              labels: {
+                zh: { language: "zh", value: "克拉科夫" },
+                en: { language: "en", value: "Kraków" },
+                pl: { language: "pl", value: "Kraków" }
+              },
+              descriptions: {
+                zh: { language: "zh", value: "波兰南部城市" },
+                en: { language: "en", value: "city in southern Poland" }
+              },
+              aliases: { pl: [{ language: "pl", value: "Kraków" }] },
+              claims: {
+                P625: [{
+                  rank: "preferred",
+                  mainsnak: {
+                    snaktype: "value",
+                    datavalue: {
+                      value: {
+                        latitude: 50.0614,
+                        longitude: 19.9366,
+                        precision: 0.01,
+                        globe: "http://www.wikidata.org/entity/Q2"
+                      }
+                    }
+                  }
+                }]
+              },
+              sitelinks: {}
+            }
+          }
+        })
+      };
+    }
+    if (parsed.hostname === "en.wikipedia.org" || parsed.hostname === "zh.wikipedia.org") {
+      return { ok: true, json: async () => ({ query: { search: [] } }) };
+    }
+    throw new Error("Unexpected host " + parsed.hostname);
+  };
+
+  const result = await core.searchLocations("Kraków", "", { fetch: fetchMock });
+  const place = result.candidates[0];
+  assert.equal(place.title, "克拉科夫");
+  assert.equal(place.matchedName, "Kraków");
+  assert.equal(place.matchedLanguage, "pl");
+  assert.ok(place.aliases.includes("Kraków"));
+  assert.deepEqual(place.coordinates, { lat: 50.0614, lon: 19.9366, dim: 1113.2 });
+  assert.equal(requests.some((url) => url.searchParams.get("action") === "wbsearchentities"), true);
 });
 
 test("lookup rejects empty and overlong input without making a request", async () => {
