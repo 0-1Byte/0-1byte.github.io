@@ -154,7 +154,20 @@
         signal: controller.signal,
         credentials: "omit"
 });
-      if (!response.ok) throw new Error(`数据服务返回 HTTP ${response.status}`);
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const body = await response.json();
+          const message = body && (
+            body.message ||
+            (typeof body.error === "string" ? body.error : body.error && (body.error.message || body.error.info))
+          );
+          if (message) detail = String(message).replace(/\\s+/gu, " ").slice(0, 180);
+        } catch (_) {
+          // Proxies may return an empty or non-JSON error response.
+        }
+        throw new Error(`数据服务返回 HTTP ${response.status}${detail ? "：" + detail : ""}`);
+      }
       const data = await response.json();
       if (data.error) throw new Error(data.error.info || "数据服务返回错误");
       return data;
@@ -432,7 +445,8 @@
     const url = new URL(PHOTON_ENDPOINT);
     url.searchParams.set("q", query);
     url.searchParams.set("limit", "8");
-    url.searchParams.set("lang", "zh");
+    // Omit lang: the public Photon instance may not support zh and then returns HTTP 400.
+    // The request remains multilingual; the browser Accept-Language header controls result labels.
     const data = await requestJson(url.toString(), fetchImpl, timeoutMs || PHOTON_TIMEOUT_MS);
     const seen = new Set();
     const candidates = [];
