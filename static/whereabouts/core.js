@@ -60,7 +60,7 @@
 
   function findCoordinates(page) {
     const coords = Array.isArray(page && page.coordinates) ? page.coordinates : [];
-    const isEarth = (item) => !item.globe || /(?:\/|#)Q2$/u.test(String(item.globe));
+    const isEarth = (item) => !item.globe || item.globe === "earth" || /(?:\/|#)Q2$/u.test(String(item.globe));
     const valid = coords.filter((item) => item && isEarth(item));
     const point = valid.find((item) => item.primary === true) || valid[0];
     if (!point) return null;
