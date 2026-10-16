@@ -179,9 +179,9 @@ test("Wikidata finds a place by its native-language alias", async () => {
         ok: true,
         json: async () => ({
           search: [{
-            id: "Q243",
+            id: "Q1085",
             label: "布拉格",
-            description: "波兰南部城市",
+            description: "捷克首都",
             match: { type: "alias", language: "cs", text: "Praha" },
             score: 100
           }]
@@ -193,16 +193,16 @@ test("Wikidata finds a place by its native-language alias", async () => {
         ok: true,
         json: async () => ({
           entities: {
-            Q243: {
-              id: "Q243",
+            Q1085: {
+              id: "Q1085",
               labels: {
                 zh: { language: "zh", value: "布拉格" },
-                en: { language: "en", value: "Praha" },
+                en: { language: "en", value: "Prague" },
                 cs: { language: "cs", value: "Praha" }
               },
               descriptions: {
-                zh: { language: "zh", value: "波兰南部城市" },
-                en: { language: "en", value: "city in southern Poland" }
+                zh: { language: "zh", value: "捷克首都" },
+                en: { language: "en", value: "capital of the Czech Republic" }
               },
               aliases: { cs: [{ language: "cs", value: "Praha" }] },
               claims: {
@@ -212,8 +212,8 @@ test("Wikidata finds a place by its native-language alias", async () => {
                     snaktype: "value",
                     datavalue: {
                       value: {
-                        latitude: 50.0614,
-                        longitude: 19.9366,
+                        latitude: 50.0755,
+                        longitude: 14.4378,
                         precision: 0.01,
                         globe: "http://www.wikidata.org/entity/Q2"
                       }
@@ -239,7 +239,7 @@ test("Wikidata finds a place by its native-language alias", async () => {
   assert.equal(place.matchedName, "Praha");
   assert.equal(place.matchedLanguage, "cs");
   assert.ok(place.aliases.includes("Praha"));
-  assert.deepEqual(place.coordinates, { lat: 50.0614, lon: 19.9366, dim: 1113.2 });
+  assert.deepEqual(place.coordinates, { lat: 50.0755, lon: 14.4378, dim: 1113.2 });
   assert.equal(requests.some((url) => url.searchParams.get("action") === "wbsearchentities"), true);
 });
 
