@@ -7,6 +7,15 @@
   const REQUEST_TIMEOUT_MS = 5000;
   const PHOTON_TIMEOUT_MS = 2200;
   const FALLBACK_TIMEOUT_MS = 2500;
+  const QUERY_CACHE_TTL_MS = 10 * 60 * 1000;
+  const MAX_QUERY_CACHE_ENTRIES = 40;
+  const API_USER_AGENT = "Whereabouts/1.0 (https://0-1byte.github.io/whereabouts/)";
+  const QUERY_STATUS = Object.freeze({
+    SUCCESS: "success",
+    AMBIGUOUS: "ambiguous",
+    NOT_FOUND: "not_found",
+    SERVICE_ERROR: "service_error"
+  });
   const PHOTON_ENDPOINT = "https://photon.komoot.io/api/";
   const WIKIDATA_ENDPOINT = "https://www.wikidata.org/w/api.php";
   const WIKIPEDIA = {
@@ -19,6 +28,13 @@
       .normalize("NFKC")
       .toLocaleLowerCase()
       .replace(/[\s\p{P}\p{S}]+/gu, "");
+  }
+
+  function finiteNumber(value) {
+    if (typeof value !== "number" && typeof value !== "string") return null;
+    if (typeof value === "string" && !value.trim()) return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
   }
 
   function cleanSharedText(value) {
@@ -68,12 +84,12 @@
     const point = valid.find((item) => item.primary === true) || valid[0];
     if (!point) return null;
 
-    const lat = Number(point.lat);
-    const lon = Number(point.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    const lat = finiteNumber(point.lat);
+    const lon = finiteNumber(point.lon);
+    if (lat === null || lon === null || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
       return null;
     }
-    return { lat, lon, dim: Number.isFinite(Number(point.dim)) ? Number(point.dim) : null };
+    return { lat, lon, dim: finiteNumber(point.dim) };
   }
   function conciseExtract(value) {
     const text = String(value || "").replace(/\s+/gu, " ").trim();
@@ -146,14 +162,29 @@
     return url.toString();
   }
 
+  function retryAfterMilliseconds(headers) {
+    const value = headers && typeof headers.get === "function" ? headers.get("Retry-After") : "";
+    if (typeof value !== "string" || !value.trim()) return null;
+    const trimmed = value.trim();
+    if (/^\d+$/u.test(trimmed)) return Number(trimmed) * 1000;
+    const retryAt = Date.parse(trimmed);
+    return Number.isFinite(retryAt) ? Math.max(0, retryAt - Date.now()) : null;
+  }
+
   async function requestJson(url, fetchImpl, timeoutMs) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs || REQUEST_TIMEOUT_MS);
     try {
-      const response = await fetchImpl(url, {
+      const requestOptions = {
         signal: controller.signal,
         credentials: "omit"
-});
+      };
+      const hostname = new URL(url).hostname;
+      if (/(?:^|\.)wikipedia\.org$/u.test(hostname) ||
+          /(?:^|\.)wikidata\.org$/u.test(hostname)) {
+        requestOptions.headers = { "Api-User-Agent": API_USER_AGENT };
+      }
+      const response = await fetchImpl(url, requestOptions);
       if (!response.ok) {
         let detail = "";
         try {
@@ -166,7 +197,11 @@
         } catch (_) {
           // Proxies may return an empty or non-JSON error response.
         }
-        throw new Error(`数据服务返回 HTTP ${response.status}${detail ? "：" + detail : ""}`);
+        const retryAfter = response.status === 429 ? retryAfterMilliseconds(response.headers) : null;
+        const retryHint = retryAfter !== null && retryAfter > 0
+          ? `；服务建议至少 ${Math.ceil(retryAfter / 1000)} 秒后重试`
+          : "";
+        throw new Error(`数据服务返回 HTTP ${response.status}${detail ? "：" + detail : ""}${retryHint}`);
       }
       const data = await response.json();
       if (data.error) throw new Error(data.error.info || "数据服务返回错误");
@@ -218,7 +253,10 @@
   function mergeCandidates(candidates) {
     const merged = new Map();
     for (const candidate of candidates) {
-      const key = candidate.wikidataId || (candidate.language + ":" + normalize(candidate.title));
+      const sourceIdentity = candidate.sourceLabel === "OpenStreetMap · Photon" && candidate.sourceUrl
+        ? "osm:" + candidate.sourceUrl
+        : candidate.language + ":" + normalize(candidate.title);
+      const key = candidate.wikidataId || sourceIdentity;
       const existing = merged.get(key);
       if (!existing) {
         merged.set(key, { ...candidate, aliases: [...new Set(candidate.aliases || [])] });
@@ -266,16 +304,16 @@
       const globe = String(point.globe || "");
       if (globe && !/(?:\/|#)Q2$/u.test(globe)) continue;
 
-      const lat = Number(point.latitude);
-      const lon = Number(point.longitude);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+      const lat = finiteNumber(point.latitude);
+      const lon = finiteNumber(point.longitude);
+      if (lat === null || lon === null ||
           Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
 
-      const precision = Number(point.precision);
+      const precision = finiteNumber(point.precision);
       return {
         lat,
         lon,
-        dim: Number.isFinite(precision) && precision > 0 ? precision * 111320 : null
+        dim: precision !== null && precision > 0 ? precision * 111320 : null
       };
     }
     return null;
@@ -376,9 +414,9 @@
     const properties = feature && feature.properties || {};
     const point = feature && feature.geometry && feature.geometry.coordinates;
     if (!Array.isArray(point) || point.length < 2) return null;
-    const lon = Number(point[0]);
-    const lat = Number(point[1]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+    const lon = finiteNumber(point[0]);
+    const lat = finiteNumber(point[1]);
+    if (lat === null || lon === null ||
         Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
 
     const title = String(properties.name || properties.city || properties.state || query).trim();
@@ -464,7 +502,28 @@
     return candidates;
   }
 
-    async function searchLocations(query, context, options) {
+  function queryStatus(candidates, successfulSources) {
+    if (candidates.length > 1) return QUERY_STATUS.AMBIGUOUS;
+    if (candidates.length === 1) return QUERY_STATUS.SUCCESS;
+    return successfulSources > 0 ? QUERY_STATUS.NOT_FOUND : QUERY_STATUS.SERVICE_ERROR;
+  }
+
+  function cacheQueryResult(cache, key, result, now) {
+    if (!cache || result.status === QUERY_STATUS.SERVICE_ERROR) return;
+    cache.set(key, {
+      status: result.status,
+      candidates: result.candidates,
+      errors: [...result.errors],
+      cachedAt: now()
+    });
+    if (cache.size > MAX_QUERY_CACHE_ENTRIES) cache.delete(cache.keys().next().value);
+  }
+
+  /**
+   * Resolves to { status, query, candidates, errors }; errors may include non-fatal
+   * provider diagnostics when a partial result or a no-match result is available.
+   */
+  async function searchLocations(query, context, options) {
     const cleanQuery = String(query || "").trim();
     if (!cleanQuery) throw new Error("请输入一个地名。");
     if (cleanQuery.length > MAX_QUERY_LENGTH) {
@@ -474,23 +533,32 @@
     const fetchImpl = options && options.fetch || root.fetch.bind(root);
     const requestedTimeout = options && options.timeoutMs;
     const cache = options && options.cache;
+    const now = options && typeof options.now === "function" ? options.now : Date.now;
     const queryKey = normalize(cleanQuery);
     const cached = cache && cache.get(queryKey);
-    if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) {
-      return { candidates: rankCandidates(cached.candidates, cleanQuery, context), errors: [...cached.errors] };
+    const cacheAge = cached ? now() - cached.cachedAt : -1;
+    if (cached && cacheAge >= 0 && cacheAge < QUERY_CACHE_TTL_MS) {
+      const candidates = rankCandidates(cached.candidates, cleanQuery, context);
+      const status = cached.status || queryStatus(candidates, candidates.length || 1);
+      return { status, query: cleanQuery, candidates, errors: [...cached.errors] };
     }
     if (cached && cache) cache.delete(queryKey);
 
     let photonError = "";
+    let photonSucceeded = false;
     try {
       const photonCandidates = await searchPhoton(cleanQuery, fetchImpl, requestedTimeout || PHOTON_TIMEOUT_MS);
+      photonSucceeded = true;
       if (photonCandidates.length) {
         const ranked = rankCandidates(mergeCandidates(photonCandidates), cleanQuery, context);
-        if (cache) {
-          cache.set(queryKey, { candidates: ranked, errors: [], cachedAt: Date.now() });
-          if (cache.size > 40) cache.delete(cache.keys().next().value);
-        }
-        return { candidates: ranked, errors: [] };
+        const result = {
+          status: queryStatus(ranked, 1),
+          query: cleanQuery,
+          candidates: ranked,
+          errors: []
+        };
+        cacheQueryResult(cache, queryKey, result, now);
+        return result;
       }
     } catch (error) {
       photonError = "地图地名库：" + error.message;
@@ -498,7 +566,7 @@
 
     const candidates = [];
     const errors = photonError ? [photonError] : [];
-    let successfulSources = 0;
+    let successfulSources = photonSucceeded ? 1 : 0;
     const languages = /[\p{Script=Han}]/u.test(cleanQuery) ? ["zh", "en"] : ["en", "zh"];
     const fallbackTimeout = requestedTimeout || FALLBACK_TIMEOUT_MS;
     const tasks = languages.map(async (language) => {
@@ -523,14 +591,14 @@
 
     await Promise.all(tasks);
     const ranked = rankCandidates(mergeCandidates(candidates), cleanQuery, context);
-    if (!ranked.length && successfulSources === 0) {
-      throw new Error(errors.join("；") || "地名数据源暂时不可用，请稍后重试。");
-    }
-    if (cache) {
-      cache.set(queryKey, { candidates: ranked, errors, cachedAt: Date.now() });
-      if (cache.size > 40) cache.delete(cache.keys().next().value);
-    }
-    return { candidates: ranked, errors };
+    const result = {
+      status: queryStatus(ranked, successfulSources),
+      query: cleanQuery,
+      candidates: ranked,
+      errors
+    };
+    cacheQueryResult(cache, queryKey, result, now);
+    return result;
   }
   function mapLinks(candidate, zoom) {
     const coords = candidate.coordinates;
@@ -555,6 +623,9 @@
 
   const exported = {
     MAX_QUERY_LENGTH,
+    MAX_QUERY_CACHE_ENTRIES,
+    QUERY_CACHE_TTL_MS,
+    QUERY_STATUS,
     apiUrl,
     findCoordinates,
     photonFeatureToCandidate,

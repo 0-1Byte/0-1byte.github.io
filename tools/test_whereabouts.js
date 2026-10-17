@@ -50,6 +50,26 @@ test("unverified or non-earth coordinates are not returned", () => {
   assert.equal(core.findCoordinates({}), null);
 });
 
+test("null and empty coordinate fields are rejected across all providers", () => {
+  assert.equal(core.findCoordinates({ coordinates: [{ lat: null, lon: 0, globe: "earth" }] }), null);
+  assert.equal(core.findCoordinates({ coordinates: [{ lat: "", lon: "0", globe: "earth" }] }), null);
+  assert.equal(core.photonFeatureToCandidate({
+    geometry: { coordinates: [null, 0] },
+    properties: { name: "Invalid location" }
+  }, "Invalid location", 0), null);
+  assert.equal(core.findWikidataCoordinates({
+    claims: {
+      P625: [{
+        rank: "normal",
+        mainsnak: {
+          snaktype: "value",
+          datavalue: { value: { latitude: null, longitude: 0, globe: "http://www.wikidata.org/entity/Q2" } }
+        }
+      }]
+    }
+  }), null);
+});
+
 test("ranking favors exact matches while keeping same-name candidates selectable", () => {
   const candidates = core.rankCandidates([
     { title: "Georgia (U.S. state)", coordinates: { lat: 32, lon: -83 } },
@@ -151,6 +171,8 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
 
   const shanghai = await core.searchLocations("上海", "", { fetch: fetchMock });
   assert.equal(shanghai.candidates.length, 1);
+  assert.equal(shanghai.status, core.QUERY_STATUS.SUCCESS);
+  assert.equal(shanghai.query, "上海");
   assert.equal(shanghai.candidates[0].title, "上海市");
   assert.equal(shanghai.candidates[0].coordinates.lat, 31.2304);
   assert.equal(shanghai.candidates[0].coordinates.lon, 121.4737);
@@ -159,6 +181,7 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
   assert.ok(shanghai.candidates[0].sourceUrl.endsWith("/relation/12345"));
 
   const prague = await core.searchLocations("Praha", "", { fetch: fetchMock });
+  assert.equal(prague.status, core.QUERY_STATUS.SUCCESS);
   assert.equal(prague.candidates[0].title, "布拉格");
   assert.equal(prague.candidates[0].matchedName, "");
   assert.ok(requests.some((url) => url.searchParams.get("q") === "Praha"), "native-language query must reach the geocoder");
@@ -168,6 +191,51 @@ test("Photon fast path resolves Shanghai in Chinese and Praha in its native name
   assert.equal(requests.length, 2, "successful geocoder results should not wait for encyclopedia fallbacks");
 });
 
+test("same-named Photon places keep their own coordinates, descriptions, and source links", async () => {
+  const features = [
+    {
+      geometry: { coordinates: [44.0287806, 41.6808672] },
+      properties: {
+        name: "Georgia", country: "Georgia", osm_type: "R", osm_id: 28699,
+        osm_key: "place", osm_value: "country"
+      }
+    },
+    {
+      geometry: { coordinates: [-83.1137366, 32.3293809] },
+      properties: {
+        name: "Georgia", country: "United States", osm_type: "R", osm_id: 161957,
+        osm_key: "place", osm_value: "state"
+      }
+    },
+    {
+      geometry: { coordinates: [-74.2845906, 40.1873348] },
+      properties: {
+        name: "Georgia", country: "United States", state: "New Jersey", city: "Freehold Township",
+        osm_type: "N", osm_id: 158808813, osm_key: "place", osm_value: "hamlet"
+      }
+    }
+  ];
+  const result = await core.searchLocations("Georgia", "", {
+    fetch: async (url) => {
+      assert.equal(new URL(url).hostname, "photon.komoot.io");
+      return { ok: true, json: async () => ({ features }) };
+    }
+  });
+
+  assert.equal(result.status, core.QUERY_STATUS.AMBIGUOUS);
+  assert.equal(result.candidates.length, 3);
+  assert.deepEqual(result.candidates.map((place) => place.coordinates), [
+    { lat: 41.6808672, lon: 44.0287806, dim: null },
+    { lat: 32.3293809, lon: -83.1137366, dim: null },
+    { lat: 40.1873348, lon: -74.2845906, dim: null }
+  ]);
+  assert.ok(result.candidates[0].sourceUrl.endsWith("/relation/28699"));
+  assert.ok(result.candidates[1].sourceUrl.endsWith("/relation/161957"));
+  assert.ok(result.candidates[2].sourceUrl.endsWith("/node/158808813"));
+  assert.match(result.candidates[0].extract, /place: country/u);
+  assert.match(result.candidates[1].extract, /United States/u);
+  assert.match(result.candidates[2].extract, /New Jersey/u);
+});
 
 test("translated Photon results preserve provider relevance order without treating the query as every alias", () => {
   const first = core.photonFeatureToCandidate({
@@ -205,6 +273,7 @@ test("HTTP 400 diagnostics are preserved while fallback sources remain available
   };
   const result = await core.searchLocations("上海", "", { fetch: fetchMock });
   assert.equal(result.candidates.length, 0);
+  assert.equal(result.status, core.QUERY_STATUS.NOT_FOUND);
   assert.ok(result.errors.some((message) => message.includes("HTTP 400：Language is not supported")));
 });
 
@@ -235,6 +304,7 @@ test("lookup handles a missing-coordinate result and partial service failure", a
     throw new Error("Unexpected host " + parsed.hostname);
   };
   const result = await core.searchLocations("Patagonia", "", { fetch: fetchMock });
+  assert.equal(result.status, core.QUERY_STATUS.SUCCESS);
   assert.equal(result.candidates[0].title, "Patagonia");
   assert.equal(result.candidates[0].coordinates, null);
   assert.equal(result.candidates[0].extract, "A region at the southern end of South America.");
@@ -358,7 +428,128 @@ test("lookup rejects empty and overlong input without making a request", async (
   assert.equal(requests, 0);
 });
 
-test("lookup surfaces a source timeout instead of returning an empty success", async () => {
+test("query responses distinguish no matches from unavailable services and include 429 guidance", async () => {
+  const noResultsFetch = async (url) => {
+    const host = new URL(url).hostname;
+    if (host === "photon.komoot.io") return { ok: true, json: async () => ({ features: [] }) };
+    if (host === "www.wikidata.org") return { ok: true, json: async () => ({ search: [] }) };
+    return { ok: true, json: async () => ({ query: { search: [] } }) };
+  };
+  const noResults = await core.searchLocations("Nonexistent place", "", { fetch: noResultsFetch });
+  assert.deepEqual(
+    { status: noResults.status, query: noResults.query, candidates: noResults.candidates, errors: noResults.errors },
+    { status: core.QUERY_STATUS.NOT_FOUND, query: "Nonexistent place", candidates: [], errors: [] }
+  );
+
+  const partialUnavailable = await core.searchLocations("Unknown region", "", {
+    fetch: async (url) => {
+      const host = new URL(url).hostname;
+      if (host === "photon.komoot.io") return { ok: true, json: async () => ({ features: [] }) };
+      return { ok: false, status: 503, json: async () => ({ message: "Unavailable" }) };
+    }
+  });
+  assert.equal(partialUnavailable.status, core.QUERY_STATUS.NOT_FOUND);
+  assert.equal(partialUnavailable.candidates.length, 0);
+  assert.equal(partialUnavailable.errors.length, 3, "partial outage diagnostics remain visible with a no-match result");
+
+  const allUnavailableFetch = async (url) => {
+    const host = new URL(url).hostname;
+    const status = host === "www.wikidata.org" ? 429 : host === "photon.komoot.io" ? 503 : 502;
+    return {
+      ok: false,
+      status,
+      headers: { get: (name) => name === "Retry-After" && status === 429 ? "2" : null },
+      json: async () => ({ message: status === 429 ? "Too many requests" : "Unavailable" })
+    };
+  };
+  const cache = new Map();
+  const unavailable = await core.searchLocations("Nowhere", "", { fetch: allUnavailableFetch, cache });
+  assert.equal(unavailable.status, core.QUERY_STATUS.SERVICE_ERROR);
+  assert.equal(unavailable.query, "Nowhere");
+  assert.equal(unavailable.candidates.length, 0);
+  assert.equal(unavailable.errors.length, 4);
+  assert.ok(unavailable.errors.some((message) => /HTTP 429/u.test(message) && /至少 2 秒后重试/u.test(message)));
+  assert.equal(cache.size, 0, "service failures must not be cached as empty results");
+});
+
+test("Wikimedia requests identify the app and omit credentials", async () => {
+  const requests = [];
+  const fetchMock = async (url, options) => {
+    requests.push({ url: new URL(url), options });
+    const host = new URL(url).hostname;
+    if (host === "photon.komoot.io") return { ok: true, json: async () => ({ features: [] }) };
+    if (host === "www.wikidata.org") return { ok: true, json: async () => ({ search: [] }) };
+    return { ok: true, json: async () => ({ query: { search: [] } }) };
+  };
+  await core.searchLocations("Patagonia", "", { fetch: fetchMock });
+  const WikimediaRequests = requests.filter(({ url }) =>
+    url.hostname.endsWith(".wikipedia.org") || url.hostname.endsWith(".wikidata.org")
+  );
+  assert.ok(WikimediaRequests.length >= 3);
+  for (const request of WikimediaRequests) {
+    assert.equal(request.options.credentials, "omit");
+    assert.equal(request.options.headers["Api-User-Agent"],
+      "Whereabouts/1.0 (https://0-1byte.github.io/whereabouts/)");
+  }
+});
+
+test("query cache normalizes keys, preserves ambiguity, expires, and stays bounded", async () => {
+  let time = 100000;
+  let requestCount = 0;
+  const cache = new Map();
+  const fetchMock = async (url) => {
+    const parsed = new URL(url);
+    if (parsed.hostname !== "photon.komoot.io") {
+      throw new Error("Unexpected fallback request");
+    }
+    requestCount += 1;
+    const query = parsed.searchParams.get("q");
+    if (query === "Georgia") {
+      return {
+        ok: true,
+        json: async () => ({
+          features: [
+            { geometry: { coordinates: [43.3569, 42.3154] }, properties: { name: "Georgia", country: "Georgia" } },
+            { geometry: { coordinates: [-82.9, 32.16] }, properties: { name: "Georgia (U.S. state)", country: "United States" } }
+          ]
+        })
+      };
+    }
+    return {
+      ok: true,
+      json: async () => ({
+        features: [{
+          geometry: { coordinates: [10, 20] },
+          properties: { name: query }
+        }]
+      })
+    };
+  };
+  const now = () => time;
+  const first = await core.searchLocations("Georgia", "", { fetch: fetchMock, cache, now });
+  assert.equal(first.status, core.QUERY_STATUS.AMBIGUOUS);
+  assert.equal(first.candidates.length, 2);
+  assert.equal(requestCount, 1);
+
+  const cached = await core.searchLocations(" GEORGIA! ", "", { fetch: fetchMock, cache, now });
+  assert.equal(cached.status, core.QUERY_STATUS.AMBIGUOUS);
+  assert.equal(cached.query, "GEORGIA!");
+  assert.equal(requestCount, 1);
+
+  time += core.QUERY_CACHE_TTL_MS;
+  await core.searchLocations("Georgia", "", { fetch: fetchMock, cache, now });
+  assert.equal(requestCount, 2, "an entry expires exactly at the TTL boundary");
+
+  const boundedCache = new Map();
+  for (let index = 0; index <= core.MAX_QUERY_CACHE_ENTRIES; index += 1) {
+    await core.searchLocations(`Place${index}`, "", { fetch: fetchMock, cache: boundedCache, now });
+  }
+  assert.equal(boundedCache.size, core.MAX_QUERY_CACHE_ENTRIES);
+  assert.equal(boundedCache.has("place0"), false);
+  assert.equal(boundedCache.has("place40"), true);
+});
+
+test("lookup returns a service_error status when every source times out", async () => {
   const fetchMock = async (_url, { signal }) => new Promise((_resolve, reject) => {
     signal.addEventListener("abort", () => {
       const error = new Error("aborted");
@@ -366,5 +557,9 @@ test("lookup surfaces a source timeout instead of returning an empty success", a
       reject(error);
     }, { once: true });
   });
-  await assert.rejects(core.searchLocations("Georgia", "", { fetch: fetchMock, timeoutMs: 5 }), /超时/);
+  const result = await core.searchLocations("Georgia", "", { fetch: fetchMock, timeoutMs: 5 });
+  assert.equal(result.status, core.QUERY_STATUS.SERVICE_ERROR);
+  assert.equal(result.candidates.length, 0);
+  assert.ok(result.errors.length >= 1);
+  assert.ok(result.errors.every((message) => /超时/u.test(message)));
 });

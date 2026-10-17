@@ -164,7 +164,13 @@ function createLeafletStub() {
   return { leaflet, instances };
 }
 
-function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locationSearch = "", responseErrors = {} }) {
+function createApp({
+  leaflet = createLeafletStub().leaflet,
+  searchResults,
+  locationSearch = "",
+  responseErrors = {},
+  responseStatuses = {}
+}) {
   const ids = [
     "search-form", "place-query", "clear-query", "status", "results", "results-title",
     "result-count", "candidate-summary-count", "candidate-picker", "candidate-list",
@@ -202,7 +208,12 @@ function createApp({ leaflet = createLeafletStub().leaflet, searchResults, locat
         ...core,
         MAX_QUERY_LENGTH: 100,
         async searchLocations(query) {
-          return { candidates: searchResults[query] || [], errors: responseErrors[query] || [] };
+          const candidates = searchResults[query] || [];
+          const status = responseStatuses[query] || (
+            candidates.length > 1 ? core.QUERY_STATUS.AMBIGUOUS :
+              candidates.length === 1 ? core.QUERY_STATUS.SUCCESS : core.QUERY_STATUS.NOT_FOUND
+          );
+          return { status, query, candidates, errors: responseErrors[query] || [] };
         }
       },
       L: leaflet,
@@ -400,4 +411,27 @@ test("a successful fallback is shown without alarming HTTP errors", async () => 
   assert.equal(app.elements["place-detail"].querySelector(".detail-title").textContent, "上海市");
   assert.doesNotMatch(app.elements.status.textContent, /HTTP 400|超时|不可用/u);
   assert.deepEqual(Array.from(instances[0].center), [31.2304, 121.4737]);
+});
+
+test("service errors and empty results are distinct and retain external search links", async () => {
+  const serviceUnavailable = createApp({
+    searchResults: {},
+    responseStatuses: { "Patagonia": core.QUERY_STATUS.SERVICE_ERROR },
+    responseErrors: { "Patagonia": ["English Wikipedia：HTTP 503"] }
+  });
+  await serviceUnavailable.search("Patagonia");
+  assert.equal(serviceUnavailable.elements.results.hidden, true);
+  assert.match(serviceUnavailable.elements.status.textContent, /查询服务暂不可用/u);
+  assert.match(serviceUnavailable.elements.status.textContent, /HTTP 503/u);
+  assert.equal(serviceUnavailable.elements["fallback-links"].querySelectorAll(".map-link").length, 3);
+
+  const notFound = createApp({
+    searchResults: {},
+    responseStatuses: { "Nowhere that exists nowhere": core.QUERY_STATUS.NOT_FOUND }
+  });
+  await notFound.search("Nowhere that exists nowhere");
+  assert.match(notFound.elements.status.textContent, /没有找到匹配条目/u);
+  assert.equal(notFound.elements["fallback-links"].querySelectorAll(".map-link").length, 3);
+  assert.equal(new URL(notFound.elements["fallback-links"].querySelector(".map-link").href).searchParams.get("query"),
+    "Nowhere that exists nowhere");
 });

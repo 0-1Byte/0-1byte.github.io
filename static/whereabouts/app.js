@@ -2,6 +2,12 @@
   "use strict";
 
   const core = window.WhereaboutsCore;
+  const QUERY_STATUS = core.QUERY_STATUS || {
+    SUCCESS: "success",
+    AMBIGUOUS: "ambiguous",
+    NOT_FOUND: "not_found",
+    SERVICE_ERROR: "service_error"
+  };
   const form = document.getElementById("search-form");
   const input = document.getElementById("place-query");
   const submit = form.querySelector('button[type="submit"]');
@@ -252,7 +258,21 @@
     try {
       const response = await core.searchLocations(cleanQuery, context, { cache: queryCache });
       if (currentSequence !== querySequence) return;
-      if (!response.candidates.length) {
+      if (!response || !Array.isArray(response.candidates) || !Array.isArray(response.errors)) {
+        throw new Error("地名数据源返回了无法识别的结果。");
+      }
+      const responseStatus = response.status || (
+        response.candidates.length > 1 ? QUERY_STATUS.AMBIGUOUS :
+          response.candidates.length === 1 ? QUERY_STATUS.SUCCESS : QUERY_STATUS.NOT_FOUND
+      );
+      if (responseStatus === QUERY_STATUS.SERVICE_ERROR) {
+        results.hidden = true;
+        setStatus(`地名查询服务暂不可用${response.errors.length ? `：${response.errors.join("；")}` : "，请检查网络后重试"}。你的输入仍保留在框中。`, "error");
+        showFallbackLinks(cleanQuery);
+        return;
+      }
+      if (responseStatus === QUERY_STATUS.NOT_FOUND) {
+        if (response.candidates.length) throw new Error("无结果状态与候选地点不一致。");
         results.hidden = true;
         setStatus(
           response.errors.length
@@ -262,6 +282,14 @@
         );
         showFallbackLinks(cleanQuery);
         return;
+      }
+      if (responseStatus !== QUERY_STATUS.SUCCESS && responseStatus !== QUERY_STATUS.AMBIGUOUS) {
+        throw new Error(`地名数据源返回了未知查询状态：${responseStatus}`);
+      }
+      if (!response.candidates.length ||
+          (responseStatus === QUERY_STATUS.SUCCESS && response.candidates.length !== 1) ||
+          (responseStatus === QUERY_STATUS.AMBIGUOUS && response.candidates.length < 2)) {
+        throw new Error("查询状态与候选地点数量不一致。");
       }
       renderCandidates(response.candidates, cleanQuery);
       // A successful fallback is a successful user outcome. Keep provider errors out of the
