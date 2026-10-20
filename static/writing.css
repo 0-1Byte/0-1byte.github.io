@@ -1,0 +1,151 @@
+.writing-page {
+  max-width: var(--content-width);
+}
+
+.writing-page .page-header {
+  margin: 0;
+}
+
+.writing-page .writing-list {
+  margin-top: 18px;
+}
+
+.writing-page .writing-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 164px !important;
+  align-items: center !important;
+  gap: 24px 32px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 27px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-bottom-color: color-mix(in srgb, var(--border) 65%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  transition: none !important;
+}
+
+.writing-page .writing-row--no-cover {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.writing-page .writing-row:hover,
+.writing-page .writing-row:focus-within {
+  transform: none !important;
+  border-bottom-color: color-mix(in srgb, var(--border) 65%, transparent) !important;
+}
+
+.writing-page .writing-date {
+  display: block;
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.writing-page .writing-copy {
+  min-width: 0;
+}
+
+.writing-page .entry-header h2 {
+  margin: 0 !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: clamp(22px, 2.4vw, 25px) !important;
+  font-weight: 500 !important;
+  line-height: 1.38 !important;
+  overflow-wrap: anywhere;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-decoration: none;
+  transition: color var(--motion-base);
+}
+
+.writing-page .writing-row:hover .entry-header h2,
+.writing-page .writing-row:focus-within .entry-header h2 {
+  color: var(--muted) !important;
+  transform: none !important;
+  filter: none !important;
+  text-decoration: none;
+}
+
+.writing-page .entry-link:hover,
+.writing-page .entry-link:focus,
+.writing-page .entry-link:focus-visible {
+  text-decoration: none;
+}
+
+.writing-page .entry-cover {
+  grid-column: 2;
+  width: 164px !important;
+  margin: 0 !important;
+  text-align: right;
+}
+
+.writing-page .entry-cover img {
+  display: block;
+  width: 164px !important;
+  aspect-ratio: 3 / 2;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 4px !important;
+}
+
+.writing-page .entry-link {
+  border-radius: 0;
+}
+
+.writing-page .entry-link:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 4px;
+}
+
+@media (min-width: 601px) and (max-width: 800px) {
+  .writing-page .writing-list {
+    margin-top: 18px;
+  }
+
+  .writing-page .writing-row {
+    grid-template-columns: minmax(0, 1fr) 144px !important;
+    gap: 20px !important;
+    padding: 24px 0 !important;
+  }
+
+  .writing-page .writing-row--no-cover {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .writing-page .entry-cover {
+    grid-column: 2;
+    width: 144px !important;
+  }
+
+  .writing-page .entry-cover img {
+    width: 144px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .writing-page .writing-list {
+    margin-top: 16px;
+  }
+
+  .writing-page .writing-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 22px 0 !important;
+  }
+
+  .writing-page .entry-cover {
+    grid-column: 1;
+    justify-self: end;
+    width: 120px !important;
+  }
+
+  .writing-page .entry-cover img {
+    width: 120px !important;
+  }
+}
