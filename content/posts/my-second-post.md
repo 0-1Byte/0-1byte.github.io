@@ -1,5 +1,5 @@
 ---
-title: 'My Second Post'
+title: 'I have agency'
 date: 2025-12-20T14:37:20+08:00
 draft: false
 cover:
@@ -9,4 +9,8 @@ cover:
     relative: false
     hidden: false
 ---
-**I have agency!**
+pluribus
+
+
+
+我们作为人会失去自主权吗？
