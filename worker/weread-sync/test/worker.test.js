@@ -9,11 +9,11 @@ function base64url(bytes) {
   return Buffer.from(bytes).toString("base64url");
 }
 
-async function signedSession(login = "admin", csrf = "csrf-test") {
+async function signedSession(login = "admin", csrf = "csrf-test", exp = Date.now() + 60_000) {
   const payload = base64url(Buffer.from(JSON.stringify({
     sub: login,
     csrf,
-    exp: Date.now() + 60_000,
+    exp,
   })));
   const key = await webcrypto.subtle.importKey(
     "raw", Buffer.from(sessionSecret), { name: "HMAC", hash: "SHA-256" },
@@ -210,6 +210,9 @@ test("OAuth uses the pinned workers.dev origin and rejects alternate hosts", asy
     authorization.searchParams.get("redirect_uri"),
     "https://weread-sync-console.account.workers.dev/auth/callback",
   );
+  const stateCookie = response.headers.getSetCookie()
+    .find((cookie) => cookie.startsWith("__Host-weread-oauth-state="));
+  assert.match(stateCookie, /; Path=\/; Secure; HttpOnly; SameSite=Lax; Max-Age=600$/);
 
   const alias = await worker.fetch(new Request("https://attacker.workers.dev/auth/login"),
     env({
@@ -217,6 +220,140 @@ test("OAuth uses the pinned workers.dev origin and rejects alternate hosts", asy
       GITHUB_OAUTH_CLIENT_SECRET: "test-client-secret",
     }));
   assert.equal(alias.status, 421);
+});
+
+test("OAuth callback sets a signed cross-site session and clears the Lax state cookie", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = new URL(input);
+    if (url.hostname === "github.com" && url.pathname === "/login/oauth/access_token") {
+      return Response.json({ access_token: "test-only-oauth-token" });
+    }
+    if (url.hostname === "api.github.com" && url.pathname === "/user") {
+      return Response.json({ login: "admin" });
+    }
+    throw new Error("unexpected OAuth request");
+  };
+
+  try {
+    const state = "test-oauth-state";
+    const response = await worker.fetch(new Request(
+      `https://weread-sync-console.account.workers.dev/auth/callback?code=test-code&state=${state}`,
+      { headers: { Cookie: `__Host-weread-oauth-state=${state}` } },
+    ), env({
+      GITHUB_OAUTH_CLIENT_ID: "test-client-id",
+      GITHUB_OAUTH_CLIENT_SECRET: "test-client-secret",
+    }));
+
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("Location"),
+      "https://0-1byte.github.io/admin/weread-sync/");
+    const cookies = response.headers.getSetCookie();
+    const sessionCookie = cookies.find((cookie) => cookie.startsWith("__Host-weread-session="));
+    const stateCookie = cookies.find((cookie) => cookie.startsWith("__Host-weread-oauth-state="));
+    assert.match(sessionCookie, /^__Host-weread-session=[^.]+\.[^;]+; Path=\/; Secure; HttpOnly; SameSite=None; Max-Age=43200$/);
+    assert.match(stateCookie, /^__Host-weread-oauth-state=; Path=\/; Secure; HttpOnly; SameSite=Lax; Max-Age=0$/);
+
+    const cookiePair = sessionCookie.split(";", 1)[0];
+    const sessionResponse = await worker.fetch(apiRequest("/api/session", {
+      headers: { Cookie: cookiePair },
+    }), env());
+    assert.equal(sessionResponse.status, 200);
+    const session = await sessionResponse.json();
+    assert.equal(session.authenticated, true);
+    assert.equal(session.login, "admin");
+    assert.equal(typeof session.csrf, "string");
+    assert.ok(session.csrf.length > 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("OAuth callback keeps the GitHub administrator allowlist", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = new URL(input);
+    if (url.hostname === "github.com" && url.pathname === "/login/oauth/access_token") {
+      return Response.json({ access_token: "test-only-oauth-token" });
+    }
+    if (url.hostname === "api.github.com" && url.pathname === "/user") {
+      return Response.json({ login: "another-user" });
+    }
+    throw new Error("unexpected OAuth request");
+  };
+
+  try {
+    const state = "test-oauth-state";
+    const response = await worker.fetch(new Request(
+      `https://weread-sync-console.account.workers.dev/auth/callback?code=test-code&state=${state}`,
+      { headers: { Cookie: `__Host-weread-oauth-state=${state}` } },
+    ), env({
+      GITHUB_OAUTH_CLIENT_ID: "test-client-id",
+      GITHUB_OAUTH_CLIENT_SECRET: "test-client-secret",
+    }));
+
+    assert.equal(response.status, 403);
+    assert.equal(response.headers.getSetCookie()
+      .some((cookie) => cookie.startsWith("__Host-weread-session=")), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("expired and tampered session cookies are rejected", async () => {
+  const expiredCookie = await signedSession("admin", "csrf-test", Date.now() - 1);
+  const expired = await worker.fetch(apiRequest("/api/session", {
+    headers: { Cookie: expiredCookie },
+  }), env());
+  assert.equal(expired.status, 401);
+
+  const signed = await signedSession();
+  const tampered = `${signed.slice(0, -1)}${signed.endsWith("A") ? "B" : "A"}`;
+  const invalidSignature = await worker.fetch(apiRequest("/api/session", {
+    headers: { Cookie: tampered },
+  }), env());
+  assert.equal(invalidSignature.status, 401);
+});
+
+test("API CORS allows credentials only for the configured site origin", async () => {
+  const allowed = await worker.fetch(apiRequest("/api/session", {
+    method: "OPTIONS",
+  }), env());
+  assert.equal(allowed.status, 204);
+  assert.equal(allowed.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
+  assert.equal(allowed.headers.get("Access-Control-Allow-Credentials"), "true");
+  assert.notEqual(allowed.headers.get("Access-Control-Allow-Origin"), "*");
+
+  const denied = await worker.fetch(new Request("https://worker.example/api/session", {
+    method: "OPTIONS",
+    headers: { Origin: "https://attacker.example" },
+  }), env());
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.get("Access-Control-Allow-Credentials"), null);
+});
+
+test("logout clears the cross-site session cookie and requires CSRF", async () => {
+  const response = await worker.fetch(apiRequest("/api/logout", {
+    method: "POST",
+    headers: {
+      Cookie: await signedSession(),
+      "X-CSRF-Token": "csrf-test",
+    },
+  }), env());
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
+  assert.equal(response.headers.get("Access-Control-Allow-Credentials"), "true");
+  assert.match(response.headers.get("Set-Cookie"),
+    /^__Host-weread-session=; Path=\/; Secure; HttpOnly; SameSite=None; Max-Age=0$/);
+
+  const rejected = await worker.fetch(apiRequest("/api/logout", {
+    method: "POST",
+    headers: {
+      Cookie: await signedSession(),
+      "X-CSRF-Token": "wrong-token",
+    },
+  }), env());
+  assert.equal(rejected.status, 403);
 });
 
 const uploadSecret = "test-only-upload-secret";
