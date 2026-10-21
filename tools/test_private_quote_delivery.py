@@ -164,6 +164,33 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertIn("data/weread_quotes.json", workflow)
         self.assertIn("public/data/weread_quotes.json", workflow)
 
+    def test_standalone_diagnostic_page_is_visible_without_javascript(self):
+        page = (ROOT / "static" / "weread-debug" / "index.html").read_text(encoding="utf-8")
+        panel = page.split('id="weread-debug"', 1)[1].split(">", 1)[0]
+        self.assertIn('<html lang="zh-CN">', page)
+        self.assertNotIn("hidden", panel)
+        self.assertIn("诊断脚本尚未运行", page)
+        self.assertIn('data-weread-debug="html">已加载', page)
+        self.assertNotIn("wereadDebug", page)
+
+    def test_standalone_diagnostic_uses_shared_config_and_own_script(self):
+        page = (ROOT / "static" / "weread-debug" / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "static" / "weread-debug.js").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "hugo.yml").read_text(encoding="utf-8")
+        self.assertLess(page.index("/admin/weread-sync/config.js"),
+                        page.index("/weread-debug.js"))
+        self.assertNotIn("quotes.js", page)
+        self.assertNotIn("home-focus", script)
+        self.assertIn('new URL("/public/quote", base)', script)
+        self.assertIn("credentials: \"omit\"", script)
+        self.assertIn("cache: \"no-store\"", script)
+        self.assertIn("requestInProgress", script)
+        self.assertIn("HTTP 429", script)
+        self.assertIn("HTTP 503", script)
+        self.assertIn("网络/CORS 错误", script)
+        self.assertNotIn("console.", script)
+        self.assertIn("verify_weread_debug_build.py --public-dir public", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
