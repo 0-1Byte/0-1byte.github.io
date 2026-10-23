@@ -67,17 +67,56 @@
     }
   }
 
-  function canvasBlob(canvas) {
+  function canvasBlob(canvas, quality = 0.82) {
     return new Promise((resolve, reject) => {
       try {
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
-          else reject(new Error("浏览器无法生成 PNG 图片。"));
-        }, "image/png");
+          else reject(new Error("浏览器无法生成压缩 JPG 图片。"));
+        }, "image/jpeg", quality);
       } catch (error) {
         reject(error);
       }
     });
+  }
+
+  // 优先保留清晰度；若文件过大，再逐步降低质量与像素尺寸。
+  const MAX_IMAGE_BYTES = 500 * 1024;
+
+  async function compressedCanvasBlob(canvas) {
+    const qualityLevels = [0.84, 0.78, 0.72, 0.66, 0.60];
+    let workingCanvas = canvas;
+    let lastBlob = null;
+
+    for (let resizeAttempt = 0; resizeAttempt < 7; resizeAttempt += 1) {
+      for (const quality of qualityLevels) {
+        lastBlob = await canvasBlob(workingCanvas, quality);
+        if (lastBlob.size <= MAX_IMAGE_BYTES) return lastBlob;
+      }
+
+      if (resizeAttempt === 6) break;
+
+      const smallerCanvas = document.createElement("canvas");
+      smallerCanvas.width = Math.max(1, Math.round(workingCanvas.width * 0.85));
+      smallerCanvas.height = Math.max(1, Math.round(workingCanvas.height * 0.85));
+      const smallerContext = smallerCanvas.getContext("2d");
+      if (!smallerContext) throw new Error("无法调整图片尺寸，请稍后重试。");
+
+      smallerContext.imageSmoothingEnabled = true;
+      smallerContext.imageSmoothingQuality = "high";
+      smallerContext.drawImage(
+        workingCanvas,
+        0,
+        0,
+        smallerCanvas.width,
+        smallerCanvas.height,
+      );
+      workingCanvas = smallerCanvas;
+    }
+
+    // 极少数复杂背景可能仍超过目标大小；返回已经压缩过的最小结果。
+    if (lastBlob) return lastBlob;
+    throw new Error("浏览器无法压缩当前图片。");
   }
 
   function positionPercent(value, axis) {
@@ -208,11 +247,12 @@
       const width = document.documentElement.clientWidth || window.innerWidth;
       const height = document.documentElement.clientHeight || window.innerHeight;
       if (!width || !height) throw new Error("无法读取当前视口尺寸。");
+      // 限制初始导出尺寸，避免高分辨率屏幕直接生成数十 MB 的无损 PNG。
       const scale = Math.min(
-        2,
-        4096 / width,
-        4096 / height,
-        Math.sqrt(16000000 / (width * height)),
+        1.5,
+        2560 / width,
+        2560 / height,
+        Math.sqrt(6000000 / (width * height)),
       );
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(width * scale);
@@ -272,14 +312,15 @@
       const note = home.querySelector(".home-note");
       if (note) drawTextElement(context, note);
 
-      const blob = await canvasBlob(canvas);
+      const blob = await compressedCanvasBlob(canvas);
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = objectUrl;
-      link.download = `Chen-${getTimestamp()}.png`;
+      link.download = `Chen-${getTimestamp()}.jpg`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-      showStatus("画面已保存");
+      const sizeInKB = Math.max(1, Math.round(blob.size / 1024));
+      showStatus(`画面已保存（${sizeInKB} KB）`);
     } catch (error) {
       console.error("[home-tools] 无法保存当前主页画面。", error);
       const message = error && error.name === "SecurityError"
