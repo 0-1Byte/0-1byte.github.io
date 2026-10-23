@@ -2,3 +2,6 @@
        PaperMod 自带按钮已关闭，避免与本脚本重复监听滚动；
        本脚本会创建 Hugo 页面所需按钮，static/ 合集页也复用同一实现。 */ -}}
 <script src="{{ "back-to-top.js" | relURL }}?v=1" defer></script>
+{{- if .IsHome }}
+<script src="{{ "home-tools.js" | relURL }}?v=1" defer></script>
+{{- end }}

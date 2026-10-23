@@ -40,10 +40,19 @@ function makeEl(id, cls) {
     querySelector(sel) {
       if (sel === "[data-quote-text]") return elsRef.text;
       if (sel === ".home-focus-caret") return elsRef.caret;
+      if (sel === "[data-weread-debug-retry]") return elsRef.retryButton;
       return null;
     },
+    querySelectorAll(sel) {
+      return sel === "[data-weread-debug]" ? Object.values(elsRef.debugFields || {}) : [];
+    },
+    click() {
+      (el._handlers.click || []).forEach((handler) => handler());
+    },
     addEventListener(t, fn) { (el._handlers[t] ||= []).push(fn); },
-    closest() { return null; }
+    closest(selector) {
+      return selector === ".home--living" ? elsRef.homeRoot : null;
+    }
   };
   return el;
 }
@@ -58,16 +67,30 @@ function setup(opts, serializedQuotes) {
   const source = makeEl("home-focus-source");
   const quotes = makeEl("home-quotes");
   quotes.textContent = serializedQuotes;
+  const debugPanel = makeEl("weread-debug");
+  debugPanel.hidden = true;
+  const debugFields = Object.fromEntries([
+    "version", "api", "request", "http", "duration", "validated", "failure"
+  ].map((key) => {
+    const field = makeEl(`weread-debug-${key}`);
+    field.setAttribute("data-weread-debug", key);
+    return [key, field];
+  }));
+  const retryButton = makeEl("weread-debug-retry");
+  const homeRoot = makeEl("home-root", "home--living");
+  homeRoot.dataset = { wereadHomeVersion: "2" };
   const backgrounds = makeEl("home-backgrounds");
   backgrounds.getAttribute = (name) => name === "data-home-backgrounds"
     ? JSON.stringify(opts.backgrounds || [])
     : name === "data-home-backgrounds-optimized" ? String(Boolean(opts.optimized)) : null;
   const backgroundImage = makeEl("home-background-image");
   text.textContent = opts.serverText || "";
-  elsRef = { host, text, caret, source };
+  elsRef = { host, text, caret, source, debugPanel, debugFields, retryButton, homeRoot };
 
   const doc = {
-    getElementById: (id) => id === "home-focus" ? host : id === "home-quotes" ? quotes : null,
+    getElementById: (id) => id === "home-focus" ? host
+      : id === "home-quotes" ? quotes
+        : id === "weread-debug" ? debugPanel : null,
     querySelector: (sel) => {
       if (sel === "[data-quote-source]") return source;
       if (sel === "[data-home-backgrounds]") return backgrounds;
@@ -89,6 +112,14 @@ function setup(opts, serializedQuotes) {
   };
   const win = {
     WEREAD_SYNC_API_BASE: opts.apiBase || "",
+    WEREAD_SYNC_CONFIG_VERSION: opts.configVersion
+      || (opts.apiBase ? "2" : ""),
+    WEREAD_SYNC_WORKER_HOST: opts.workerHost || (() => {
+      try { return new URL(opts.apiBase).hostname; } catch (_) { return ""; }
+    })(),
+    WEREAD_SYNC_WORKER_NAME: opts.workerName || (() => {
+      try { return new URL(opts.apiBase).hostname.split(".")[0]; } catch (_) { return ""; }
+    })(),
     location: {
       hostname: opts.hostname || "example.com",
       search: opts.search || ""
@@ -152,9 +183,10 @@ async function run(opts, serializedQuotes = "[]") {
   const savedDoc = global.document, savedWin = global.window, savedLs = global.localStorage;
   const savedFetch = global.fetch;
   const savedRandom = Math.random;
+  const fetchImpl = opts.fetch || savedFetch;
   global.document = env.doc;
   global.window = env.win;
-  global.fetch = opts.fetch || savedFetch;
+  global.fetch = fetchImpl;
   if (opts.randomValues) {
     let randomIndex = 0;
     Math.random = () => opts.randomValues[randomIndex++] ?? opts.randomValues[opts.randomValues.length - 1] ?? 0.5;
@@ -177,7 +209,37 @@ async function run(opts, serializedQuotes = "[]") {
     global.fetch = savedFetch;
     Math.random = savedRandom;
   }
-  return { ...env, warns, store, clock };
+  async function interact(action) {
+    const previousDoc = global.document, previousWin = global.window;
+    const previousLs = global.localStorage, previousFetch = global.fetch;
+    const previousRandom = Math.random;
+    global.document = env.doc;
+    global.window = env.win;
+    global.fetch = fetchImpl;
+    global.localStorage = {
+      setItem(k, v) { store[k] = v; },
+      getItem(k) { return store[k] === undefined ? null : store[k]; }
+    };
+    if (opts.randomValues) {
+      let randomIndex = 0;
+      Math.random = () => opts.randomValues[randomIndex++] ?? opts.randomValues[opts.randomValues.length - 1] ?? 0.5;
+    }
+    try {
+      action();
+      await new Promise((resolve) => setTimeout(resolve, opts.wait || 300));
+    } finally {
+      global.document = previousDoc; global.window = previousWin; global.localStorage = previousLs;
+      global.fetch = previousFetch;
+      Math.random = previousRandom;
+    }
+  }
+  return {
+    ...env,
+    warns,
+    store,
+    clock,
+    retry: () => interact(() => env.els.retryButton.click())
+  };
 }
 
 const quotesFetch = (list) => JSON.stringify(list);
@@ -233,6 +295,29 @@ function checkBuiltHomepageQuotes() {
   }
   if (!html.includes("admin/weread-sync/config.js")) {
     fail("首页缺少 Worker 地址配置脚本");
+    return;
+  }
+  if (!/data-weread-home-version=(?:"2"|'2'|2)(?=\s|>)/.test(html)) {
+    fail("构建产物缺少可识别的主页版本标记");
+    return;
+  }
+  if (!/admin\/weread-sync\/config\.js\?v=2/.test(html)) {
+    fail("构建产物中的 config.js 未使用 v=2 缓存版本");
+    return;
+  }
+  if (!/quotes\.js\?v=13/.test(html) || !/quotes-debug\.css\?v=1/.test(html)) {
+    fail("构建产物中的句子脚本或诊断样式版本引用不正确");
+    return;
+  }
+  if (!/id=(?:"weread-debug"|'weread-debug'|weread-debug)(?=\s|>)/.test(html)
+    || !/data-weread-debug-retry/.test(html)
+    || !/wereadDebug/.test(html)) {
+    fail("构建产物缺少可预先显示的 WeRead 诊断面板或重试入口");
+    return;
+  }
+  if (!src.includes('const QUOTES_SCRIPT_VERSION = "13"')
+    || !src.includes("wereadDebugEnabled || forceWeread")) {
+    fail("句子脚本版本或诊断模式强制请求逻辑与模板不同步");
     return;
   }
   ok(`#home-quotes 只包含 manual=${data.manual.length} 条；没有内嵌 WeRead 数据或内部字段`);
@@ -372,7 +457,7 @@ async function checkDashGuard() {
   const wereadOnly = await run({
     wait: 1,
     reduceMotion: true,
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     fetch: fetchWeread
   }, JSON.stringify({ manual: [] }));
   if (manualOnly.els.text.textContent !== "手动来源测试") fail("仅手动来源时应显示手动句子");
@@ -382,12 +467,189 @@ async function checkDashGuard() {
   if (wereadOnly.els.source.textContent !== "《合成测试书》 · 合成作者 · 合成章节") {
     fail("WeRead 出处应按书名、作者、章节显示");
   } else ok("WeRead 出处使用书名、作者和章节字段");
-  if (!remoteRequest || remoteRequest.url !== "https://worker.example/public/quote"
+  if (!remoteRequest || remoteRequest.url !== "https://worker.example.workers.dev/public/quote"
     || remoteRequest.options.credentials !== "omit") {
     fail("首页应以无凭据 GET 请求 Worker 的单条随机接口");
   } else ok("首页只请求 Worker 单条接口且不发送浏览器凭据");
 
-  console.log("0.3.1 本地开发模式必须显式启用且仅适用于回环主机");
+  let skippedRequestCount = 0;
+  const randomManual = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    randomValues: [0],
+    fetch: async () => { skippedRequestCount += 1; return fetchWeread(); }
+  }, JSON.stringify({ manual }));
+  if (skippedRequestCount !== 0 || randomManual.els.text.textContent !== "手动来源测试") {
+    fail("普通随机模式选中手动句子时不得请求或误报 Worker 成功");
+  } else ok("普通随机模式选中手动句子时不发起请求，保留手动句子");
+
+  console.log("0.3.1 诊断请求强制发起、显示状态并支持重新请求");
+  let diagnosticRequests = 0;
+  const diagnosticFetch = async (url) => {
+    diagnosticRequests += 1;
+    if (url !== "https://worker.example.workers.dev/public/quote") {
+      throw new Error("unexpected diagnostic request URL");
+    }
+    return new Response(JSON.stringify(remoteQuote), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+  const diagnostic = await run({
+    wait: 5,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    randomValues: [0],
+    fetch: diagnosticFetch
+  }, JSON.stringify({ manual }));
+  if (diagnosticRequests !== 1
+    || diagnostic.els.text.textContent !== "WeRead来源测试"
+    || diagnostic.els.source.textContent !== "《合成测试书》 · 合成作者 · 合成章节") {
+    fail("诊断模式必须忽略手动随机选择并展示有效 Worker 句子及出处");
+  } else ok("诊断模式强制请求并展示校验通过的 WeRead 句子和出处");
+  if (diagnostic.els.debugPanel.hidden
+    || diagnostic.els.debugFields.version.textContent !== "HTML v2 / 配置 v2 / 句子脚本 v13"
+    || diagnostic.els.debugFields.request.textContent !== "已发起"
+    || diagnostic.els.debugFields.http.textContent !== "200"
+    || diagnostic.els.debugFields.validated.textContent !== "是"
+    || diagnostic.els.debugFields.failure.textContent !== "无") {
+    fail("诊断面板应显示版本、请求状态、HTTP 状态、数据校验与成功结果");
+  } else ok("诊断面板版本、HTTP 200、请求状态和数据校验均准确");
+  await diagnostic.retry();
+  if (diagnosticRequests !== 2) {
+    fail("点击重新请求应再次发起 Worker 请求");
+  } else ok("诊断面板重试按钮实际发起第二次请求");
+
+  const configurationFailures = [
+    ["https://REPLACE_WITH_WORKER_HOST", "config_placeholder", "仍是占位配置"],
+    ["http://worker.example.workers.dev", "config_invalid_url", "必须配置 HTTPS Worker 根地址"],
+    ["https://other.example.workers.dev", "config_host_mismatch", "Worker 主机与配置不匹配"]
+  ];
+  for (const [apiBase, failureCode, expectedLabel] of configurationFailures) {
+    let attempted = false;
+    const invalidConfig = await run({
+      wait: 1,
+      reduceMotion: true,
+      apiBase,
+      ...(failureCode === "config_host_mismatch"
+        ? { workerHost: "worker.example.workers.dev", workerName: "worker" }
+        : {}),
+      search: "?wereadDebug=1",
+      fetch: async () => { attempted = true; return fetchWeread(); }
+    }, JSON.stringify({ manual }));
+    if (attempted || invalidConfig.els.debugFields.request.textContent !== "未发起"
+      || invalidConfig.els.debugFields.failure.textContent !== expectedLabel
+      || invalidConfig.els.text.textContent !== "手动来源测试") {
+      fail(`无效配置 ${failureCode} 应显示配置错误、保留手动句子且不请求`);
+    } else ok(`无效配置被明确识别：${failureCode}`);
+  }
+  const staleConfig = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    configVersion: "1",
+    search: "?wereadDebug=1",
+    fetch: async () => { throw new Error("stale config must not request"); }
+  }, JSON.stringify({ manual }));
+  if (staleConfig.els.debugFields.failure.textContent !== "配置版本不匹配") {
+    fail("旧版配置脚本必须被识别为配置版本不匹配");
+  } else ok("旧版配置脚本被识别并阻止无效请求");
+
+  console.log("0.3.2 HTTP、网络、超时及响应格式失败均分类并回退");
+  const failureCases = [
+    [429, "HTTP 429 限流"],
+    [503, "HTTP 503 服务暂不可用"],
+    [403, "其他 HTTP 错误"]
+  ];
+  for (const [status, label] of failureCases) {
+    const failedResponse = await run({
+      wait: 1,
+      reduceMotion: true,
+      apiBase: "https://worker.example.workers.dev",
+      search: "?wereadDebug=1",
+      fetch: async () => new Response("{}", {
+        status,
+        headers: { "Content-Type": "application/json" }
+      })
+    }, JSON.stringify({ manual }));
+    if (failedResponse.els.debugFields.http.textContent !== String(status)
+      || failedResponse.els.debugFields.failure.textContent !== label
+      || failedResponse.els.text.textContent !== "手动来源测试") {
+      fail(`HTTP ${status} 应显示状态与错误分类并回退到手动句子`);
+    } else ok(`HTTP ${status} 正确分类并保留手动句子`);
+  }
+  const invalidJson = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    fetch: async () => new Response("{", {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    })
+  }, JSON.stringify({ manual }));
+  if (invalidJson.els.debugFields.failure.textContent !== "JSON 格式错误"
+    || invalidJson.els.text.textContent !== "手动来源测试") {
+    fail("无效 JSON 应明确分类并回退到手动句子");
+  } else ok("无效 JSON 正确分类并保留手动句子");
+  const invalidContentType = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    fetch: async () => new Response("{}", {
+      status: 200,
+      headers: { "Content-Type": "text/plain" }
+    })
+  }, JSON.stringify({ manual }));
+  if (invalidContentType.els.debugFields.failure.textContent !== "内容类型错误"
+    || invalidContentType.els.text.textContent !== "手动来源测试") {
+    fail("非 JSON 响应内容类型应明确分类并回退");
+  } else ok("非 JSON 响应内容类型明确分类并回退");
+  const invalidData = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    fetch: async () => new Response(JSON.stringify({ source_type: "manual", text: "bad" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    })
+  }, JSON.stringify({ manual }));
+  if (invalidData.els.debugFields.failure.textContent !== "WeRead 数据校验失败"
+    || invalidData.els.text.textContent !== "手动来源测试") {
+    fail("格式正确但不符合 WeRead schema 的响应应分类并回退");
+  } else ok("无效 WeRead 数据通过 schema 校验拒绝并回退");
+  const networkFailure = await run({
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    fetch: async () => { throw new TypeError("simulated network/CORS failure"); }
+  }, JSON.stringify({ manual }));
+  if (networkFailure.els.debugFields.failure.textContent !== "网络/CORS 错误"
+    || networkFailure.els.text.textContent !== "手动来源测试") {
+    fail("网络/CORS 错误应明确分类并回退");
+  } else ok("网络/CORS 错误明确分类并保留手动句子");
+
+  const delayedFailure = await run({
+    fakeTimers: true,
+    wait: 1,
+    reduceMotion: true,
+    apiBase: "https://worker.example.workers.dev",
+    search: "?wereadDebug=1",
+    fetch: () => new Promise(() => {}),
+    onInit: ({ clock }) => clock.runNext()
+  }, JSON.stringify({ manual }));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  if (delayedFailure.els.debugFields.failure.textContent !== "请求超时"
+    || delayedFailure.els.text.textContent !== "手动来源测试") {
+    fail("请求超时应明确分类并回退到手动句子");
+  } else ok("请求超时明确分类并保留手动句子");
+
+  console.log("0.3.3 本地开发模式必须显式启用且仅适用于回环主机");
   let localRequest = null;
   const localDevFetch = async (url, options) => {
     localRequest = { url, options };
@@ -398,7 +660,7 @@ async function checkDashGuard() {
     reduceMotion: true,
     hostname: "localhost",
     search: "?wereadDev=1",
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     randomValues: [0.999],
     fetch: localDevFetch
   }, JSON.stringify({ manual }));
@@ -441,14 +703,14 @@ async function checkDashGuard() {
     reduceMotion: true,
     hostname: "0-1byte.github.io",
     search: "?wereadDev=1",
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     randomValues: [0.999],
     fetch: async (url, options) => {
       nonLocalRequest = { url, options };
       return fetchWeread(url, options);
     }
   }, JSON.stringify({ manual }));
-  if (!nonLocalRequest || nonLocalRequest.url !== "https://worker.example/public/quote") {
+  if (!nonLocalRequest || nonLocalRequest.url !== "https://worker.example.workers.dev/public/quote") {
     fail("非本机主机即使带开发参数也必须只请求 Worker");
   } else ok("非本机主机忽略开发参数并继续请求 Worker");
 
@@ -457,14 +719,14 @@ async function checkDashGuard() {
     wait: 1,
     reduceMotion: true,
     hostname: "127.0.0.1",
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     randomValues: [0.999],
     fetch: async (url, options) => {
       noFlagRequest = { url, options };
       return fetchWeread(url, options);
     }
   }, JSON.stringify({ manual }));
-  if (!noFlagRequest || noFlagRequest.url !== "https://worker.example/public/quote") {
+  if (!noFlagRequest || noFlagRequest.url !== "https://worker.example.workers.dev/public/quote") {
     fail("本机未显式启用时必须继续使用配置的 Worker");
   } else ok("本机未提供 wereadDev=1 时仍请求 Worker");
   if (JSON.stringify(wereadOnly.els.source.textContent).includes("must-not-reach-browser")) {
@@ -483,7 +745,7 @@ async function checkDashGuard() {
     const selected = await run({
       wait: 1,
       reduceMotion: true,
-      apiBase: "https://worker.example",
+      apiBase: "https://worker.example.workers.dev",
       randomValues: [i % 2 === 0 ? 0 : 0.999],
       fetch: fetchWeread
     }, JSON.stringify({
@@ -504,7 +766,7 @@ async function checkDashGuard() {
   const serviceUnavailable = await run({
     wait: 1,
     reduceMotion: true,
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     randomValues: [0.999],
     fetch: async () => new Response("{}", { status: 503 })
   }, JSON.stringify({ manual: [{ text: "服务失败回退", source: "" }] }));
@@ -516,7 +778,7 @@ async function checkDashGuard() {
     fakeTimers: true,
     wait: 1,
     reduceMotion: true,
-    apiBase: "https://worker.example",
+    apiBase: "https://worker.example.workers.dev",
     randomValues: [0.999],
     fetch: () => new Promise(() => {}),
     onInit: ({ clock }) => clock.runNext()

@@ -1,0 +1,161 @@
+{{- define "main" }}
+  {{- if eq .RelPermalink ("read/" | relURL) }}
+  {{- $articleSection := site.GetPage "read/articles" }}
+  {{- $articles := slice }}
+  {{- with $articleSection }}{{ $articles = .RegularPages.ByWeight }}{{ end }}
+  {{- $books := (readFile "static/book/books.json") | transform.Unmarshal }}
+  <div class="read-page">
+    <div class="read-columns">
+      <section class="read-column read-articles-preview" aria-labelledby="read-articles-heading">
+        <div class="read-section-heading">
+          <h2 id="read-articles-heading">
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="m14.5 5.5 4 4M4 20l4.5-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z"/>
+              <path d="M13 7 17 11"/>
+            </svg>
+            <span>Articles</span>
+          </h2>
+          <span class="read-heading-rule" aria-hidden="true"></span>
+        </div>
+
+        {{- with $articles }}
+        <ul class="read-article-list">
+          {{- range first 4 . }}
+          {{- $target := .Params.target }}
+          {{- $href := "" }}
+          {{- if eq $target "external" }}
+            {{- with .Params.external_url }}{{- $href = . }}{{- else }}{{- errorf "External read article %q must define external_url" .File.Path }}{{- end }}
+          {{- else if or (eq $target "local") (not $target) }}
+            {{- $href = .RelPermalink }}
+          {{- else }}
+            {{- errorf "Read article %q has unsupported target %q; use external or local" .File.Path $target }}
+          {{- end }}
+          <li>
+            <a class="read-article-link" href="{{ $href }}">
+              <span class="read-article-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="m14.5 5.5 4 4M4 20l4.5-1 10.7-10.7a2.1 2.1 0 0 0-3-3L5.5 16 4 20Z"/>
+                </svg>
+              </span>
+              <span class="read-article-title">{{ .Title }}</span>
+              <span class="read-article-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h13m-5-5 5 5-5 5"/></svg>
+              </span>
+            </a>
+          </li>
+          {{- end }}
+        </ul>
+        {{- end }}
+
+        <a class="read-more-link" href="{{ "read/articles/" | relURL }}">
+          <span>View all Articles</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </a>
+      </section>
+
+      <section class="read-column read-books-preview" aria-labelledby="read-books-heading">
+        <div class="read-section-heading">
+          <h2 id="read-books-heading">
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/>
+              <path d="M4 5.5v16M8 7h8"/>
+            </svg>
+            <span>Books</span>
+          </h2>
+          <span class="read-heading-rule" aria-hidden="true"></span>
+        </div>
+
+        {{- with $books }}
+        <div class="read-carousel-frame">
+          <button class="read-carousel-control read-carousel-previous" type="button" data-read-step="-1" aria-label="Previous books" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M19 12H6m5-5-5 5 5 5"/></svg>
+          </button>
+          <div class="read-book-track" data-read-book-track role="region" aria-label="Books" tabindex="0">
+          {{- range $index, $book := . }}
+          {{- $cover := $book.cover }}
+          {{- $isRemote := or (strings.HasPrefix $cover "https://") (strings.HasPrefix $cover "http://") }}
+          {{- $coverURL := $cover }}
+          {{- if and $cover (not $isRemote) }}{{ $coverURL = printf "book/%s" $cover | relURL }}{{ end }}
+          {{- $src := $coverURL }}
+          {{- $srcset := "" }}
+          {{- $fallback := "" }}
+          {{- if and $cover (not $isRemote) $book.img }}
+            {{- $optimizedBase := printf "book/covers/opt/%s" $book.img }}
+            {{- $src = printf "%s-480.webp" $optimizedBase | relURL }}
+            {{- $srcset = printf "%s 240w, %s 320w, %s 480w" (printf "%s-240.webp" $optimizedBase | relURL) (printf "%s-320.webp" $optimizedBase | relURL) (printf "%s-480.webp" $optimizedBase | relURL) }}
+            {{- $fallback = $coverURL }}
+          {{- end }}
+          <article class="read-book">
+            <a class="read-book-link" href="{{ $book.url }}" target="_blank" rel="noopener noreferrer" aria-label="Open {{ $book.title }} by {{ $book.author }}">
+              <span class="read-book-artwork">
+                {{- if $cover }}
+                <img
+                  src="{{ $src }}"
+                  {{- with $srcset }} srcset="{{ . }}" sizes="(max-width: 760px) 36vw, 160px"{{ end }}
+                  {{- with $fallback }} data-original-src="{{ . }}"{{ end }}
+                  {{- with $book.fallbackCover }} data-fallback-cover="{{ . }}"{{ end }}
+                  alt="{{ $book.title }}"
+                  width="480"
+                  height="720"
+                  loading="{{ if lt $index 3 }}eager{{ else }}lazy{{ end }}"
+                  decoding="async"
+                  {{- if lt $index 2 }} fetchpriority="high"{{ end }}>
+                {{- end }}
+                <span class="read-book-spine" aria-hidden="true"></span>
+                <span class="read-book-pages" aria-hidden="true"></span>
+                <span class="read-book-fallback" {{ if $cover }}hidden{{ end }}>
+                  <span>{{ $book.title }}</span>
+                  {{- with $book.author }}<small>{{ . }}</small>{{ end }}
+                </span>
+              </span>
+              <span class="read-book-caption">
+                <span class="read-book-title">{{ $book.title }}</span>
+                {{- with $book.author }}<span class="read-book-author">{{ . }}</span>{{ end }}
+              </span>
+            </a>
+          </article>
+          {{- end }}
+          </div>
+          <button class="read-carousel-control read-carousel-next" type="button" data-read-step="1" aria-label="Next books" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M5 12h13m-5-5 5 5-5 5"/></svg>
+          </button>
+        </div>
+        {{- end }}
+
+        <a class="read-more-link" href="{{ "book/" | relURL }}">
+          <span>Browse all Books</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </a>
+      </section>
+    </div>
+  </div>
+  <script src="{{ "read-home.js" | relURL }}?v=3" defer></script>
+  {{- else if eq .RelPermalink ("read/articles/" | relURL) }}
+  <section class="read-articles" aria-labelledby="articles-title">
+    <section class="hero">
+      <h1 id="articles-title">{{ .Title }}</h1>
+    </section>
+
+    {{- with .RegularPages.ByWeight }}
+    <ul class="read-list">
+      {{- range $page := . }}
+      {{- $target := $page.Params.target }}
+      {{- $href := "" }}
+      {{- if eq $target "external" }}
+        {{- with $page.Params.external_url }}{{- $href = . }}{{- else }}{{- errorf "External read article %q must define external_url" $page.File.Path }}{{- end }}
+      {{- else if eq $target "local" }}
+        {{- $href = $page.RelPermalink }}
+      {{- else if not $target }}
+        {{- $href = $page.RelPermalink }}
+      {{- else }}
+        {{- errorf "Read article %q has unsupported target %q; use external or local" $page.File.Path $target }}
+      {{- end }}
+      <li class="read-item">
+        <a class="read-title" href="{{ $href }}">{{ $page.Title }}</a>
+      </li>
+      {{- end }}
+    </ul>
+    {{- end }}
+  </section>
+  {{- end }}
+{{- end }}

@@ -100,7 +100,7 @@ print()
 print("=" * 80)
 print("4. 会被发布的产物里没有 Key")
 print("=" * 80)
-PUB = ROOT / "public"
+PUB = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "public"
 sus = [p.relative_to(ROOT).as_posix() for p in PUB.rglob("*") if p.is_file()
        and re.search(r"(^|[^a-z])key|secret|credential|token", p.name, re.I)
        and "keys" not in p.name.lower()]
@@ -127,9 +127,14 @@ print("=" * 80)
 wf = ROOT / ".github" / "workflows" / "hugo.yml"
 src = wf.read_text(encoding="utf-8")
 check("工作流没有引用 ${{ secrets.* }}", "secrets." not in src)
-check("工作流没有引用 WEREAD_API_KEY", "WEREAD" not in src.upper())
-check("工作流只做 hugo 构建（没有联网取数步骤）",
-      "weread" not in src.lower())
+check("Pages 工作流没有读取 WeRead API 凭据", "WEREAD_API_KEY" not in src)
+check("Pages 工作流不执行私有 WeRead 同步或上传",
+      "sync_weread_quotes.py" not in src and "publish_weread_quotes.py" not in src)
+check("歌曲曲目信息增强步骤仍显式存在",
+      "python tools/enrich_music_credits.py" in src)
+weread_workflow = (ROOT / ".github" / "workflows" / "sync-weread.yml").read_text(encoding="utf-8")
+check("WeRead Worker 离线测试仍纳入专用工作流",
+      "npm --prefix worker/weread-sync test" in weread_workflow)
 
 print()
 print("=" * 80)

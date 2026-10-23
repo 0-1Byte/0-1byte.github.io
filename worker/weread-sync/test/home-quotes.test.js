@@ -71,8 +71,12 @@ function browserFor(fetchImpl, { randomValue = 0.9, search = "", apiBase = USER_
   const math = Object.create(Math);
   math.random = () => randomValue;
   const localStorage = { getItem() { return ""; }, setItem() {} };
+  const workerHost = apiBase ? new URL(apiBase).hostname : "";
   const window = {
     WEREAD_SYNC_API_BASE: apiBase,
+    WEREAD_SYNC_CONFIG_VERSION: apiBase ? "2" : "",
+    WEREAD_SYNC_WORKER_NAME: workerHost.split(".")[0],
+    WEREAD_SYNC_WORKER_HOST: workerHost,
     location: { hostname: "0-1byte.github.io", search },
     matchMedia(query) {
       return { matches: query === "(prefers-reduced-motion: reduce)" };
@@ -151,8 +155,8 @@ test("diagnostic mode always requests, displays safe status, and supports retry"
   assert.equal(calls, 1);
   assert.equal(visibleText(browser), "RemoteWeReadquote");
   assert.equal(browser.debugPanel.hidden, false);
-  assert.equal(browser.debugValues.get("version"), "已加载 v12");
-  assert.equal(browser.debugValues.get("api"), "已配置：weread-sync-console.weread-chen.workers.dev");
+  assert.equal(browser.debugValues.get("version"), "HTML v未知 / 配置 v2 / 句子脚本 v13");
+  assert.equal(browser.debugValues.get("api"), "weread-sync-console.weread-chen.workers.dev");
   assert.equal(browser.debugValues.get("request"), "已发起");
   assert.equal(browser.debugValues.get("http"), "200");
   assert.equal(browser.debugValues.get("validated"), "是");
@@ -173,7 +177,7 @@ test("diagnostic mode distinguishes an unconfigured API from a failed request", 
   await tick();
   assert.equal(called, false);
   assert.equal(visibleText(browser), "Manualfallbackquote");
-  assert.equal(browser.debugValues.get("api"), "未配置");
+  assert.equal(browser.debugValues.get("api"), "API 地址未配置");
   assert.equal(browser.debugValues.get("request"), "未发起");
   assert.equal(browser.debugValues.get("http"), "无");
   assert.equal(browser.debugValues.get("failure"), "API 地址未配置");

@@ -125,6 +125,11 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px;
   line-height: 1.4;
 }
+.song-audio {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+}
 /* 有外部链接时的小箭头 */
 .external {
   position: absolute;

@@ -2,7 +2,7 @@
   "use strict";
 
   const MUSIC_BASE = "/music/";
-  const DATA_VERSION = "2";        // songs.json 有更新时改这个数字即可破缓存
+  const DATA_VERSION = "3";        // songs.json 有更新时改这个数字即可破缓存
   const EAGER_COUNT = 4;           // 首屏优先加载的封面数量（详见下方 CSS 宽度说明）
   const WIDTHS = [240, 320, 480];  // 与 optimize_music_covers.py 的产出档位一致
 
@@ -75,6 +75,7 @@
       const artist = safeText(song.artist);
       const lyricist = safeText(song.lyricist);
       const composer = safeText(song.composer) || "未找到曲作者";
+      const audio = song.audio ? resolveAsset(song.audio) : "";
 
       const image = responsiveCover(song, index, title);
 
@@ -112,6 +113,7 @@
             <h2 class="title">${escapeHtml(title)}</h2>
             ${artist ? `<p class="artist">${escapeHtml(artist)}</p>` : ""}
           </div>
+          ${audio ? `<audio class="song-audio" controls preload="none" src="${escapeHtml(audio)}" aria-label="播放 ${escapeHtml(title)}"></audio>` : ""}
         </article>
       `;
     }).join("");

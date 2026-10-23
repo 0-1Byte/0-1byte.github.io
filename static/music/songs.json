@@ -3223,5 +3223,35 @@
     ],
     "url": "https://music.apple.com/hk/album/%E7%82%BA%E5%A6%B3%E5%AF%AB%E7%9A%84%E6%AD%8C/313404785?i=313404879&uo=4",
     "img": "方大同-为你写的歌-47bc9182"
+  },
+  {
+    "id": "方大同-十九八七",
+    "title": "十九八七",
+    "artist": "方大同",
+    "lyricist": "周耀辉",
+    "composer": "方大同",
+    "cover": "/music/assets/%E6%96%B9%E5%A4%A7%E5%90%8C-%E5%8D%81%E4%B9%9D%E5%85%AB%E4%B8%83.jpg",
+    "album": "未来",
+    "year": "2007",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%8D%81%E4%B9%9D%E5%85%AB%E4%B8%83/272875165?i=272875206&uo=4",
+    "img": "方大同-十九八七-71aaa9ca"
+  },
+  {
+    "id": "方大同-张永成",
+    "title": "张永成",
+    "artist": "方大同",
+    "lyricist": "方大同 (Rap Lyrics: Ghost Style)",
+    "composer": "方大同",
+    "cover": "/music/assets/%E6%96%B9%E5%A4%A7%E5%90%8C-%E5%BC%A0%E6%B0%B8%E6%88%90.jpg",
+    "album": "The Soulboy Collection",
+    "year": "2011",
+    "tags": [
+      "国语流行乐"
+    ],
+    "url": "https://music.apple.com/hk/album/%E5%BC%B5%E6%B0%B8%E6%88%90/747590627?i=747591905&uo=4",
+    "img": "方大同-张永成-ff547ee8"
   }
 ]

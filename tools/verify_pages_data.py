@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PUB = ROOT / "public"
+PUB = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "public"
 SRC = ROOT / "static"
 problems = []
 
@@ -21,6 +21,7 @@ PAGES = [
     ("tv", "tv/tvs.json", "剧集"),
     ("docu", "docu/docus.json", "纪录片"),
     ("works", "works/works.json", "作品"),
+    ("game", "game/games.json", "游戏"),
 ]
 
 print("=" * 80)
@@ -79,6 +80,7 @@ NEED = {
     "tv": ["tv-grid", "tv-count", "error"],
     "docu": ["docu-grid", "docu-count", "error"],
     "works": ["works-grid", "works-count", "toolbar", "search", "drawer", "error"],
+    "game": ["game-grid", "game-count", "error"],
 }
 for page, ids in NEED.items():
     html = (PUB / page / "index.html").read_text(encoding="utf-8")

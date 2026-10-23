@@ -13,7 +13,13 @@
 {{- /* 独立内容页样式（阶段 3）：首页 / Now 页 / 文章列表 / 碎片共用同一份排版节奏。
        只含 .home-* / .now-* / .frag-* 规则，不影响文章正文页与合集页。 */ -}}
 {{- if or .IsHome (eq .Section "now") (eq .Section "posts") (eq .Section "fragments") }}
-<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=11">
+<link rel="stylesheet" href="{{ "pages.css" | relURL }}?v=12">
+{{- end }}
+{{- if eq .Section "read" }}
+<link rel="stylesheet" href="{{ "read.css" | relURL }}?v=4">
+{{- end }}
+{{- if and (eq .Section "read") (eq .RelPermalink ("read/" | relURL)) }}
+<link rel="stylesheet" href="{{ "read-home.css" | relURL }}?v=2">
 {{- end }}
 {{- if eq .Section "posts" }}
 <link rel="stylesheet" href="{{ "writing.css" | relURL }}?v=1">
@@ -22,7 +28,8 @@
        句子数据已由 layouts/index.html 内联，首页不再等待 /nav.json。 */ -}}
 {{- if .IsHome }}
 <link rel="stylesheet" href="{{ "quotes-debug.css" | relURL }}?v=1">
-<script src="{{ "quotes.js" | relURL }}?v=12" defer></script>
+<script src="{{ "admin/weread-sync/config.js" | relURL }}?v=2" defer></script>
+<script src="{{ "quotes.js" | relURL }}?v=13" defer></script>
 {{- end }}
 {{- /* 回到顶部按钮的共用样式。排在主题样式之后，才能盖掉 PaperMod 原来的 .top-link。 */ -}}
 <link rel="stylesheet" href="{{ "back-to-top.css" | relURL }}?v=1">

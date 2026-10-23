@@ -9,7 +9,7 @@
   E. 首页不再是文章列表
   F. 既有资源未被破坏
 
-注意：hugo --minify 会去掉可省略的属性引号（class="home" -> class=home），
+注意：hugo --minify 会去掉可省略的属性引号。
 dev server 则把 " 换成 '。因此属性匹配必须容忍三种写法。
 """
 import json
@@ -26,8 +26,12 @@ problems = []
 
 
 def has_class(html, name):
-    """类名匹配：容忍 class="x" / class='x' / class=x。"""
-    return re.search(rf"\bclass=(?:\"{name}\"|'{name}'|{name})(?=[\s>])", html) is not None
+    """类名匹配：容忍多 class 属性及 class 的不同引号形式。"""
+    for match in re.finditer(r"\bclass=(?:\"([^\"]*)\"|'([^']*)'|([^\s>]+))", html):
+        value = next(group for group in match.groups() if group is not None)
+        if name in value.split():
+            return True
+    return False
 
 
 def get(path):
@@ -144,7 +148,7 @@ print("E. 首页不再是文章列表")
 print("=" * 88)
 st, home = get("/")
 checks = [
-    ("使用 .home 结构", has_class(home, "home")),
+    ("使用独立首页 hero 结构", has_class(home, "home-hero")),
     ("含 focus 文案", "home-focus" in home),
     # 阶段 7：currently / writing / now 三块已按反馈从首页移除，避免首页杂乱。
     # 它们的内容与 URL 都还在（/posts/、/now/、content/_index.md），

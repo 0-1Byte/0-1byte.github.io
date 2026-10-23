@@ -43,9 +43,13 @@
     && ["localhost", "127.0.0.1"].includes(window.location.hostname);
   const wereadDevEnabled = Boolean(localHost
     && new URLSearchParams(window.location.search || "").get("wereadDev") === "1");
+  const QUOTES_SCRIPT_VERSION = "13";
+  const WEREAD_CONFIG_VERSION = "2";
+  const WEREAD_REQUEST_TIMEOUT_MS = 8000;
+  const wereadConfiguration = validateWereadConfiguration();
   const wereadApiBase = wereadDevEnabled
     ? "http://127.0.0.1:8765"
-    : String(window.WEREAD_SYNC_API_BASE || "").replace(/\/+$/, "");
+    : wereadConfiguration.base;
   const segmenter = typeof Intl.Segmenter === "function"
     ? new Intl.Segmenter("zh", { granularity: "word" })
     : null;
@@ -53,8 +57,7 @@
   const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
 
   const FALLBACK = "building small things, thinking about large things.";
-  const WEREAD_REQUEST_TIMEOUT_MS = 8000;
-  const QUOTES_SCRIPT_VERSION = "12";
+  let quoteLoadGeneration = 0;
 
   const SEEN_KEY = "home-quote-seen";
   const RECENT_BACKGROUND_KEY = "home-background-recent";
@@ -65,7 +68,6 @@
   let typeTimer = 0;
   let recentBackgrounds = [];
   let measureText = createMeasurer();
-  let quoteLoadGeneration = 0;
 
   const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const lowMotion = reduceMotion
@@ -496,6 +498,74 @@
 
   /* ---------- 取数 ---------- */
 
+  function validateWereadConfiguration() {
+    const base = String(window.WEREAD_SYNC_API_BASE || "").trim();
+    const workerHost = String(window.WEREAD_SYNC_WORKER_HOST || "").trim();
+    const workerName = String(window.WEREAD_SYNC_WORKER_NAME || "").trim();
+    const configVersion = String(window.WEREAD_SYNC_CONFIG_VERSION || "").trim();
+
+    if (!base) return { base: "", failure: "config_missing", label: "API 地址未配置" };
+    if (/REPLACE_WITH/i.test(base) || /REPLACE_WITH/i.test(workerHost)) {
+      return { base: "", failure: "config_placeholder", label: "仍是占位配置" };
+    }
+    if (configVersion !== WEREAD_CONFIG_VERSION) {
+      return { base: "", failure: "config_version_mismatch", label: "配置版本不匹配" };
+    }
+
+    let parsed;
+    try {
+      parsed = new URL(base);
+    } catch (_) {
+      return { base: "", failure: "config_invalid_url", label: "API 地址格式无效" };
+    }
+    if (parsed.protocol !== "https:" || parsed.origin !== base
+      || parsed.username || parsed.password || parsed.search || parsed.hash
+      || parsed.pathname !== "/") {
+      return { base: "", failure: "config_invalid_url", label: "必须配置 HTTPS Worker 根地址" };
+    }
+    if (!workerHost || parsed.hostname !== workerHost
+      || parsed.hostname.split(".")[0] !== workerName
+      || !parsed.hostname.endsWith(".workers.dev")) {
+      return { base: "", failure: "config_host_mismatch", label: "Worker 主机与配置不匹配" };
+    }
+    return { base, failure: "", label: "配置有效" };
+  }
+
+  const debugFields = wereadDebugPanel
+    ? Object.fromEntries(Array.from(wereadDebugPanel.querySelectorAll("[data-weread-debug]"))
+      .map((element) => [element.getAttribute("data-weread-debug"), element]))
+    : {};
+
+  function updateWereadDebug(result, pending = false) {
+    if (!wereadDebugEnabled || !wereadDebugPanel) return;
+    wereadDebugPanel.hidden = false;
+    const htmlVersion = homeRoot && homeRoot.dataset
+      ? homeRoot.dataset.wereadHomeVersion || "未知"
+      : "未知";
+    const configVersion = String(window.WEREAD_SYNC_CONFIG_VERSION || "未加载");
+    const configHost = wereadDevEnabled
+      ? "127.0.0.1:8765"
+      : wereadConfiguration.base
+        ? new URL(wereadConfiguration.base).hostname
+        : wereadConfiguration.label;
+    const values = {
+      version: `HTML v${htmlVersion} / 配置 v${configVersion} / 句子脚本 v${QUOTES_SCRIPT_VERSION}`,
+      api: configHost,
+      request: pending
+        ? wereadDevEnabled || wereadConfiguration.base ? "正在请求" : "正在校验配置"
+        : result && result.attempted ? "已发起" : "未发起",
+      http: pending ? "等待响应" : result && result.httpStatus !== null
+        ? String(result.httpStatus) : "无",
+      duration: result && Number.isFinite(result.durationMs)
+        ? `${result.durationMs} 毫秒` : "—",
+      validated: result && result.validated ? "是" : pending ? "等待校验" : "否",
+      failure: pending ? "等待响应" : result ? result.failureLabel : "等待脚本"
+    };
+    Object.entries(values).forEach(([key, value]) => {
+      if (debugFields[key]) debugFields[key].textContent = value;
+    });
+  }
+
   function normalizeRemoteQuote(candidate) {
     if (!candidate || typeof candidate !== "object"
       || candidate.source_type !== "weread"
@@ -511,45 +581,7 @@
     };
   }
 
-  const debugFields = wereadDebugPanel
-    ? Object.fromEntries(Array.from(wereadDebugPanel.querySelectorAll("[data-weread-debug]"))
-      .map((element) => [element.getAttribute("data-weread-debug"), element]))
-    : {};
-
-  function updateWereadDebug(result, pending = false) {
-    if (!wereadDebugEnabled || !wereadDebugPanel) return;
-    wereadDebugPanel.hidden = false;
-    let apiStatus = "未配置";
-    if (wereadApiBase && !wereadApiBase.includes("REPLACE_WITH_")) {
-      try {
-        const parsedApi = new URL(wereadApiBase);
-        apiStatus = parsedApi.protocol === "https:"
-          ? `已配置：${parsedApi.hostname}`
-          : "地址格式无效";
-      } catch (_) {
-        apiStatus = "地址格式无效";
-      }
-    }
-    const values = {
-      version: `已加载 v${QUOTES_SCRIPT_VERSION}`,
-      api: apiStatus,
-      request: pending
-        ? apiStatus.startsWith("已配置") ? "正在请求" : "未发起"
-        : result && result.attempted ? "已发起" : "未发起",
-      http: pending ? "等待响应" : result && result.httpStatus !== null
-        ? String(result.httpStatus) : "无",
-      duration: result && Number.isFinite(result.durationMs)
-        ? `${result.durationMs} 毫秒` : "—",
-      validated: result && result.validated ? "是" : pending ? "等待校验" : "否",
-      failure: pending ? "无" : result ? result.failureLabel : "等待请求"
-    };
-    Object.entries(values).forEach(([key, value]) => {
-      if (debugFields[key]) debugFields[key].textContent = value;
-    });
-  }
-
   async function fetchWereadQuote() {
-    const startedAt = Date.now();
     const result = {
       item: null,
       attempted: false,
@@ -559,6 +591,7 @@
       failure: "",
       failureLabel: "无"
     };
+    const startedAt = Date.now();
     const fail = (code, label, status = null) => {
       result.failure = code;
       result.failureLabel = label;
@@ -567,11 +600,10 @@
       console.warn("[quotes] WeRead request failed:", code, ...(status ? [status] : []));
       return result;
     };
-    if (!wereadApiBase || wereadApiBase.includes("REPLACE_WITH_")) {
-      result.failure = "api_not_configured";
-      result.failureLabel = "API 地址未配置";
-      return result;
+    if (!wereadDevEnabled && wereadConfiguration.failure) {
+      return fail(wereadConfiguration.failure, wereadConfiguration.label);
     }
+
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     let timeout = 0;
     let timedOut = false;
@@ -592,9 +624,11 @@
         ...(controller ? { signal: controller.signal } : {})
       }).then(async (response) => {
         if (!response.ok) {
-          if (response.status === 429) return { failure: "http_429", status: response.status };
-          if (response.status === 503) return { failure: "http_503", status: response.status };
-          return { failure: "http_other", status: response.status };
+          return {
+            failure: response.status === 429 ? "http_429"
+              : response.status === 503 ? "http_503" : "http_other",
+            status: response.status
+          };
         }
         if (Number(response.headers.get("Content-Length") || 0) > 96 * 1024) {
           return { failure: "response_too_large", status: response.status };
@@ -637,14 +671,14 @@
       result.httpStatus = responseResult.status ?? null;
       result.validated = Boolean(result.item);
       result.durationMs = Date.now() - startedAt;
-      result.failureLabel = result.validated ? "无" : "WeRead 数据校验失败";
       if (!result.validated) {
         result.failure = "invalid_quote";
-        console.warn("[quotes] WeRead request failed: invalid_quote");
+        result.failureLabel = "WeRead 数据校验失败";
       }
       return result;
     } catch (_) {
-      return fail("network_cors_error", "网络/CORS 错误");
+      return fail(timedOut ? "timeout" : "network_cors_error",
+        timedOut ? "请求超时" : "网络/CORS 错误");
     } finally {
       if (timeout) clearTimeout(timeout);
     }
@@ -677,10 +711,10 @@
       durationMs: null,
       validated: false,
       failure: "not_selected",
-      failureLabel: "本次随机选择了手动句子"
+      failureLabel: "本次随机选择手动句子，未发起请求"
     };
     if (chooseWeread) {
-      updateWereadDebug(null, true);
+      updateWereadDebug(result, true);
       result = await fetchWereadQuote();
     }
     if (generation !== quoteLoadGeneration) return;
@@ -694,6 +728,7 @@
       showFull({ text: FALLBACK, source: "" });
     }
   }
+
   if (wereadDebugEnabled && wereadDebugPanel) {
     wereadDebugPanel.hidden = false;
     const debugRetryButton = wereadDebugPanel.querySelector("[data-weread-debug-retry]");

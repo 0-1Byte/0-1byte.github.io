@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Read 文章管理器</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: #24292f;
+      background: #f5f6f8;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input, select, textarea { font: inherit; }
+    button {
+      border: 1px solid #c9ced6;
+      border-radius: 7px;
+      padding: 8px 12px;
+      background: white;
+      color: #24292f;
+      cursor: pointer;
+    }
+    button:hover { background: #f0f2f5; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.primary { border-color: #2764c5; background: #2764c5; color: white; }
+    button.primary:hover { background: #1f55aa; }
+    button.danger { color: #a32622; border-color: #e2b6b3; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #c9ced6;
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: white;
+      color: inherit;
+    }
+    textarea { min-height: 280px; resize: vertical; line-height: 1.55; }
+    input:focus, select:focus, textarea:focus, button:focus-visible {
+      outline: 3px solid #b9d2ff;
+      outline-offset: 1px;
+    }
+    .shell { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    h1 { font-size: 25px; margin: 0; font-weight: 650; }
+    h2 { font-size: 18px; margin: 0 0 16px; }
+    .toolbar, .actions, .row-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .panel { background: white; border: 1px solid #e0e3e8; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    .status { padding: 10px 12px; margin: 0 0 14px; border-radius: 7px; background: #eef3fb; color: #234d83; }
+    .status.error { background: #fff0ef; color: #922c25; }
+    .status.success { background: #edf8f0; color: #226236; }
+    .hint { color: #5f6875; font-size: 13px; line-height: 1.5; }
+    .empty { padding: 24px; text-align: center; color: #68717e; }
+    .article-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eceef1; }
+    .article-row:last-child { border-bottom: 0; }
+    .article-title { font-weight: 600; overflow-wrap: anywhere; }
+    .article-meta { margin-top: 5px; color: #65707d; font-size: 13px; overflow-wrap: anywhere; }
+    .badge { display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 999px; background: #edf1f7; color: #46566d; font-size: 12px; font-weight: 500; vertical-align: 1px; }
+    .row-actions button { padding: 6px 9px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 14px; font-weight: 600; }
+    .required { color: #b42318; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    #body-preview { border: 1px solid #e0e3e8; border-radius: 6px; padding: 12px; margin-top: 10px; max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #fafbfc; }
+    #body-preview:empty { display: none; }
+    .warning { padding: 10px 12px; background: #fff8e6; color: #765600; border-radius: 7px; margin: 10px 0; }
+    [hidden] { display: none !important; }
+    @media (max-width: 650px) {
+      .shell { padding: 20px 12px 40px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .article-row { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .row-actions button { flex: 1; }
+    }
+  </style>
+  <script src="core.js" defer></script>
+  <script src="manager.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>Read 文章管理器</h1>
+        <div id="directory-label" class="hint">尚未选择文章目录</div>
+      </div>
+      <div class="toolbar">
+        <button id="choose-directory" class="primary" type="button">选择文章目录</button>
+        <button id="reauthorize" type="button" hidden>重新授权</button>
+        <button id="new-article" type="button" disabled>新增文章</button>
+      </div>
+    </header>
+
+    <div id="status" class="status" role="status" aria-live="polite">请选择项目中的 content/read/articles 文件夹。</div>
+
+    <section id="warnings" class="panel" hidden aria-labelledby="warnings-title">
+      <h2 id="warnings-title">需要检查的 Markdown 文件</h2>
+      <div id="warning-list" class="hint"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="articles-title">
+      <h2 id="articles-title">文章列表</h2>
+      <div id="article-list" class="empty">选择文章目录后显示内容。</div>
+    </section>
+
+    <section id="editor" class="panel" hidden aria-labelledby="editor-title">
+      <h2 id="editor-title">新增文章</h2>
+      <div id="rename-warning" class="warning" hidden>修改文件名会改变站内文章 URL。请确认没有其他页面或外部链接依赖旧地址。</div>
+      <form id="article-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="article-type">文章类型</label>
+            <select id="article-type" name="target">
+              <option value="external">外部文章</option>
+              <option value="local">站内全文</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="article-weight">排序位置</label>
+            <input id="article-weight" name="weight" type="number" min="0" step="1" required>
+          </div>
+          <div class="field full">
+            <label for="article-title">文章标题 <span class="required">*</span></label>
+            <input id="article-title" name="title" required maxlength="300">
+          </div>
+          <div class="field full">
+            <label for="article-filename">文件名 / 站内 URL 路径</label>
+            <input id="article-filename" name="filename" required pattern="[a-z0-9]+(-[a-z0-9]+)*\.md" spellcheck="false">
+            <div class="hint">仅使用小写英文、数字和连字符。编辑现有文章时默认保持原文件名。</div>
+          </div>
+          <div id="external-fields" class="field full">
+            <label for="external-url">原文 URL <span class="required">*</span></label>
+            <input id="external-url" name="externalUrl" type="url" placeholder="https://example.com/article">
+          </div>
+          <div id="local-fields" class="field full" hidden>
+            <div class="form-grid">
+              <div class="field">
+                <label for="article-author">作者（可选）</label>
+                <input id="article-author" name="author">
+              </div>
+              <div class="field">
+                <label for="article-source">来源名称（可选）</label>
+                <input id="article-source" name="source">
+              </div>
+              <div class="field">
+                <label for="article-source-url">原始来源 URL（可选）</label>
+                <input id="article-source-url" name="sourceUrl" type="url" placeholder="https://example.com/source">
+              </div>
+              <div class="field">
+                <label for="article-date">日期（可选）</label>
+                <input id="article-date" name="date" type="date">
+              </div>
+            </div>
+            <div class="field" style="margin-top:14px">
+              <label for="article-body">正文（支持 Markdown） <span class="required">*</span></label>
+              <textarea id="article-body" name="body" spellcheck="false" placeholder="在这里粘贴或编写正文；换行和 Markdown 会原样保存。"></textarea>
+              <div class="toolbar">
+                <button id="preview-body" type="button">纯文本预览</button>
+                <span class="hint">预览不联网、不改写正文。</span>
+              </div>
+              <pre id="body-preview" aria-label="正文预览"></pre>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="cancel-edit" type="button">取消</button>
+          <button class="primary" type="submit">保存</button>
+        </div>
+      </form>
+    </section>
+    <p class="hint">仅操作你主动授权的文章目录。所有修改只写入本地 Markdown；本工具不联网、不提交、不发布。</p>
+  </main>
+</body>
+</html>

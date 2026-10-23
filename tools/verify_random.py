@@ -9,13 +9,14 @@
 """
 import json
 import re
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 BASE = "http://127.0.0.1:1360"
 ROOT = Path(__file__).resolve().parents[1]
-PUB = ROOT / "public"
+PUB = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "public"
 
 problems = []
 
@@ -46,7 +47,7 @@ print("=" * 90)
 print("B. 数据源可达性")
 print("=" * 90)
 SRC = {
-    "Music": "/music/songs.json?v=2",
+    "Music": "/music/songs.json?v=3",
     "Books": "/book/books.json?v=2",
     "Films": "/film/films.json?v=2",
     "TV": "/tv/tvs.json?v=2",

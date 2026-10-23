@@ -35,13 +35,14 @@
       const details = [book.status, book.note].filter(Boolean).join(" · ");
       // fallbackCover 是"联网找替代封面"用的，与本地 JPG 兜底互不冲突
       const extraAttrs = book.fallbackCover
-        ? { "data-fallback": resolveCoverAsset(book.fallbackCover) }
+        ? { "data-fallback": resolveCoverAsset(book.fallbackCover, base) }
         : null;
       const image = buildCoverImg({
         cover: book.cover,
         img: book.img,
         alt: title,
         index,
+        assetBase: base,
         eagerCount: 4,
         extraAttrs
       });

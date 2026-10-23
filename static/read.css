@@ -1,0 +1,44 @@
+.read-home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.read-articles .hero {
+  padding: 56px 0 30px;
+}
+
+.read-articles .hero h1 {
+  margin: 0;
+  font-family: 'Dancing Script', cursive;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+
+.read-switch a {
+  color: var(--secondary);
+  transition: color var(--motion-fast) ease;
+}
+
+.read-switch a:hover,
+.read-switch a:focus-visible,
+.read-switch a[aria-current="page"] {
+  color: var(--primary);
+}
+
+.read-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.read-item + .read-item {
+  margin-top: 1.25rem;
+}
+
+.read-source {
+  display: block;
+  margin-top: .25rem;
+  color: var(--secondary);
+}

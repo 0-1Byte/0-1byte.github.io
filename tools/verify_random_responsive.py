@@ -1,4 +1,4 @@
-"""检查 /random/ 与含 random 的导航在 5 个视口下是否溢出。
+"""检查当前导航与 /random/ 的关键元素在 5 个视口下是否溢出。
 
 按 tools/verify_ia_responsive.py 相同的算法估算：
   可用宽度 = 视口宽 - 页面两侧留白
@@ -15,8 +15,8 @@ LOGO_48 = 48          # 移动端 28px
 TOGGLE_SPACE = 44     # .header-nav 的 padding-right
 TOGGLE_SPACE_M = 38
 
-GROUPS = ["listen", "read", "watch", "make"]
-STANDALONE = ["writing", "random"]
+GROUPS = ["listen", "read", "watch", "play", "make"]
+STANDALONE = ["writing"]
 
 
 def text_w(s, size):
@@ -36,7 +36,7 @@ VIEWPORTS = [
 ]
 
 print("=" * 82)
-print("导航宽度预算（含新增的 random 入口）")
+print("导航宽度预算（五个分组与 writing 入口）")
 print("=" * 82)
 print(f"  {'视口':>6}  {'可用宽':>7}  {'导航需要':>8}  {'logo':>5}  {'空余':>7}  结论")
 problems = 0

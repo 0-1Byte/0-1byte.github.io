@@ -67,23 +67,6 @@
     border: 1px solid rgba(128, 128, 128, 0.1);
 }
 
-/* 修改首页文章标题字体 */
-.entry-header h2 {
-    /* 已注释：恢复正常阅读字体 */
-    font-family: 'Dancing Script', cursive !important;
-    
-    font-size: 26px !important;    /* 稍微调小一点，适合默认字体排版 */
-    font-weight: bold !important;
-    
-    /* 已注释：去掉渐变色，恢复默认颜色 */
-    background: linear-gradient(to right, var(--primary), #ff4b2b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    
-    color: var(--primary); /* 明确指定使用主题色 */
-    transition: color var(--motion-base), transform var(--motion-base), filter var(--motion-base);
-}
-
 /* 鼠标悬停时的艺术动效 */
 .post-entry:hover .entry-header h2 {
     transform: translateX(5px); /* 轻轻右移 */

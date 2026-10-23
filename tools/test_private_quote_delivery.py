@@ -63,8 +63,10 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertNotIn("data/weread_quotes.json", script)
         self.assertIn('dict "manual" $manualQuotes | jsonify', template)
         self.assertNotIn('"weread" $wereadQuotes', template)
-        self.assertIn('"quotes.js" | relURL }}?v=12', head)
+        self.assertIn('"admin/weread-sync/config.js" | relURL }}?v=2', head)
+        self.assertIn('"quotes.js" | relURL }}?v=13', head)
         self.assertIn("const WEREAD_REQUEST_TIMEOUT_MS = 8000;", script)
+        self.assertIn('const WEREAD_CONFIG_VERSION = "2";', script)
         self.assertIn('get("wereadDebug") === "1"', script)
         self.assertIn('id="weread-debug"', template)
         self.assertIn("quotes-debug.css", head)
@@ -145,7 +147,10 @@ class PrivateQuoteDeliveryTests(unittest.TestCase):
         self.assertIn("allow_redirects=False", publisher)
         self.assertIn("WORKER_ORIGIN =", worker_config)
         script = (ROOT / "static" / "quotes.js").read_text(encoding="utf-8")
-        self.assertIn('wereadApiBase.includes("REPLACE_WITH_")', script)
+        self.assertIn("if (/REPLACE_WITH/i.test(base) || /REPLACE_WITH/i.test(workerHost))", script)
+        config = (ROOT / "static" / "admin" / "weread-sync" / "config.js").read_text(encoding="utf-8")
+        self.assertIn('window.WEREAD_SYNC_CONFIG_VERSION = "2";', config)
+        self.assertIn('window.WEREAD_SYNC_WORKER_HOST = "weread-sync-console.weread-chen.workers.dev";', config)
         pinned = "https://weread-sync-console.account.workers.dev"
         self.assertEqual(api_base(pinned, pinned), pinned)
         for untrusted in (

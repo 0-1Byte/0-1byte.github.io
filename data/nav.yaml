@@ -23,8 +23,9 @@ groups:
 
   - key: read
     label: read
+    href: /read/
     children:
-      - name: Book
+      - name: Books
         href: /book/
         desc: 在读的书
 
