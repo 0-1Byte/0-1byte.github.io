@@ -4,6 +4,6 @@ date: {{ .Date }}
 target: external
 external_url: ""
 weight: 0
-_build:
+build:
   render: never
 ---
