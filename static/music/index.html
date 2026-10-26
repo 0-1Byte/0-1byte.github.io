@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/site-nav.css?v=7">
   <link rel="stylesheet" href="/collection-states.css?v=2">
   <link rel="stylesheet" href="/back-to-top.css?v=1">
-  <link rel="stylesheet" href="/music/style.css?v=10">
+  <link rel="stylesheet" href="/music/style.css?v=23">
   <title>Music — Chen</title>
 </head>
 
@@ -52,7 +52,22 @@
         <p class="count" id="song-count"></p>
       </section>
 
-      <div id="song-grid" class="song-grid"></div>
+      <section class="record-gallery" aria-label="Music collection">
+        <div id="song-grid" class="song-grid" role="list" aria-label="唱片收藏"></div>
+        <div class="gallery-footer">
+          <button class="gallery-step" id="previous-record" type="button" aria-label="上一张唱片">
+            <span aria-hidden="true">←</span>
+          </button>
+          <div class="gallery-caption" aria-live="polite" aria-atomic="true">
+            <h2 id="selected-title"></h2>
+            <p id="selected-artist"></p>
+            <p id="selected-credits"></p>
+          </div>
+          <button class="gallery-step" id="next-record" type="button" aria-label="下一张唱片">
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </section>
 
       <div id="error" class="collection-state" hidden></div>
     </main>
@@ -65,7 +80,7 @@
 
   <script src="/site-nav.js?v=8" defer></script>
   <script src="/collection-common.js?v=1" defer></script>
-  <script src="/music/script.js?v=12" defer></script>
+  <script src="/music/script.js?v=24" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>
