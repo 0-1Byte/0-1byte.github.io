@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/book/book-favicon.svg?v=1">
+  <link rel="apple-touch-icon" href="/book/book-favicon.svg?v=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <script>
+    (() => {
+      document.documentElement.dataset.theme = "dark";
+      try { localStorage.setItem("pref-theme", "dark"); } catch (e) { /* 隐私模式忽略 */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="/theme.css?v=1">
+  <link rel="stylesheet" href="/site-nav.css?v=7">
+  <link rel="stylesheet" href="/collection-states.css?v=3">
+  <link rel="stylesheet" href="/back-to-top.css?v=1">
+  <link rel="preload" href="/book/books.json?v=2" as="fetch" type="application/json" crossorigin="anonymous">
+  <link rel="stylesheet" href="/book/style.css?v=10">
+  <title>Books — Chen</title>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="logo">
+        <a href="/" accesskey="h">Chen</a>
+      </div>
+      <div class="header-nav">
+        <div class="site-nav" data-site-nav></div>
+      </div>
+    </header>
+    <main>
+      <section class="hero">
+        <h1>Books I like to read.</h1>
+        <p class="count" id="book-count"></p>
+      </section>
+      <div id="book-grid" class="book-grid"></div>
+      <div id="empty" class="empty" hidden>
+        还没有添加书籍。编辑 <code>/book/books.json</code> 开始记录。
+      </div>
+      <div id="error" class="collection-state" hidden></div>
+    </main>
+    <footer class="footer"><span>Chen</span><span id="year"></span></footer>
+  </div>
+  <script src="/site-nav.js?v=8" defer></script>
+  <script src="/collection-common.js?v=1" defer></script>
+  <script src="/covers.js?v=1" defer></script>
+  <script src="/book/script.js?v=7" defer></script>
+  <script src="/back-to-top.js?v=1" defer></script>
+</body>
+</html>

@@ -61,9 +61,14 @@ jobs:
           test -f "$OUTPUT/index.html"
           test -f "$OUTPUT/music/index.html"
           test -f "$OUTPUT/tv/index.html"
+          test -f "$OUTPUT/read/books/index.html"
+          test -f "$OUTPUT/book/books.json"
+          test -f "$OUTPUT/book/script.js"
+          test -f "$OUTPUT/book/style.css"
           test -f "$OUTPUT/tv/covers/opt/an-audience-with-adele-20d55a43-480.webp"
           grep -q 'music-search-toggle' "$OUTPUT/music/index.html"
           grep -q 'music/script.js?v=31' "$OUTPUT/music/index.html"
+          grep -q 'href="/read/books/"' "$OUTPUT/read/index.html"
           node tools/verify_quotes.js "$OUTPUT/index.html"
           if [[ -e "$OUTPUT/data/weread_quotes.json" || -e "$OUTPUT/weread_quotes.json" ]] ||
              find "$OUTPUT" -type f -iname '*weread*quotes*.json' -print -quit | grep -q .; then
