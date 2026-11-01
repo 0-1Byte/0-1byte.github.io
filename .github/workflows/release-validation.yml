@@ -1,0 +1,72 @@
+name: Validate isolated site release
+
+on:
+  push:
+    branches: ["release/site-publish-20261101"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Refuse private WeRead dataset
+        run: |
+          set -euo pipefail
+          if [[ -e data/weread_quotes.json || -e static/weread_quotes.json ]]; then
+            echo "::error::Private WeRead dataset must not be present in the release build."
+            exit 1
+          fi
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+      - name: Verify Whereabouts
+        run: node --test tools/test_whereabouts.js tools/test_whereabouts_ui.js
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Restore optimized homepage backgrounds
+        uses: actions/cache@v4
+        with:
+          path: |
+            static/home/backgrounds-optimized
+            .cache/homepage-backgrounds
+          key: ${{ runner.os }}-homepage-backgrounds-v5-py311-pillow10.4-${{ hashFiles('static/home/backgrounds/**', 'tools/optimize_home_backgrounds.py') }}
+          restore-keys: |
+            ${{ runner.os }}-homepage-backgrounds-v5-py311-pillow10.4-
+      - name: Optimize and test homepage backgrounds
+        run: |
+          python -m pip install Pillow==10.4.0
+          python tools/optimize_home_backgrounds.py
+          python tools/test_optimize_home_backgrounds.py
+      - name: Enrich music credits
+        run: python tools/enrich_music_credits.py
+      - name: Verify Music JavaScript
+        run: node --check static/music/script.js
+      - name: Build Hugo site
+        run: hugo --minify --cleanDestinationDir --destination "$RUNNER_TEMP/release-candidate"
+      - name: Verify release output
+        env:
+          OUTPUT: ${{ runner.temp }}/release-candidate
+        run: |
+          set -euo pipefail
+          test -f "$OUTPUT/index.html"
+          test -f "$OUTPUT/music/index.html"
+          test -f "$OUTPUT/tv/index.html"
+          test -f "$OUTPUT/tv/covers/opt/an-audience-with-adele-20d55a43-480.webp"
+          grep -q 'music-search-toggle' "$OUTPUT/music/index.html"
+          grep -q 'music/script.js?v=31' "$OUTPUT/music/index.html"
+          node tools/verify_quotes.js "$OUTPUT/index.html"
+          if [[ -e "$OUTPUT/data/weread_quotes.json" || -e "$OUTPUT/weread_quotes.json" ]] ||
+             find "$OUTPUT" -type f -iname '*weread*quotes*.json' -print -quit | grep -q .; then
+            echo "::error::Private WeRead quote data was found in the release output."
+            exit 1
+          fi

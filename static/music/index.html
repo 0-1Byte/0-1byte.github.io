@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/site-nav.css?v=7">
   <link rel="stylesheet" href="/collection-states.css?v=2">
   <link rel="stylesheet" href="/back-to-top.css?v=1">
-  <link rel="stylesheet" href="/music/style.css?v=23">
+  <link rel="stylesheet" href="/music/style.css?v=31">
   <title>Music — Chen</title>
 </head>
 
@@ -49,7 +49,33 @@
         <div>
           <h1>Things I like to hear.</h1>
         </div>
-        <p class="count" id="song-count"></p>
+        <div class="hero-tools">
+          <p class="count" id="song-count"></p>
+          <div class="music-search" id="music-search">
+            <div class="music-search-control">
+              <input
+                class="music-search-input"
+                id="music-search-input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                aria-label="Search songs"
+                aria-autocomplete="list"
+                aria-controls="music-search-results"
+                aria-expanded="false"
+              >
+              <button class="music-search-clear" id="music-search-clear" type="button" aria-label="Clear search" hidden>×</button>
+              <button class="music-search-toggle" id="music-search-toggle" type="button" aria-label="Open song search" aria-expanded="false" aria-controls="music-search-input">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="10.8" cy="10.8" r="6.3"></circle>
+                  <path d="m15.4 15.4 4.2 4.2"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="music-search-results" id="music-search-results" role="listbox" aria-label="Search results" aria-hidden="true"></div>
+          </div>
+        </div>
       </section>
 
       <section class="record-gallery" aria-label="Music collection">
@@ -60,8 +86,6 @@
           </button>
           <div class="gallery-caption" aria-live="polite" aria-atomic="true">
             <h2 id="selected-title"></h2>
-            <p id="selected-artist"></p>
-            <p id="selected-credits"></p>
           </div>
           <button class="gallery-step" id="next-record" type="button" aria-label="下一张唱片">
             <span aria-hidden="true">→</span>
@@ -80,7 +104,7 @@
 
   <script src="/site-nav.js?v=8" defer></script>
   <script src="/collection-common.js?v=1" defer></script>
-  <script src="/music/script.js?v=24" defer></script>
+  <script src="/music/script.js?v=31" defer></script>
 <script src="/back-to-top.js?v=1" defer></script>
 </body>
 </html>
