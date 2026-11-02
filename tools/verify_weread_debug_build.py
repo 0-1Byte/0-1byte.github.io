@@ -41,7 +41,7 @@ def main():
     home = home_path.read_text(encoding="utf-8")
     require('id="weread-debug"' in home or "id=weread-debug" in home,
             "homepage diagnostic panel is missing")
-    require("quotes.js?v=12" in home, "homepage does not reference quotes.js?v=12")
+    require("quotes.js?v=13" in home, "homepage does not reference quotes.js?v=13")
     require("quotes-debug.css" in home, "homepage diagnostic CSS is missing")
 
     page = diagnostic_path.read_text(encoding="utf-8")
