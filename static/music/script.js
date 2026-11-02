@@ -277,10 +277,10 @@
   /* 新版封面：多尺寸 WebP + srcset/sizes，JPG 仅作加载失败兜底。
      img 主干名来自 songs.json（由 tools/optimize_music_covers.py 生成），
      运行期只做简单拼接，不做复杂的字符串转换。 */
-  function responsiveCover(song, index, title) {
+  function responsiveCover(song, index, title, prioritize = false) {
     const fallback = resolveAsset(song.cover);
     const base = safeText(song.img).trim();
-    const eager = index < EAGER_COUNT;
+    const eager = prioritize || index < EAGER_COUNT;
 
     const loading = eager
       ? 'loading="eager" fetchpriority="high"'
@@ -308,6 +308,7 @@
 
   function render(songList) {
     songs = songList;
+    const initialIndex = Math.min(getWallRadius(), songs.length - 1);
     searchCatalog = songs.map((song, index) => {
       const title = safeText(song.title);
       const artist = safeText(song.artist);
@@ -326,7 +327,7 @@
       const title = safeText(song.title);
       const lyricist = safeText(song.lyricist);
       const composer = safeText(song.composer) || "未找到曲作者";
-      const image = responsiveCover(song, index, title);
+      const image = responsiveCover(song, index, title, index === initialIndex);
 
       const credits = `
         <div class="credit-overlay" aria-label="${escapeHtml(`${title} 词曲作者`)}">
@@ -342,11 +343,16 @@
         <article class="song-card" role="listitem">
           <div class="cover-stage">
             <button class="cover-select" type="button" data-index="${index}" aria-pressed="false" aria-label="选择唱片：${escapeHtml(title)}" tabindex="-1">
-              <span class="cover-side cover-side--left" aria-hidden="true"></span>
-              <span class="cover-side cover-side--right" aria-hidden="true"></span>
-              <span class="cover-face">
-                ${image}
-                ${credits}
+              <span class="sleeve-shell">
+                <span class="sleeve-face sleeve-face--back" aria-hidden="true"></span>
+                <span class="sleeve-face sleeve-face--left" aria-hidden="true"></span>
+                <span class="sleeve-face sleeve-face--right" aria-hidden="true"></span>
+                <span class="sleeve-face sleeve-face--top" aria-hidden="true"></span>
+                <span class="sleeve-face sleeve-face--bottom" aria-hidden="true"></span>
+                <span class="sleeve-face sleeve-face--front">
+                  ${image}
+                  ${credits}
+                </span>
               </span>
             </button>
             ${externalLink}
@@ -357,7 +363,7 @@
 
     count.textContent = `${songs.length} ${songs.length === 1 ? "song" : "songs"}`;
     bindCoverFallback();
-    if (songs.length) updateWall(Math.min(getWallRadius(), songs.length - 1));
+    if (songs.length) updateWall(initialIndex);
   }
 
   function bindSelection() {
@@ -466,25 +472,26 @@
       const button = card.querySelector(".cover-select");
       const direction = Math.sign(-offset);
       const compact = grid.clientWidth <= 600;
-      const yaw = offset === 0 ? -10 : direction * Math.min(22 + distance * 10, 66);
+      const yaw = offset === 0 ? -18 : direction * Math.min(22 + distance * 10, 66);
+      const pitch = offset === 0 ? (compact ? -10 : -12) : 0;
       const depth = offset === 0 ? (compact ? 92 : 108) : -Math.min(distance * (compact ? 27 : 32), compact ? 86 : 112);
       const vertical = distance === 0 ? 0 : -Math.min(distance * 2.5, 9);
       const scale = 1 - Math.min(distance * .035, .14);
-      const thickness = Math.max(compact ? 2 : 2.4, (compact ? 3.6 : 4.6) - distance * (compact ? .42 : .55));
+      const thickness = compact ? 5 : 8;
 
       card.classList.toggle("is-wall-visible", visible);
       card.classList.toggle("is-selected", offset === 0);
       card.style.setProperty("--offset-x", `${offset * slotStep}px`);
       card.style.setProperty("--offset-y", `${vertical}px`);
       card.style.setProperty("--yaw", `${yaw}deg`);
+      card.style.setProperty("--pitch", `${pitch}deg`);
       card.style.setProperty("--depth", `${depth}px`);
       card.style.setProperty("--scale", String(scale));
       card.style.setProperty("--sleeve-thickness", `${thickness}px`);
       card.style.setProperty("--sleeve-half-thickness", `${thickness / 2}px`);
-      card.style.setProperty("--sleeve-negative-half-thickness", `${thickness / -2}px`);
       card.style.setProperty("--cast-shadow", String(offset === 0 ? .25 : Math.max(.11, .2 - distance * .022)));
+      card.style.setProperty("--face-shade", String(Math.min(distance * .035, .13)));
       card.style.setProperty("--layer", String(20 - distance));
-      card.style.setProperty("--cover-opacity", String(Math.max(.78, 1 - distance * .055)));
       card.inert = !visible;
       card.setAttribute("aria-hidden", String(!visible));
       button.setAttribute("aria-pressed", String(offset === 0));
@@ -521,7 +528,7 @@
     setCollectionLoading(error, "歌曲数据");
     // 固定版本号 + 默认缓存：浏览器可以正常复用 songs.json。
     // 首页的 <link rel="preload" as="fetch"> 已经在并行拉取同一 URL。
-    const result = await fetchCollectionJson(url);
+    const result = await fetchCollectionJson(url, { cache: "no-cache" });
 
     if (!result.ok) {
       count.textContent = "";
