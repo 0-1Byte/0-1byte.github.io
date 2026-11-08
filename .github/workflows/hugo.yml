@@ -59,7 +59,7 @@ jobs:
       - name: Enrich music credits
         run: python tools/enrich_music_credits.py
       - name: Validate music library
-        run: python tools/music_library.py validate
+        run: python tools/music_library.py validate --no-build
       - name: Build
         run: hugo --minify --cleanDestinationDir
       - name: Verify built WeRead diagnostic page
