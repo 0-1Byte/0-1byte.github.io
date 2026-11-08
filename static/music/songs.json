@@ -3282,7 +3282,9 @@
       "Pop"
     ],
     "url": "https://www.youtube.com/watch?v=MUX4ZWkDS-s",
-    "img": "lady-gaga-bradley-cooper-shallow-88d3bb58"
+    "img": "lady-gaga-bradley-cooper-shallow-88d3bb58",
+    "lyricist": "Lady Gaga, Mark Ronson, Anthony Rossomando, Andrew Wyatt",
+    "composer": "Lady Gaga, Mark Ronson, Anthony Rossomando, Andrew Wyatt"
   },
   {
     "id": "lady-gaga-shadow-of-a-man",
@@ -3295,6 +3297,8 @@
       "Pop"
     ],
     "url": "https://www.youtube.com/watch?v=tzIgrW9Eymg",
-    "img": "lady-gaga-shadow-of-a-man-db0685b3"
+    "img": "lady-gaga-shadow-of-a-man-db0685b3",
+    "lyricist": "Lady Gaga, Andrew Watt, Henry Russell Walter",
+    "composer": "Lady Gaga, Andrew Watt, Henry Russell Walter"
   }
 ]

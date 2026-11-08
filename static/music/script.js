@@ -2,7 +2,7 @@
   "use strict";
 
   const MUSIC_BASE = "/music/";
-  const DATA_VERSION = "4";        // songs.json 有更新时改这个数字即可破缓存
+  const DATA_VERSION = "5";        // songs.json 有更新时改这个数字即可破缓存
   const MOMENTS_VERSION = "1";
   const EAGER_COUNT = 4;           // Prioritize the first covers; the rest load lazily.
   const WIDTHS = [240, 320, 480];  // 与 optimize_music_covers.py 的产出档位一致
