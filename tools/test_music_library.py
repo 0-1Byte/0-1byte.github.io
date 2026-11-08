@@ -60,6 +60,50 @@ class MusicLibraryTests(unittest.TestCase):
         errors = music_library.validate_library(self.root, build=False)
         self.assertTrue(any("歌手与歌曲名" in error for error in errors), errors)
 
+    def test_credit_field_validation(self):
+        base_cover = "/music/assets/test-cover.jpg"
+        (self.assets / "test-cover.jpg").write_bytes(b"test image")
+        cases = [
+            (
+                "ordinary_missing_lyricist",
+                {"id": "ordinary-missing-lyricist", "title": "普通缺词", "artist": "Artist", "cover": base_cover, "composer": "Composer"},
+                "lyricist",
+            ),
+            (
+                "ordinary_missing_composer",
+                {"id": "ordinary-missing-composer", "title": "普通缺曲", "artist": "Artist", "cover": base_cover, "lyricist": "Lyricist"},
+                "composer",
+            ),
+            (
+                "ordinary_complete",
+                {"id": "ordinary-complete", "title": "普通完整", "artist": "Artist", "cover": base_cover, "lyricist": "Lyricist", "composer": "Composer"},
+                None,
+            ),
+            (
+                "instrumental_empty_lyricist",
+                {"id": "instrumental-empty", "title": "Esperanza", "artist": "Hermanos Gutiérrez", "cover": base_cover, "lyricist": "", "composer": "Daniel Alejandro Hotz, Stephan Ricardo Hotz", "tags": ["Instrumental"]},
+                None,
+            ),
+            (
+                "instrumental_missing_composer",
+                {"id": "instrumental-missing-composer", "title": "纯器乐缺曲", "artist": "Artist", "cover": base_cover, "lyricist": "", "composer": "", "tags": ["Instrumental"]},
+                "composer",
+            ),
+        ]
+        for _name, song, expected_field in cases:
+            self.data_file.write_text(json.dumps([song]), encoding="utf-8")
+            errors = music_library.validate_library(self.root, build=False)
+            if expected_field is None:
+                self.assertFalse(
+                    any("lyricist" in error or "composer" in error for error in errors),
+                    errors,
+                )
+            else:
+                self.assertTrue(
+                    any(song["title"] in error and expected_field in error for error in errors),
+                    errors,
+                )
+
     def test_validate_reports_duplicate_id_missing_field_and_bad_cover(self):
         songs = [
             {"id": "same", "title": "First", "artist": "Artist", "cover": "/outside.jpg"},
@@ -229,7 +273,11 @@ class MusicLibraryTests(unittest.TestCase):
             source.write_bytes(b"isolated test image")
 
             record = music_library.add_song(
-                root, "Preview Track", "Preview Artist", source
+                root,
+                "Preview Track",
+                "Preview Artist",
+                source,
+                extra={"lyricist": "Test Lyricist", "composer": "Test Composer"},
             )
             hugo_path = music_library.ROOT / "hugo.exe"
             self.assertEqual(

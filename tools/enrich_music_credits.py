@@ -83,7 +83,15 @@ def find_recording(song: dict) -> dict | None:
     if not recordings:
         return None
 
-    return max(recordings, key=lambda recording: recording_score(recording, song))
+    title = normalized(title)
+    exact_matches = [
+        recording
+        for recording in recordings
+        if normalized(recording.get("title")) == title
+    ]
+    if not exact_matches:
+        return None
+    return max(exact_matches, key=lambda recording: recording_score(recording, song))
 
 
 def extract_credits(recording_id: str) -> tuple[str, str]:
@@ -148,12 +156,20 @@ def main() -> int:
             print(f"::warning::Song at index {index} is not an object; skipped")
             continue
 
+        tags = song.get("tags")
+        is_instrumental = isinstance(tags, list) and any(
+            isinstance(tag, str) and tag.strip().casefold() == "instrumental"
+            for tag in tags
+        )
+
         if "lyricist" not in song:
             song["lyricist"] = ""
             changed = True
         if "composer" not in song:
             song["composer"] = ""
             changed = True
+        if is_instrumental and song["composer"]:
+            continue
         if song["lyricist"] and song["composer"]:
             continue
 
@@ -162,7 +178,7 @@ def main() -> int:
             recording = find_recording(song)
             if recording:
                 lyricist, composer = extract_credits(recording["id"])
-                if not song["lyricist"] and lyricist:
+                if not is_instrumental and not song["lyricist"] and lyricist:
                     song["lyricist"] = lyricist
                     changed = True
                 if not song["composer"] and composer:
@@ -173,9 +189,16 @@ def main() -> int:
         except (OSError, ValueError, KeyError) as error:
             print(f"::warning::{label}: MusicBrainz lookup failed: {error}")
 
-        if not song["lyricist"] or not song["composer"]:
+        missing_composer = not song["composer"]
+        missing_lyricist = not is_instrumental and not song["lyricist"]
+        if missing_lyricist or missing_composer:
             missing.append(label)
-            print(f"::warning::{label}: lyricist/composer not found; left blank")
+            missing_fields = []
+            if missing_lyricist:
+                missing_fields.append("lyricist")
+            if missing_composer:
+                missing_fields.append("composer")
+            print(f"::warning::{label}: {'/'.join(missing_fields)} not found; left blank")
 
     if changed:
         DATA_FILE.write_text(

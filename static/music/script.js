@@ -489,7 +489,12 @@
 
       const button = event.target.closest(".cover-select");
       if (!button || !grid.contains(button)) return;
-      updateWall(Number(button.dataset.index), false, true);
+      const index = Number(button.dataset.index);
+      updateWall(index, false, true);
+      if (window.matchMedia("(hover: none)").matches && selectedIndex === index) {
+        const card = button.closest(".song-card");
+        if (card) card.classList.toggle("is-credits-open");
+      }
     });
 
     grid.addEventListener("pointerdown", event => {
@@ -565,6 +570,7 @@
     const selectedSong = songs[selectedIndex];
 
     grid.querySelectorAll(".song-card").forEach((card, cardIndex) => {
+      card.classList.remove("is-credits-open");
       let offset = cardIndex - selectedIndex;
       if (offset > songs.length / 2) offset -= songs.length;
       if (offset < -songs.length / 2) offset += songs.length;

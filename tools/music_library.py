@@ -134,6 +134,23 @@ def validate_library(
         for field in REQUIRED_FIELDS:
             if not isinstance(song.get(field), str) or not song[field].strip():
                 errors.append("{}：缺少有效的 {} 字段".format(label, field))
+        tags = song.get("tags")
+        is_instrumental = isinstance(tags, list) and any(
+            isinstance(tag, str) and tag.strip().casefold() == "instrumental"
+            for tag in tags
+        )
+        for field in ("lyricist", "composer"):
+            if field not in song:
+                errors.append("{}：缺少有效的 {} 字段".format(label, field))
+                continue
+            value = song[field]
+            if not isinstance(value, str):
+                errors.append("{}：{} 字段类型错误，必须是字符串".format(label, field))
+                continue
+            if field == "lyricist" and is_instrumental and not value.strip():
+                continue
+            if not value.strip():
+                errors.append("{}：缺少有效的 {} 字段".format(label, field))
         song_id = song.get("id")
         if isinstance(song_id, str) and song_id:
             if song_id in ids:

@@ -431,6 +431,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: .12em;
 }
 .song-card:hover .credit-overlay,.song-card:focus-within .credit-overlay { opacity: 1; }
+.song-card.is-credits-open .credit-overlay { opacity: 1; }
 .external {
   position: absolute;
   z-index: 4;
