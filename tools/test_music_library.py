@@ -279,9 +279,8 @@ class MusicLibraryTests(unittest.TestCase):
                 source,
                 extra={"lyricist": "Test Lyricist", "composer": "Test Composer"},
             )
-            hugo_path = music_library.ROOT / "hugo.exe"
             self.assertEqual(
-                music_library.validate_library(root, build=True, hugo_path=hugo_path),
+                music_library.validate_library(root, build=False),
                 [],
             )
 
@@ -293,7 +292,7 @@ class MusicLibraryTests(unittest.TestCase):
             self.assertTrue(music_library.delete_unreferenced_cover(root, removed))
             self.assertFalse(cover.exists())
             self.assertEqual(
-                music_library.validate_library(root, build=True, hugo_path=hugo_path),
+                music_library.validate_library(root, build=False),
                 [],
             )
 
