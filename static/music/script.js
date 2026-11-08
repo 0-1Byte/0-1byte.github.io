@@ -2,7 +2,8 @@
   "use strict";
 
   const MUSIC_BASE = "/music/";
-  const DATA_VERSION = "3";        // songs.json 有更新时改这个数字即可破缓存
+  const DATA_VERSION = "4";        // songs.json 有更新时改这个数字即可破缓存
+  const MOMENTS_VERSION = "1";
   const EAGER_COUNT = 4;           // Prioritize the first covers; the rest load lazily.
   const WIDTHS = [240, 320, 480];  // 与 optimize_music_covers.py 的产出档位一致
 
@@ -20,6 +21,105 @@
   let selectedIndex = 0;
   let searchMatches = [];
   let activeSearchIndex = -1;
+  let momentsBySongId = new Map();
+  let userSelectionPending = false;
+  let momentRequestId = 0;
+  const momentAudio = new Audio();
+  momentAudio.preload = "auto";
+  momentAudio.playsInline = true;
+
+  function resolveMomentSource(source) {
+    if (!source) return "";
+    if (/^(https?:)?\/\//.test(source) || source.startsWith("/")) return source;
+    return `${MUSIC_BASE}moments/${source.replace(/^\.?\//, "")}`;
+  }
+
+  function stopMoment() {
+    momentRequestId++;
+    momentAudio.pause();
+    momentAudio.currentTime = 0;
+    momentAudio.removeAttribute("src");
+    momentAudio.load();
+  }
+
+  function playMomentForSong(song) {
+    stopMoment();
+    if (!song || !song.id) return;
+    const moment = momentsBySongId.get(String(song.id));
+    if (!moment || typeof moment.source !== "string" || !moment.source.trim()) return;
+    const requestId = momentRequestId;
+    momentAudio.src = resolveMomentSource(moment.source.trim());
+    momentAudio.load();
+    const playRequest = momentAudio.play();
+    if (playRequest && typeof playRequest.catch === "function") {
+      playRequest.catch(() => {
+        if (requestId !== momentRequestId) return;
+      });
+    }
+  }
+
+  momentAudio.addEventListener("ended", stopMoment);
+
+  async function loadMoments() {
+    const url = `${MUSIC_BASE}moments.json?v=${MOMENTS_VERSION}`;
+    try {
+      const result = await fetchCollectionJson(url);
+      momentsBySongId = new Map();
+      if (!result.ok) {
+        showCollectionError(error, result);
+        return;
+      }
+      if (!Array.isArray(result.data)) {
+        const detail = `实际类型：${result.data === null ? "null" : typeof result.data}；moments.json 必须是 Moment 对象数组 []`;
+        console.error(`[music moments] Moments 数据格式错误: ${detail}`);
+        showCollectionError(error, { url, kind: "data", reason: "Moments 数据格式错误", detail });
+        return;
+      }
+
+      const momentErrors = [];
+      const seenSongIds = new Set();
+      for (const moment of result.data) {
+        const location = `moments.json 第 ${result.data.indexOf(moment) + 1} 条`;
+        if (!moment || typeof moment !== "object" || Array.isArray(moment)) {
+          momentErrors.push(`${location}：Moment 记录必须是对象`);
+          continue;
+        }
+        const songId = typeof moment.songId === "string" ? moment.songId.trim() : "";
+        if (!songId || !songs.some(song => String(song.id || "") === songId)) {
+          momentErrors.push(`${location}：songId "${songId}" 不存在于 songs.json`);
+          continue;
+        }
+        if (seenSongIds.has(songId)) {
+          momentErrors.push(`${location}：songId "${songId}" 重复配置；一首歌曲最多一个 Moment`);
+          continue;
+        }
+        if (typeof moment.source !== "string" || !moment.source.trim() ||
+            typeof moment.title !== "string" || !moment.title.trim() ||
+            typeof moment.sourceInfo !== "string" || !moment.sourceInfo.trim() ||
+            typeof moment.duration !== "number" || !Number.isFinite(moment.duration) || moment.duration <= 0) {
+          momentErrors.push(`${location}：Moment 字段无效`);
+          continue;
+        }
+        seenSongIds.add(songId);
+        momentsBySongId.set(songId, moment);
+      }
+
+      if (momentErrors.length) {
+        const detail = momentErrors.join("；");
+        console.error(`[music moments] ${detail}`);
+        showCollectionError(error, { url, kind: "data", reason: "Moments 配置错误", detail });
+      }
+      if (userSelectionPending && songs[selectedIndex]) {
+        userSelectionPending = false;
+        playMomentForSong(songs[selectedIndex]);
+      }
+    } catch (caught) {
+      momentsBySongId = new Map();
+      const detail = caught instanceof Error ? caught.message : String(caught);
+      console.error("[music moments] 加载失败:", caught);
+      showCollectionError(error, { url, kind: "unknown", reason: "Moments 加载失败", detail });
+    }
+  }
 
   function safeText(value) {
     return String(value ?? "");
@@ -210,7 +310,7 @@
 
   function selectSearchResult(index) {
     if (!Number.isInteger(index) || index < 0 || index >= songs.length) return;
-    updateWall(index);
+    updateWall(index, false, true);
     closeSearch();
   }
 
@@ -389,7 +489,7 @@
 
       const button = event.target.closest(".cover-select");
       if (!button || !grid.contains(button)) return;
-      updateWall(Number(button.dataset.index));
+      updateWall(Number(button.dataset.index), false, true);
     });
 
     grid.addEventListener("pointerdown", event => {
@@ -424,7 +524,7 @@
         const nextIndex = clampIndex(selectedIndex + direction);
         if (nextIndex !== selectedIndex) {
           suppressClick = true;
-          updateWall(nextIndex);
+          updateWall(nextIndex, false, true);
         }
       }
 
@@ -443,20 +543,22 @@
       else if (event.key === "End") nextIndex = songs.length - 1;
       else return;
       event.preventDefault();
-      updateWall(nextIndex, true);
+      updateWall(nextIndex, true, true);
     });
 
     document.getElementById("previous-record").addEventListener("click", () => {
-      updateWall(selectedIndex - 1);
+      updateWall(selectedIndex - 1, false, true);
     });
     document.getElementById("next-record").addEventListener("click", () => {
-      updateWall(selectedIndex + 1);
+      updateWall(selectedIndex + 1, false, true);
     });
   }
 
-  function updateWall(index, focus = false) {
+  function updateWall(index, focus = false, userTriggered = false) {
     if (!songs.length) return;
+    const previousIndex = selectedIndex;
     selectedIndex = Math.min(Math.max(index, 0), songs.length - 1);
+    const selectedSongChanged = selectedIndex !== previousIndex;
     grid.scrollLeft = 0;
     const radius = getWallRadius();
     const slotStep = Number.parseFloat(getComputedStyle(grid).getPropertyValue("--slot-step")) || 118;
@@ -499,6 +601,11 @@
     });
 
     selectedTitle.textContent = selectedSong.title;
+
+    if (userTriggered && selectedSongChanged) {
+      userSelectionPending = true;
+      playMomentForSong(selectedSong);
+    }
 
     grid.classList.add("wall-ready");
     if (focus) grid.querySelector(`.cover-select[data-index="${selectedIndex}"]`).focus({ preventScroll: true });
@@ -549,6 +656,7 @@
 
     error.hidden = true;
     render(result.data.filter(song => song && song.title && song.cover));
+    loadMoments();
   }
 
   window.addEventListener("storage", event => {
@@ -575,4 +683,6 @@
   bindSelection();
   bindSearch();
   loadSongs();
+  window.addEventListener("pagehide", stopMoment);
+  window.addEventListener("beforeunload", stopMoment);
 })();

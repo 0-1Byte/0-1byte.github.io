@@ -3269,5 +3269,32 @@
     ],
     "url": "https://music.apple.com/hk/album/yesterday-once-more/1413927531?i=1413927532&uo=4",
     "img": "carpenters-yesterday-once-more-a0a4b893"
+  },
+  {
+    "id": "lady-gaga-bradley-cooper-shallow",
+    "title": "Shallow",
+    "artist": "Lady Gaga, Bradley Cooper",
+    "cover": "/music/assets/lady-gaga-bradley-cooper-shallow.png",
+    "album": "A Star Is Born Soundtrack",
+    "year": 2018,
+    "tags": [
+      "Soundtrack",
+      "Pop"
+    ],
+    "url": "https://www.youtube.com/watch?v=MUX4ZWkDS-s",
+    "img": "lady-gaga-bradley-cooper-shallow-88d3bb58"
+  },
+  {
+    "id": "lady-gaga-shadow-of-a-man",
+    "title": "Shadow of a Man",
+    "artist": "Lady Gaga",
+    "cover": "/music/assets/lady-gaga-shadow-of-a-man.png",
+    "album": "MAYHEM",
+    "year": 2025,
+    "tags": [
+      "Pop"
+    ],
+    "url": "https://www.youtube.com/watch?v=tzIgrW9Eymg",
+    "img": "lady-gaga-shadow-of-a-man-db0685b3"
   }
 ]
