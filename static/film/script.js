@@ -59,7 +59,7 @@
   }
 
   async function loadFilms() {
-    const url = `${base}films.json?v=2`;
+    const url = `${base}films.json?v=3`;
     setCollectionLoading(error, "电影数据");
     const result = await fetchCollectionJson(url);
 

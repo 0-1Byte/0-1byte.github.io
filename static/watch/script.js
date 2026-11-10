@@ -2,7 +2,7 @@
   "use strict";
 
   const categories = [
-    { name: "Film", url: "/film/films.json?v=2", base: "/film/" },
+    { name: "Film", url: "/film/films.json?v=3", base: "/film/" },
     { name: "TV", url: "/tv/tvs.json?v=2", base: "/tv/" },
     { name: "Docu", url: "/docu/docus.json?v=2", base: "/docu/" }
   ];
