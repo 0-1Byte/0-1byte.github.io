@@ -160,5 +160,14 @@
     "url": "https://movie.douban.com/subject/1780330/",
     "id": "致命魔术",
     "img": "致命魔术-33113e7c"
+  },
+  {
+    "title": "海边的曼彻斯特",
+    "cover": "covers/海边的曼彻斯特.jpg",
+    "year": 2016,
+    "note": "Manchester by the Sea · 导演 Kenneth Lonergan · 主演 Casey Affleck、Michelle Williams、Kyle Chandler、Lucas Hedges",
+    "url": "https://movie.douban.com/subject/25980443/",
+    "id": "manchester-by-the-sea",
+    "img": "海边的曼彻斯特-a488c225"
   }
 ]
