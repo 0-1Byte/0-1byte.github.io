@@ -59,7 +59,7 @@
   }
 
   async function loadShows() {
-    const url = `${base}tvs.json?v=3`;
+    const url = `${base}tvs.json?v=4`;
     setCollectionLoading(error, "剧集数据");
     const result = await fetchCollectionJson(url);
 
