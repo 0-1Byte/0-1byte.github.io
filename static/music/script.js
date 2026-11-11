@@ -586,6 +586,7 @@
       const vertical = distance === 0 ? 0 : -Math.min(distance * 2.5, 9);
       const scale = 1 - Math.min(distance * .035, .14);
       const thickness = compact ? 5 : 8;
+      const layer = 100 - Math.abs(offset) + (offset === 0 ? 10 : 0);
 
       card.classList.toggle("is-wall-visible", visible);
       card.classList.toggle("is-selected", offset === 0);
@@ -599,7 +600,7 @@
       card.style.setProperty("--sleeve-half-thickness", `${thickness / 2}px`);
       card.style.setProperty("--cast-shadow", String(offset === 0 ? .25 : Math.max(.11, .2 - distance * .022)));
       card.style.setProperty("--face-shade", String(Math.min(distance * .035, .13)));
-      card.style.setProperty("--layer", String(20 - distance));
+      card.style.setProperty("--layer", String(layer));
       card.inert = !visible;
       card.setAttribute("aria-hidden", String(!visible));
       button.setAttribute("aria-pressed", String(offset === 0));
