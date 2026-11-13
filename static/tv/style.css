@@ -55,6 +55,7 @@ a { color:inherit; text-decoration:none; }
   padding:9px 0 0;
 }
 .tv-card { min-width:0; }
+.tv-card--landscape .cover-wrap { aspect-ratio:16/9; }
 .cover-link { display:block; }
 .cover-wrap {
   position:relative;

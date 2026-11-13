@@ -48,7 +48,10 @@
       const coverBlock = show.url
         ? `<a class="cover-link" href="${escape(show.url)}" target="_blank" rel="noopener noreferrer" aria-label="打开 ${escape(title)}"><div class="cover-wrap">${image}${overlay}<span class="external">↗</span></div></a>`
         : `<div class="cover-link"><div class="cover-wrap">${image}${overlay}</div></div>`;
-      return `<article class="tv-card">${coverBlock}<div class="tv-info"><h2>${escape(title)}</h2></div></article>`;
+      const cardClass = show.id === "khalil-fong-15-concert"
+        ? "tv-card tv-card--landscape"
+        : "tv-card";
+      return `<article class="${cardClass}">${coverBlock}<div class="tv-info"><h2>${escape(title)}</h2></div></article>`;
     }).join("");
     bindCoverJpgFallback(grid);
     grid.querySelectorAll("img.cover").forEach(image => {
@@ -59,7 +62,7 @@
   }
 
   async function loadShows() {
-    const url = `${base}tvs.json?v=5`;
+    const url = `${base}tvs.json?v=7`;
     setCollectionLoading(error, "剧集数据");
     const result = await fetchCollectionJson(url);
 
