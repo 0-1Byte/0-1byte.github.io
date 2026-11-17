@@ -12,6 +12,7 @@ GITHUB_WORKFLOW = "sync-weread.yml"
 GITHUB_BRANCH = "main"
 ADMIN_GITHUB_LOGIN = "0-1Byte"
 TRIGGER_COOLDOWN_SECONDS = "600"
+GITHUB_OAUTH_CLIENT_ID = "Ov23lifjhTU0miiKbNlv"
 
 [[d1_databases]]
 binding = "DB"

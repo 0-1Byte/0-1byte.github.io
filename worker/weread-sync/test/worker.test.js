@@ -47,6 +47,7 @@ class MemoryDB {
     this.chunks = new Map();
     this.datasets = new Map();
     this.quotes = new Map();
+    this.thoughts = new Map();
     this.active = "";
   }
 
@@ -75,6 +76,14 @@ class MemoryStatement {
 
   async first() {
     const { db, sql, values } = this;
+    if (sql.startsWith("UPDATE thoughts SET content = COALESCE")) {
+      const thought = db.thoughts.get(values[3]);
+      if (!thought) return null;
+      if (values[0] !== null) thought.content = values[0];
+      if (values[1] !== null) thought.date = values[1];
+      thought.updated_at = values[2];
+      return { ...thought };
+    }
     if (sql.startsWith("SELECT expected_records, expected_chunks, state FROM weread_uploads")) {
       const item = db.uploads.get(values[0]);
       return item ? { expected_records: item.expected_records, expected_chunks: item.expected_chunks, state: item.state } : null;
@@ -103,6 +112,17 @@ class MemoryStatement {
   }
 
   async all() {
+    if (this.sql.startsWith("SELECT id, content, date, created_at, updated_at FROM thoughts")) {
+      return {
+        results: Array.from(this.db.thoughts.values())
+          .sort((left, right) => (
+            right.date.localeCompare(left.date)
+            || right.created_at.localeCompare(left.created_at)
+            || left.id.localeCompare(right.id)
+          ))
+          .map((thought) => ({ ...thought }))
+      };
+    }
     if (!this.sql.startsWith("SELECT chunk_index, payload_json, record_count FROM weread_upload_chunks")) {
       throw new Error(`Unhandled fake D1 query: ${this.sql}`);
     }
@@ -116,7 +136,13 @@ class MemoryStatement {
 
   async run() {
     const { db, sql, values } = this;
-    if (sql.startsWith("UPDATE weread_uploads SET state = 'aborted' WHERE state = 'receiving'")) {
+    let changes = 1;
+    if (sql.startsWith("INSERT INTO thoughts")) {
+      const [id, content, date, created_at, updated_at] = values;
+      db.thoughts.set(id, { id, content, date, created_at, updated_at });
+    } else if (sql.startsWith("DELETE FROM thoughts WHERE id = ?")) {
+      changes = db.thoughts.delete(values[0]) ? 1 : 0;
+    } else if (sql.startsWith("UPDATE weread_uploads SET state = 'aborted' WHERE state = 'receiving'")) {
       for (const upload of db.uploads.values()) {
         if (upload.state === "receiving" && upload.created_at <= values[0]) upload.state = "aborted";
       }
@@ -182,7 +208,7 @@ class MemoryStatement {
     } else {
       throw new Error(`Unhandled fake D1 write: ${sql}`);
     }
-    return { success: true, meta: { changes: 1 } };
+    return { success: true, meta: { changes } };
   }
 }
 
@@ -264,6 +290,50 @@ test("OAuth callback sets a signed cross-site session and clears the Lax state c
     assert.equal(session.login, "admin");
     assert.equal(typeof session.csrf, "string");
     assert.ok(session.csrf.length > 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("OAuth login safely returns an authorized owner to Thoughts", async () => {
+  const state = "test-oauth-state";
+  const login = await worker.fetch(new Request(
+    "https://weread-sync-console.account.workers.dev/auth/login?return_to=%2Fthoughts%2F",
+  ), env({
+    GITHUB_OAUTH_CLIENT_ID: "test-client-id",
+    GITHUB_OAUTH_CLIENT_SECRET: "test-client-secret",
+  }));
+  assert.equal(login.status, 302);
+  assert.ok(login.headers.getSetCookie().some((cookie) =>
+    cookie.startsWith("__Host-weread-oauth-return=/thoughts/;")));
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = new URL(input);
+    if (url.hostname === "github.com" && url.pathname === "/login/oauth/access_token") {
+      return Response.json({ access_token: "test-only-oauth-token" });
+    }
+    if (url.hostname === "api.github.com" && url.pathname === "/user") {
+      return Response.json({ login: "admin" });
+    }
+    throw new Error("unexpected OAuth request");
+  };
+  try {
+    const response = await worker.fetch(new Request(
+      `https://weread-sync-console.account.workers.dev/auth/callback?code=test-code&state=${state}`,
+      {
+        headers: {
+          Cookie: `__Host-weread-oauth-state=${state}; __Host-weread-oauth-return=/thoughts/`,
+        },
+      },
+    ), env({
+      GITHUB_OAUTH_CLIENT_ID: "test-client-id",
+      GITHUB_OAUTH_CLIENT_SECRET: "test-client-secret",
+    }));
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("Location"), "https://0-1byte.github.io/thoughts/");
+    assert.ok(response.headers.getSetCookie().some((cookie) =>
+      cookie.startsWith("__Host-weread-oauth-return=;")));
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -354,6 +424,221 @@ test("logout clears the cross-site session cookie and requires CSRF", async () =
     },
   }), env());
   assert.equal(rejected.status, 403);
+});
+
+function thoughtsRequest(path, options = {}) {
+  return apiRequest(path, options);
+}
+
+function tokyoToday() {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const date = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${date.year}-${date.month}-${date.day}`;
+}
+
+test("public Thoughts read sorts dates and creation times without caching", async () => {
+  const db = new MemoryDB();
+  db.thoughts.set("a", {
+    id: "a", content: "older today", date: "2024-06-27",
+    created_at: "2024-06-27T00:00:00.000Z", updated_at: "2024-06-27T00:00:00.000Z",
+  });
+  db.thoughts.set("b", {
+    id: "b", content: "newer today", date: "2024-06-27",
+    created_at: "2024-06-27T01:00:00.000Z", updated_at: "2024-06-27T01:00:00.000Z",
+  });
+  db.thoughts.set("c", {
+    id: "c", content: "later date", date: "2024-06-28",
+    created_at: "2020-01-01T00:00:00.000Z", updated_at: "2020-01-01T00:00:00.000Z",
+  });
+  const service = privateEnv(db);
+  const response = await worker.fetch(thoughtsRequest("/public/thoughts"), service);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Cache-Control"), "no-store");
+  assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
+  const result = await response.json();
+  assert.deepEqual(result.thoughts.map(({ id }) => id), ["c", "b", "a"]);
+
+  const rejected = await worker.fetch(new Request("https://worker.example/public/thoughts", {
+    headers: { Origin: "https://attacker.example" },
+  }), service);
+  assert.equal(rejected.status, 403);
+  const write = await worker.fetch(thoughtsRequest("/public/thoughts", { method: "POST" }), service);
+  assert.equal(write.status, 405);
+});
+
+test("Thoughts preflight permits only the site and required write methods", async () => {
+  const service = privateEnv(new MemoryDB());
+  const allowed = await worker.fetch(thoughtsRequest("/admin/thoughts", {
+    method: "OPTIONS",
+    headers: {
+      "Access-Control-Request-Method": "PATCH",
+      "Access-Control-Request-Headers": "content-type, x-csrf-token",
+    },
+  }), service);
+  assert.equal(allowed.status, 204);
+  assert.match(allowed.headers.get("Access-Control-Allow-Methods"), /PATCH/);
+  assert.match(allowed.headers.get("Access-Control-Allow-Methods"), /DELETE/);
+  assert.equal(allowed.headers.get("Access-Control-Allow-Origin"), "https://0-1byte.github.io");
+  const rejected = await worker.fetch(new Request("https://worker.example/admin/thoughts", {
+    method: "OPTIONS",
+    headers: { Origin: "https://attacker.example" },
+  }), service);
+  assert.equal(rejected.status, 403);
+});
+
+test("Thoughts writes require the authenticated allowlisted admin and a CSRF token", async () => {
+  const service = privateEnv(new MemoryDB());
+  const request = (cookie, csrf) => thoughtsRequest("/admin/thoughts", {
+    method: "POST",
+    headers: {
+      ...(cookie ? { Cookie: cookie } : {}),
+      ...(csrf ? { "X-CSRF-Token": csrf } : {}),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content: "private test thought" }),
+  });
+  assert.equal((await worker.fetch(request("", "csrf-test"), service)).status, 401);
+  assert.equal((await worker.fetch(
+    request(await signedSession("another-user"), "csrf-test"), service,
+  )).status, 401);
+  const rejected = await worker.fetch(request(await signedSession(), "wrong"), service);
+  assert.equal(rejected.status, 403);
+  assert.deepEqual(await rejected.json(), { error: "csrf_rejected" });
+  assert.equal(service.DB.thoughts.size, 0);
+});
+
+test("Thoughts create, edit, date updates, sorting and delete persist independently", async () => {
+  const db = new MemoryDB();
+  const service = privateEnv(db);
+  const cookie = await signedSession();
+  const create = async (content, date) => worker.fetch(thoughtsRequest("/admin/thoughts", {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      "X-CSRF-Token": "csrf-test",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content, ...(date ? { date } : {}) }),
+  }), service);
+
+  const todayResponse = await create("今天新增的想法");
+  assert.equal(todayResponse.status, 201);
+  const today = (await todayResponse.json()).thought;
+  assert.equal(today.date, tokyoToday());
+  assert.match(today.id, /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
+  assert.match(today.created_at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  assert.equal(today.updated_at, today.created_at);
+
+  const oldResponse = await create("三年前的记录\n保留换行", "2023-02-28");
+  assert.equal(oldResponse.status, 201);
+  const old = (await oldResponse.json()).thought;
+  assert.equal(old.date, "2023-02-28");
+  assert.notEqual(old.created_at.slice(0, 10), old.date);
+  await new Promise((resolve) => setTimeout(resolve, 3));
+
+  const editResponse = await worker.fetch(thoughtsRequest(`/admin/thoughts/${old.id}`, {
+    method: "PATCH",
+    headers: {
+      Cookie: cookie,
+      "X-CSRF-Token": "csrf-test",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content: "已修改的历史记录" }),
+  }), service);
+  assert.equal(editResponse.status, 200);
+  const edited = (await editResponse.json()).thought;
+  assert.equal(edited.content, "已修改的历史记录");
+  assert.equal(edited.date, "2023-02-28");
+  assert.equal(edited.created_at, old.created_at);
+  assert.notEqual(edited.updated_at, old.updated_at);
+  await new Promise((resolve) => setTimeout(resolve, 3));
+
+  const dateResponse = await worker.fetch(thoughtsRequest(`/admin/thoughts/${old.id}`, {
+    method: "PATCH",
+    headers: {
+      Cookie: cookie,
+      "X-CSRF-Token": "csrf-test",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ date: "2024-02-29" }),
+  }), service);
+  assert.equal(dateResponse.status, 200);
+  const redated = (await dateResponse.json()).thought;
+  assert.equal(redated.date, "2024-02-29");
+  assert.equal(redated.created_at, old.created_at);
+  assert.notEqual(redated.updated_at, edited.updated_at);
+
+  const list = await worker.fetch(thoughtsRequest("/public/thoughts"), service);
+  assert.deepEqual((await list.json()).thoughts.map(({ id }) => id), [today.id, old.id]);
+  const unknown = await worker.fetch(thoughtsRequest(
+    "/admin/thoughts/123e4567-e89b-12d3-a456-426614174000",
+    { method: "DELETE", headers: { Cookie: cookie, "X-CSRF-Token": "csrf-test" } },
+  ), service);
+  assert.equal(unknown.status, 404);
+  const deleted = await worker.fetch(thoughtsRequest(`/admin/thoughts/${old.id}`, {
+    method: "DELETE",
+    headers: { Cookie: cookie, "X-CSRF-Token": "csrf-test" },
+  }), service);
+  assert.equal(deleted.status, 200);
+  assert.equal(db.thoughts.has(old.id), false);
+  assert.equal((await (await worker.fetch(thoughtsRequest("/public/thoughts"), service)).json())
+    .thoughts.length, 1);
+});
+
+test("Thoughts rejects blank text and impossible dates without writes", async () => {
+  const db = new MemoryDB();
+  const service = privateEnv(db);
+  const cookie = await signedSession();
+  const request = (body) => worker.fetch(thoughtsRequest("/admin/thoughts", {
+    method: "POST",
+    headers: {
+      Cookie: cookie,
+      "X-CSRF-Token": "csrf-test",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  }), service);
+  for (const body of [
+    { content: " \n\t" },
+    { content: "invalid date", date: "2024-02-30" },
+    { content: "invalid date", date: "2023-2-01" },
+    { content: "unknown field", title: "not allowed" },
+  ]) {
+    const response = await request(body);
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { error: "invalid_thought" });
+  }
+  assert.equal(db.thoughts.size, 0);
+});
+
+test("Thoughts database errors return safe service errors", async () => {
+  const service = privateEnv({
+    prepare() {
+      return {
+        all: async () => { throw new Error("private database details"); },
+        run: async () => { throw new Error("private database details"); },
+      };
+    },
+  });
+  const read = await worker.fetch(thoughtsRequest("/public/thoughts"), service);
+  assert.equal(read.status, 503);
+  assert.deepEqual(await read.json(), { error: "thoughts_unavailable" });
+  const write = await worker.fetch(thoughtsRequest("/admin/thoughts", {
+    method: "POST",
+    headers: {
+      Cookie: await signedSession(),
+      "X-CSRF-Token": "csrf-test",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content: "test" }),
+  }), service);
+  assert.equal(write.status, 503);
+  assert.deepEqual(await write.json(), { error: "thought_write_failed" });
 });
 
 const uploadSecret = "test-only-upload-secret";

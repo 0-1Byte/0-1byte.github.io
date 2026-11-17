@@ -4,6 +4,8 @@ const MAIN_BRANCH = "main";
 const SESSION_SECONDS = 12 * 60 * 60;
 const STATE_SECONDS = 10 * 60;
 const MAX_REQUEST_BYTES = 4096;
+const MAX_THOUGHT_REQUEST_BYTES = 32 * 1024;
+const MAX_THOUGHT_CONTENT_LENGTH = 6000;
 const MAX_UPLOAD_REQUEST_BYTES = 96 * 1024;
 const MAX_UPLOAD_RECORDS = 20000;
 const MAX_UPLOAD_CHUNKS = 300;
@@ -120,7 +122,7 @@ function corsHeaders(request, env) {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-CSRF-Token, Idempotency-Key",
     "Access-Control-Max-Age": "600",
     Vary: "Origin",
@@ -312,6 +314,142 @@ async function publicQuote(request, env) {
   } catch (_) {
     console.error("[weread] public quote service unavailable");
     return json({ error: "quote_unavailable" }, 503, cors);
+  }
+}
+
+function thoughtsDateIsValid(value) {
+  if (typeof value !== "string") return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1 || month < 1 || month > 12) return false;
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+  ][month - 1];
+  return day >= 1 && day <= daysInMonth;
+}
+
+function tokyoDate() {
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+function validThoughtBody(body, allowedKeys) {
+  if (!body || typeof body !== "object" || Array.isArray(body)
+    || Object.keys(body).some((key) => !allowedKeys.includes(key))) return false;
+  if (Object.prototype.hasOwnProperty.call(body, "content")
+    && !validText(body.content, MAX_THOUGHT_CONTENT_LENGTH)) return false;
+  if (Object.prototype.hasOwnProperty.call(body, "date")
+    && !thoughtsDateIsValid(body.date)) return false;
+  return true;
+}
+
+async function publicThoughts(request, env) {
+  const cors = publicCorsHeaders(request, env);
+  if (!cors) return json({ error: "origin_not_allowed" }, 403);
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: cors });
+  }
+  if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405, cors);
+  try {
+    const result = await env.DB.prepare(
+      "SELECT id, content, date, created_at, updated_at FROM thoughts "
+        + "ORDER BY date DESC, created_at DESC, id ASC",
+    ).all();
+    return json({ thoughts: result.results }, 200, cors);
+  } catch (_) {
+    console.error("[thoughts] public list unavailable");
+    return json({ error: "thoughts_unavailable" }, 503, cors);
+  }
+}
+
+async function adminThoughts(request, env) {
+  const cors = corsHeaders(request, env);
+  if (!cors) return json({ error: "origin_not_allowed" }, 403);
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: cors });
+  }
+  const session = await readSession(request, env);
+  if (!session) return json({ error: "authentication_required" }, 401, cors);
+
+  const url = new URL(request.url);
+  const noteId = /^\/admin\/thoughts\/([0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})$/i
+    .exec(url.pathname)?.[1];
+  const isCollection = url.pathname === "/admin/thoughts";
+  if (!isCollection && !noteId) {
+    return json({ error: "not_found" }, 404, cors);
+  }
+  if ((isCollection && request.method !== "POST")
+    || (noteId && !["PATCH", "DELETE"].includes(request.method))) {
+    return json({ error: "method_not_allowed" }, 405, cors);
+  }
+  if (!constantTimeEqual(request.headers.get("X-CSRF-Token") || "", session.csrf)) {
+    return json({ error: "csrf_rejected" }, 403, cors);
+  }
+  if (request.method === "DELETE") {
+    try {
+      const result = await env.DB.prepare("DELETE FROM thoughts WHERE id = ?")
+        .bind(noteId).run();
+      if (!result.meta?.changes) return json({ error: "thought_not_found" }, 404, cors);
+      return json({ deleted: true, id: noteId }, 200, cors);
+    } catch (_) {
+      console.error("[thoughts] delete failed");
+      return json({ error: "thought_write_failed" }, 503, cors);
+    }
+  }
+  if (!hasJsonContentType(request)) {
+    return json({ error: "invalid_content_type" }, 415, cors);
+  }
+  const body = await boundedBody(request, MAX_THOUGHT_REQUEST_BYTES);
+  const allowedKeys = ["content", "date"];
+  if (!validThoughtBody(body, allowedKeys)
+    || (isCollection && !Object.prototype.hasOwnProperty.call(body, "content"))
+    || Object.keys(body).length === 0) {
+    return json({ error: "invalid_thought" }, 400, cors);
+  }
+
+  const timestamp = new Date().toISOString();
+  try {
+    if (isCollection) {
+      const thought = {
+        id: crypto.randomUUID(),
+        content: body.content,
+        date: body.date || tokyoDate(),
+        created_at: timestamp,
+        updated_at: timestamp,
+      };
+      await env.DB.prepare(
+        "INSERT INTO thoughts (id, content, date, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+      ).bind(
+        thought.id, thought.content, thought.date, thought.created_at, thought.updated_at,
+      ).run();
+      return json({ thought }, 201, cors);
+    }
+
+    const thought = await env.DB.prepare(
+      "UPDATE thoughts SET content = COALESCE(?, content), date = COALESCE(?, date), "
+        + "updated_at = ? WHERE id = ? "
+        + "RETURNING id, content, date, created_at, updated_at",
+    ).bind(
+      Object.prototype.hasOwnProperty.call(body, "content") ? body.content : null,
+      Object.prototype.hasOwnProperty.call(body, "date") ? body.date : null,
+      timestamp,
+      noteId,
+    ).first();
+    if (!thought) return json({ error: "thought_not_found" }, 404, cors);
+    return json({ thought }, 200, cors);
+  } catch (_) {
+    console.error("[thoughts] write failed");
+    return json({ error: "thought_write_failed" }, 503, cors);
   }
 }
 
@@ -508,12 +646,18 @@ async function uploadAbort(request, env) {
   return accepted();
 }
 
+function oauthReturnPath(value) {
+  return value === "/thoughts/" ? value : "/admin/weread-sync/";
+}
+
 async function route(request, env) {
   const url = new URL(request.url);
   if (url.pathname.startsWith("/auth/") && url.origin !== workerOrigin(env)) {
     return new Response("Use the configured Worker origin.", { status: 421 });
   }
   if (url.pathname === "/public/quote") return publicQuote(request, env);
+  if (url.pathname === "/public/thoughts") return publicThoughts(request, env);
+  if (url.pathname.startsWith("/admin/thoughts")) return adminThoughts(request, env);
   if (url.pathname === "/internal/upload/start") return uploadStart(request, env);
   if (url.pathname === "/internal/upload/chunk") return uploadChunk(request, env);
   if (url.pathname === "/internal/upload/complete") return uploadComplete(request, env);
@@ -532,6 +676,11 @@ async function route(request, env) {
     });
     headers.append("Set-Cookie",
       siteCookie("__Host-weread-oauth-state", state, STATE_SECONDS));
+    headers.append("Set-Cookie", siteCookie(
+      "__Host-weread-oauth-return",
+      oauthReturnPath(url.searchParams.get("return_to")),
+      STATE_SECONDS,
+    ));
     return new Response(null, { status: 302, headers });
   }
 
@@ -575,12 +724,15 @@ async function route(request, env) {
       exp: Date.now() + SESSION_SECONDS * 1000,
     })));
     const headers = new Headers({
-      Location: `${siteOrigin(env)}/admin/weread-sync/`,
+      Location: `${siteOrigin(env)}${oauthReturnPath(
+        cookieValue(request, "__Host-weread-oauth-return"),
+      )}`,
       "Cache-Control": "no-store",
     });
     headers.append("Set-Cookie", siteCookie("__Host-weread-session",
       await signedValue(session, env.SESSION_SECRET), SESSION_SECONDS, "None"));
     headers.append("Set-Cookie", clearCookie("__Host-weread-oauth-state"));
+    headers.append("Set-Cookie", clearCookie("__Host-weread-oauth-return"));
     return new Response(null, { status: 302, headers });
   }
 
@@ -679,11 +831,18 @@ export default {
         && (!env.DB || !env.PUBLIC_QUOTE_LIMITER)) {
         return json({ error: "public_quote_service_unavailable" }, 503);
       }
+      if (path.startsWith("/public/thoughts") && !env.DB) {
+        return json({ error: "thoughts_service_unavailable" }, 503);
+      }
+      if (path.startsWith("/admin/thoughts") && !env.DB) {
+        return json({ error: "thoughts_service_unavailable" }, 503);
+      }
       if (path.startsWith("/internal/upload/")
         && (!env.DB || !env.UPLOAD_SECRET)) {
         return json({ error: "upload_service_unavailable" }, 503);
       }
-      if ((path.startsWith("/api/") || path.startsWith("/auth/"))
+      if ((path.startsWith("/api/") || path.startsWith("/auth/")
+        || path.startsWith("/admin/thoughts"))
         && (!env.SESSION_SECRET || !env.GITHUB_TOKEN || !env.ADMIN_GITHUB_LOGIN
           || !hasValidWorkerOrigin(env.WORKER_ORIGIN))) {
         return new Response("Worker configuration is incomplete.", { status: 503 });
@@ -694,7 +853,7 @@ export default {
       }
       return await route(request, env);
     } catch (error) {
-      console.error("WeRead sync console request failed:", error?.name || "Error");
+      console.error("Worker request failed:", error?.name || "Error");
       return json({ error: "internal_error" }, 500);
     }
   },

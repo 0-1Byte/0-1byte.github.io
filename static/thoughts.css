@@ -27,12 +27,93 @@ html[data-theme="light"] .thoughts-page {
   margin: 0 auto;
 }
 
+.thoughts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+
 .thoughts-header h1 {
-  margin: 0 0 clamp(32px, 5vw, 56px);
+  margin: 0;
   color: var(--thoughts-heading);
   font-size: clamp(30px, 4vw, 40px);
   font-weight: 550;
   letter-spacing: -0.035em;
+}
+
+.thoughts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.thoughts-icon-button,
+.thoughts-logout {
+  display: inline-flex;
+  min-width: 42px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(57 58 54 / 22%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 28%);
+  color: #393a36;
+  cursor: pointer;
+}
+
+.thoughts-icon-button svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.7;
+}
+
+.thoughts-logout {
+  min-width: auto;
+  padding: 0 13px;
+  border-radius: 22px;
+  font-size: 13px;
+}
+
+.thoughts-icon-button:hover,
+.thoughts-logout:hover {
+  background: rgb(255 255 255 / 58%);
+}
+
+.thoughts-icon-button:focus-visible,
+.thoughts-logout:focus-visible,
+.thoughts-note-operations button:focus-visible,
+.thoughts-form-actions button:focus-visible,
+.thoughts-date-toggle:focus-visible,
+.thoughts-retry:focus-visible {
+  outline: 2px solid #6f7a68;
+  outline-offset: 3px;
+}
+
+.thoughts-status {
+  min-height: 1.4em;
+  margin: -30px 0 24px;
+  color: #686961;
+  font-size: 13px;
+}
+
+.thoughts-retry {
+  margin: -16px 0 24px;
+  padding: 5px 10px;
+  border: 1px solid rgb(57 58 54 / 24%);
+  border-radius: 4px;
+  background: rgb(255 255 255 / 35%);
+  color: #393a36;
+  cursor: pointer;
+}
+
+.thoughts-page [hidden],
+.thoughts-dialog [hidden] {
+  display: none !important;
 }
 
 .thoughts-grid {
@@ -65,6 +146,40 @@ html[data-theme="light"] .thoughts-page {
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
+.thoughts-page.is-admin .thoughts-note {
+  padding-top: 48px;
+}
+
+.thoughts-note-operations {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+}
+
+.thoughts-note-operations button {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(69 70 64 / 15%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 48%);
+  color: #56574f;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.thoughts-note-operations button:hover {
+  background: rgb(255 255 255 / 86%);
+}
+
+.thoughts-note-edit::before { content: "\270e"; }
+.thoughts-note-delete::before { content: "\00d7"; font-size: 20px; }
+
 .thoughts-note[data-tone="1"] { --paper: #f2f0e9; }
 .thoughts-note[data-tone="2"] { --paper: #e4eadf; }
 .thoughts-note[data-tone="3"] { --paper: #f1e5df; }
@@ -74,6 +189,7 @@ html[data-theme="light"] .thoughts-page {
   font-size: 16px;
   line-height: 1.8;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .thoughts-note-text p { white-space: pre-wrap; }
@@ -92,6 +208,16 @@ html[data-theme="light"] .thoughts-page {
 }
 
 @media (hover: hover) {
+  .thoughts-note-operations {
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+
+  .thoughts-note:hover .thoughts-note-operations,
+  .thoughts-note:focus-within .thoughts-note-operations {
+    opacity: 1;
+  }
+
   .thoughts-note:hover {
     box-shadow:
       0 2px 2px rgb(0 0 0 / 13%),
@@ -114,11 +240,122 @@ html[data-theme="light"] .thoughts-page {
     padding: 34px 22px 52px;
   }
 
-  .thoughts-header h1 { margin-bottom: 30px; }
+  .thoughts-header { margin-bottom: 30px; }
   .thoughts-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .thoughts-note { padding: 22px; }
+  .thoughts-page.is-admin .thoughts-note { padding-top: 48px; }
+
+  .thoughts-note-operations { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thoughts-note { transition: none; }
+  .thoughts-note,
+  .thoughts-note-operations { transition: none; }
+}
+
+.thoughts-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(90vh, 760px);
+  padding: clamp(22px, 5vw, 34px);
+  border: 1px solid rgb(91 78 52 / 18%);
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(0deg, rgb(92 76 48 / 1.2%) 0 1px, transparent 1px 4px),
+    #f5f1e7;
+  color: #393a36;
+  box-shadow: 0 18px 60px rgb(0 0 0 / 24%), inset 0 1px 0 rgb(255 255 255 / 75%);
+}
+
+.thoughts-dialog::backdrop {
+  background: rgb(35 34 31 / 46%);
+  backdrop-filter: blur(2px);
+}
+
+.thoughts-dialog h2 {
+  margin: 0 0 22px;
+  color: #393a36;
+  font-size: 21px;
+  font-weight: 550;
+}
+
+.thoughts-field-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #62635d;
+  font-size: 13px;
+}
+
+.thoughts-dialog textarea,
+.thoughts-dialog input[type="date"] {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid rgb(69 70 64 / 24%);
+  border-radius: 3px;
+  background: rgb(255 255 255 / 56%);
+  color: #393a36;
+  font: inherit;
+}
+
+.thoughts-dialog textarea {
+  min-height: 170px;
+  padding: 12px;
+  line-height: 1.65;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.thoughts-dialog input[type="date"] {
+  min-height: 42px;
+  margin-top: 10px;
+  padding: 8px 10px;
+}
+
+.thoughts-date-toggle {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #64685e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.thoughts-form-error {
+  margin: 14px 0 0;
+  color: #9c3d31;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.thoughts-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.thoughts-form-actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgb(69 70 64 / 24%);
+  border-radius: 3px;
+  background: transparent;
+  color: #393a36;
+  cursor: pointer;
+  font: inherit;
+}
+
+.thoughts-form-actions button[type="submit"] {
+  border-color: #676f61;
+  background: #676f61;
+  color: #fff;
+}
+
+.thoughts-form-actions button:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }

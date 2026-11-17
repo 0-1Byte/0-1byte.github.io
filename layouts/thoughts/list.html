@@ -1,29 +1,35 @@
 {{- define "main" }}
-{{- $notes := where site.RegularPages "Section" "thoughts" }}
-{{- $notes = sort $notes "Date" "desc" }}
 <section class="thoughts-page" aria-labelledby="thoughts-title">
   <div class="thoughts-inner">
     <header class="thoughts-header">
       <h1 id="thoughts-title">{{ .Title }}</h1>
+      <div class="thoughts-toolbar">
+        <button id="thoughts-add" class="thoughts-icon-button" type="button" aria-label="新增便签" title="新增便签">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+        <button id="thoughts-logout" class="thoughts-logout" type="button" hidden>退出</button>
+      </div>
     </header>
-    {{- if $notes }}
-    <div class="thoughts-grid">
-      {{- range $notes }}
-      <article
-        class="thoughts-note"
-        data-note-id="{{ .RelPermalink }}"
-        data-date="{{ .Date.Format "2006-01-02" }}"
-        data-created-at="{{ .Params.created_at | default (.Date.Format "2006-01-02T15:04:05Z07:00") }}"
-      >
-        <div class="thoughts-note-text">{{ .Content }}</div>
-        <time class="thoughts-note-date" datetime="{{ .Date.Format "2006-01-02" }}">
-          {{ .Date.Format "2006/01/02" }}
-        </time>
-      </article>
-      {{- end }}
-    </div>
-    {{- end }}
+    <p id="thoughts-status" class="thoughts-status" role="status" aria-live="polite"></p>
+    <button id="thoughts-retry" class="thoughts-retry" type="button" hidden>重试</button>
+    <div class="thoughts-grid" aria-live="polite"></div>
   </div>
 </section>
-<script src="{{ "thoughts.js" | relURL }}?v=1" defer></script>
+<dialog id="thoughts-dialog" class="thoughts-dialog" aria-labelledby="thoughts-dialog-title">
+  <form id="thoughts-form">
+    <h2 id="thoughts-dialog-title">新增便签</h2>
+    <label class="thoughts-field-label" for="thoughts-content">正文</label>
+    <textarea id="thoughts-content" name="content" rows="8" maxlength="6000" required></textarea>
+    <button id="thoughts-date-toggle" class="thoughts-date-toggle" type="button">修改日期</button>
+    <label id="thoughts-date-label" class="thoughts-field-label" for="thoughts-date" hidden>日期</label>
+    <input id="thoughts-date" name="date" type="date" hidden>
+    <p id="thoughts-form-error" class="thoughts-form-error" role="alert" hidden></p>
+    <div class="thoughts-form-actions">
+      <button id="thoughts-cancel" type="button">取消</button>
+      <button id="thoughts-save" type="submit">保存</button>
+    </div>
+  </form>
+</dialog>
+<script src="{{ "admin/weread-sync/config.js" | relURL }}?v=1" defer></script>
+<script src="{{ "thoughts.js" | relURL }}?v=2" defer></script>
 {{- end }}

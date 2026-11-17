@@ -32,7 +32,7 @@ falls back to a manual quote. This is a development convenience, not a
 production interface or privacy boundary; production continues to use the
 Worker and private D1.
 
-## Data flow
+## WeRead data flow
 
 1. The authenticated console dispatches the fixed `sync-weread.yml` workflow.
 2. GitHub Actions synchronizes into `$RUNNER_TEMP`, validates the full dataset,
@@ -51,6 +51,26 @@ after 90 minutes and cleaned up on the next upload start. Cleanup of inactive
 D1 versions is attempted after activation; if cleanup fails, the newly
 activated dataset remains valid and the orphaned version may need later
 maintenance.
+
+## Thoughts
+
+Thoughts are stored independently from WeRead in the `thoughts` D1 table,
+created by `migrations/0002_thoughts.sql`. The public `GET /public/thoughts`
+endpoint returns notes ordered by `date DESC, created_at DESC`; it is read-only
+and sends `Cache-Control: no-store`. The administrator uses the existing
+GitHub OAuth allowlist, signed session cookie, and CSRF token for
+`POST /admin/thoughts`, `PATCH /admin/thoughts/:id`, and
+`DELETE /admin/thoughts/:id`. OAuth can return the owner to `/thoughts/`;
+other return destinations fall back to the existing admin console.
+
+Each row stores `id`, `content`, `date`, `created_at`, and `updated_at`.
+Missing display dates are generated in `Asia/Tokyo`; timestamps are UTC ISO
+8601. Edits preserve `created_at`, and requests are limited to 6,000
+characters of non-empty text. Markdown files are not imported automatically.
+
+Apply the new migration to the configured D1 database before deploying the
+updated Worker. The Pages frontend depends on the new public endpoint, so
+deploy the Worker and verify the migration before publishing the site.
 
 ## GitHub configuration
 
