@@ -1,0 +1,29 @@
+{{- define "main" }}
+{{- $notes := where site.RegularPages "Section" "thoughts" }}
+{{- $notes = sort $notes "Date" "desc" }}
+<section class="thoughts-page" aria-labelledby="thoughts-title">
+  <div class="thoughts-inner">
+    <header class="thoughts-header">
+      <h1 id="thoughts-title">{{ .Title }}</h1>
+    </header>
+    {{- if $notes }}
+    <div class="thoughts-grid">
+      {{- range $notes }}
+      <article
+        class="thoughts-note"
+        data-note-id="{{ .RelPermalink }}"
+        data-date="{{ .Date.Format "2006-01-02" }}"
+        data-created-at="{{ .Params.created_at | default (.Date.Format "2006-01-02T15:04:05Z07:00") }}"
+      >
+        <div class="thoughts-note-text">{{ .Content }}</div>
+        <time class="thoughts-note-date" datetime="{{ .Date.Format "2006-01-02" }}">
+          {{ .Date.Format "2006/01/02" }}
+        </time>
+      </article>
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+</section>
+<script src="{{ "thoughts.js" | relURL }}?v=1" defer></script>
+{{- end }}

@@ -75,6 +75,9 @@
 {{- else }}
 <link crossorigin="anonymous" href="{{ $stylesheet.RelPermalink }}" rel="preload stylesheet" as="style">
 {{- end }}
+{{- if eq .Layout "thoughts" }}
+<link rel="stylesheet" href="{{ "thoughts.css" | relURL }}?v=1">
+{{- end }}
 
 {{- /* Search */}}
 {{- if (eq .Layout `search`) -}}

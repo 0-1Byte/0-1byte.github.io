@@ -82,6 +82,8 @@ standalone:
   - name: writing
     href: /posts/
     desc: 写下来的东西
+  - name: Thoughts
+    href: /thoughts/
   # - name: random
   #   href: /random/
   #   desc: 随机翻一件出来
