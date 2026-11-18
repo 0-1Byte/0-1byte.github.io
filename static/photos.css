@@ -8,8 +8,6 @@
 .photos-page {
   --wall: #eee7d8;
   --wall-fiber: rgba(112, 91, 61, .015);
-  --cord-shadow: rgba(78, 64, 42, .16);
-  --cord-highlight: rgba(255, 255, 255, .32);
   --pin-a: #cf7865;
   --pin-b: #779b83;
   --pin-c: #d3ad58;
@@ -28,8 +26,6 @@
 :root[data-theme="dark"] .photos-page {
   --wall: #373530;
   --wall-fiber: rgba(238, 224, 197, .015);
-  --cord-shadow: rgba(20, 18, 14, .26);
-  --cord-highlight: rgba(219, 207, 181, .24);
   --pin-a: #b66f60;
   --pin-b: #73907e;
   --pin-c: #b89a5c;
@@ -51,21 +47,6 @@
   width: min(100%, 1120px);
   min-height: 460px;
   margin: 0 auto;
-}
-
-.photos-wall::before {
-  position: absolute;
-  z-index: -1;
-  inset: 8px 16.6667% 0;
-  background-image:
-    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
-    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
-    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px));
-  background-position: left top, center top, right top;
-  background-size: 1px 100%;
-  background-repeat: no-repeat;
-  content: "";
-  pointer-events: none;
 }
 
 .photos-wall::after {
@@ -246,14 +227,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 42px 22px;
     min-height: 440px;
-  }
-
-  .photos-wall::before {
-    inset-inline: 25%;
-    background-image:
-      linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
-      linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px));
-    background-position: left top, right top;
   }
 
   .photos-wall::after {
