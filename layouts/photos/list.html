@@ -1,0 +1,50 @@
+{{- define "main" }}
+{{- $allowedExtensions := slice "jpg" "jpeg" "png" "webp" }}
+{{- $photos := slice }}
+{{- range sort (resources.Match "photos/*") "Name" }}
+  {{- $extension := path.Ext .Name | strings.TrimPrefix "." | lower }}
+  {{- if and (eq .ResourceType "image") (in $allowedExtensions $extension) }}
+    {{- $oriented := .Filter (images.AutoOrient) }}
+    {{- $thumbnail := $oriented.Fit "480x480 webp q82" }}
+    {{- $fullSize := $oriented.Fit "1920x1920 webp q86" }}
+    {{- $photos = $photos | append (dict
+      "thumbnail" $thumbnail
+      "fullSize" $fullSize
+    ) }}
+  {{- end }}
+{{- end }}
+<section class="photos-page">
+  <div class="photos-wall{{ if not $photos }} photos-wall--empty{{ end }}" role="list" aria-label="Photos">
+    {{- range $photos }}
+    <figure class="photos-card" role="listitem">
+      <span class="photos-clip" aria-hidden="true"></span>
+      <button class="photos-card__button" type="button" aria-label="Open photo"
+        data-full="{{ .fullSize.RelPermalink }}"
+        data-width="{{ .fullSize.Width }}"
+        data-height="{{ .fullSize.Height }}">
+        <img
+          src="{{ .thumbnail.RelPermalink }}"
+          width="{{ .thumbnail.Width }}"
+          height="{{ .thumbnail.Height }}"
+          alt=""
+          loading="lazy"
+          decoding="async">
+      </button>
+    </figure>
+    {{- end }}
+  </div>
+</section>
+<div class="photos-viewer" hidden role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1">
+  <button class="photos-viewer__close" type="button" aria-label="Close photo">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+  </button>
+  <button class="photos-viewer__step photos-viewer__step--previous" type="button" aria-label="Previous photo">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+  </button>
+  <img class="photos-viewer__image" alt="" decoding="async">
+  <button class="photos-viewer__step photos-viewer__step--next" type="button" aria-label="Next photo">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+  </button>
+</div>
+<script src="{{ "photos.js" | relURL }}?v=1" defer></script>
+{{- end }}

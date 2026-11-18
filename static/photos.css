@@ -1,0 +1,304 @@
+.main:has(.photos-page) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.photos-page {
+  --wall: #eee7d8;
+  --wall-fiber: rgba(112, 91, 61, .015);
+  --cord-shadow: rgba(78, 64, 42, .16);
+  --cord-highlight: rgba(255, 255, 255, .32);
+  --pin-a: #cf7865;
+  --pin-b: #779b83;
+  --pin-c: #d3ad58;
+  box-sizing: border-box;
+  min-height: calc(100vh - 150px);
+  min-height: calc(100svh - 150px);
+  padding: 48px max(24px, calc((100vw - 1120px) / 2)) 72px;
+  background-color: var(--wall);
+  background-image:
+    radial-gradient(ellipse at 18% 23%, rgba(255, 255, 255, .26), transparent 42%),
+    radial-gradient(ellipse at 83% 71%, rgba(139, 111, 72, .045), transparent 48%),
+    repeating-linear-gradient(3deg, transparent 0 4px, var(--wall-fiber) 4px 5px);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] .photos-page {
+  --wall: #373530;
+  --wall-fiber: rgba(238, 224, 197, .015);
+  --cord-shadow: rgba(20, 18, 14, .26);
+  --cord-highlight: rgba(219, 207, 181, .24);
+  --pin-a: #b66f60;
+  --pin-b: #73907e;
+  --pin-c: #b89a5c;
+  background-image:
+    radial-gradient(ellipse at 18% 23%, rgba(255, 255, 255, .035), transparent 42%),
+    radial-gradient(ellipse at 83% 71%, rgba(0, 0, 0, .09), transparent 48%),
+    repeating-linear-gradient(3deg, transparent 0 4px, var(--wall-fiber) 4px 5px);
+  color-scheme: dark;
+}
+
+.photos-wall {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 48px clamp(20px, 4vw, 52px);
+  width: min(100%, 1120px);
+  min-height: 460px;
+  margin: 0 auto;
+}
+
+.photos-wall::before {
+  position: absolute;
+  z-index: -1;
+  inset: 8px 16.6667% 0;
+  background-image:
+    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
+    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
+    linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px));
+  background-position: left top, center top, right top;
+  background-size: 1px 100%;
+  background-repeat: no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.photos-wall::after {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 16.6667%;
+  width: 66.6666%;
+  height: 18px;
+  background-image:
+    radial-gradient(circle 5px at 0% 8px, var(--pin-a) 0 67%, rgba(54, 41, 31, .45) 82%, transparent 100%),
+    radial-gradient(circle 5px at 50% 8px, var(--pin-b) 0 67%, rgba(54, 41, 31, .45) 82%, transparent 100%),
+    radial-gradient(circle 5px at 100% 8px, var(--pin-c) 0 67%, rgba(54, 41, 31, .45) 82%, transparent 100%);
+  filter: drop-shadow(0 2px 2px rgba(34, 27, 19, .22));
+  content: "";
+  pointer-events: none;
+}
+
+.photos-wall--empty {
+  min-height: max(460px, calc(100svh - 270px));
+}
+
+.photos-card {
+  position: relative;
+  z-index: 2;
+  justify-self: center;
+  width: fit-content;
+  max-width: min(100%, 258px);
+  margin: 12px 0 0;
+  padding: 9px 9px 24px;
+  background: #fffdf8;
+  box-shadow: 0 3px 7px rgba(50, 39, 26, .17), 0 12px 22px rgba(50, 39, 26, .13);
+  transform: rotate(var(--photo-tilt, 0deg)) translateY(var(--photo-drop, 0px));
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+
+.photos-card:nth-child(6n + 1) { --photo-tilt: -2.1deg; --photo-drop: 0px; }
+.photos-card:nth-child(6n + 2) { --photo-tilt: 1.5deg; --photo-drop: 13px; }
+.photos-card:nth-child(6n + 3) { --photo-tilt: -1deg; --photo-drop: 5px; }
+.photos-card:nth-child(6n + 4) { --photo-tilt: 2.3deg; --photo-drop: 9px; }
+.photos-card:nth-child(6n + 5) { --photo-tilt: -1.6deg; --photo-drop: 2px; }
+.photos-card:nth-child(6n) { --photo-tilt: 1deg; --photo-drop: 16px; }
+
+.photos-clip {
+  position: absolute;
+  z-index: 2;
+  top: -17px;
+  left: 50%;
+  width: 14px;
+  height: 27px;
+  border: 1px solid rgba(89, 61, 38, .32);
+  border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(90deg, #a8794e, #d0a878 47%, #b1845a);
+  box-shadow: 1px 2px 3px rgba(39, 28, 19, .28), inset 1px 0 rgba(255, 255, 255, .35);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.photos-clip::after {
+  position: absolute;
+  top: 10px;
+  left: 2px;
+  width: 10px;
+  height: 1px;
+  background: rgba(91, 62, 38, .58);
+  box-shadow: 0 2px rgba(255, 255, 255, .2);
+  content: "";
+}
+
+.photos-card__button {
+  display: block;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.photos-card__button:focus-visible {
+  outline: 2px solid #8a6743;
+  outline-offset: 4px;
+}
+
+.photos-card__button img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 340px;
+  object-fit: contain;
+}
+
+.photos-viewer[hidden] {
+  display: none;
+}
+
+.photos-viewer {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(48px, 1fr) minmax(0, auto) minmax(48px, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px;
+  background: rgba(12, 12, 12, .92);
+  touch-action: pan-y;
+}
+
+.photos-viewer__image {
+  display: block;
+  grid-column: 2;
+  max-width: min(82vw, 1600px);
+  max-height: calc(100vh - 56px);
+  max-height: calc(100dvh - 56px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 10px 42px rgba(0, 0, 0, .35);
+}
+
+.photos-viewer__close,
+.photos-viewer__step {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .09);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+
+.photos-viewer__close:hover,
+.photos-viewer__step:hover {
+  background: rgba(255, 255, 255, .2);
+}
+
+.photos-viewer__close:focus-visible,
+.photos-viewer__step:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.photos-viewer__close svg,
+.photos-viewer__step svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8px;
+}
+
+.photos-viewer__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.photos-viewer__step--previous { grid-column: 1; grid-row: 1; }
+.photos-viewer__step--next { grid-column: 3; grid-row: 1; }
+
+@media (max-width: 700px) {
+  .photos-page {
+    min-height: calc(100vh - 130px);
+    min-height: calc(100svh - 130px);
+    padding: 38px 20px 56px;
+  }
+
+  .photos-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 42px 22px;
+    min-height: 440px;
+  }
+
+  .photos-wall::before {
+    inset-inline: 25%;
+    background-image:
+      linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px)),
+      linear-gradient(90deg, transparent calc(50% - .5px), var(--cord-shadow) calc(50% - .5px), var(--cord-highlight) 50%, transparent calc(50% + .7px));
+    background-position: left top, right top;
+  }
+
+  .photos-wall::after {
+    left: 25%;
+    width: 50%;
+    background-image:
+      radial-gradient(circle 5px at 0% 8px, var(--pin-a) 0 67%, rgba(54, 41, 31, .45) 82%, transparent 100%),
+      radial-gradient(circle 5px at 100% 8px, var(--pin-b) 0 67%, rgba(54, 41, 31, .45) 82%, transparent 100%);
+  }
+
+  .photos-card {
+    max-width: min(100%, 210px);
+    padding: 7px 7px 19px;
+  }
+
+  .photos-card__button img {
+    max-height: 300px;
+  }
+
+  .photos-viewer {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 4px;
+    padding: 16px 8px;
+  }
+
+  .photos-viewer__image {
+    max-width: calc(100vw - 100px);
+    max-height: calc(100dvh - 72px);
+  }
+
+  .photos-viewer__close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .photos-viewer__step {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photos-card,
+  .photos-viewer__close,
+  .photos-viewer__step {
+    transition: none;
+  }
+}

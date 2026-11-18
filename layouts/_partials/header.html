@@ -1,0 +1,11 @@
+<header class="header{{ if .IsHome }} header--home{{ end }}">
+  <nav class="header-nav">
+    <div class="logo">
+      {{- $labelText := site.Params.label.text | default site.Title }}
+      {{- if site.Title }}
+      <a href="{{ "" | absLangURL }}" accesskey="h">{{ $labelText }}</a>
+      {{- end }}
+    </div>
+    {{- partial "site_nav.html" . }}
+  </nav>
+</header>
