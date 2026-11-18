@@ -161,6 +161,7 @@
 .photos-viewer__image {
   display: block;
   grid-column: 2;
+  grid-row: 1;
   max-width: min(82vw, 1600px);
   max-height: calc(100vh - 56px);
   max-height: calc(100dvh - 56px);
@@ -168,6 +169,22 @@
   height: auto;
   object-fit: contain;
   box-shadow: 0 10px 42px rgba(0, 0, 0, .35);
+}
+
+.photos-viewer__image--preview,
+.photos-viewer__image--detail {
+  z-index: 1;
+}
+
+.photos-viewer__image--detail {
+  z-index: 2;
+  opacity: 0;
+  box-shadow: none;
+  transition: opacity .12s ease;
+}
+
+.photos-viewer__image--detail.is-ready {
+  opacity: 1;
 }
 
 .photos-viewer__close,
@@ -272,6 +289,10 @@
   .photos-card,
   .photos-viewer__close,
   .photos-viewer__step {
+    transition: none;
+  }
+
+  .photos-viewer__image--detail {
     transition: none;
   }
 }

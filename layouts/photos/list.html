@@ -5,11 +5,13 @@
   {{- $extension := path.Ext .Name | strings.TrimPrefix "." | lower }}
   {{- if and (eq .ResourceType "image") (in $allowedExtensions $extension) }}
     {{- $oriented := .Filter (images.AutoOrient) }}
-    {{- $thumbnail := $oriented.Fit "480x480 webp q82" }}
-    {{- $fullSize := $oriented.Fit "1920x1920 webp q86" }}
+    {{- $thumbnail := $oriented.Fit "480x480 webp q80" }}
+    {{- $mobileSize := $oriented.Fit "1280x1600 webp q80" }}
+    {{- $desktopSize := $oriented.Fit "1920x1920 webp q82" }}
     {{- $photos = $photos | append (dict
       "thumbnail" $thumbnail
-      "fullSize" $fullSize
+      "mobileSize" $mobileSize
+      "desktopSize" $desktopSize
     ) }}
   {{- end }}
 {{- end }}
@@ -19,9 +21,15 @@
     <figure class="photos-card" role="listitem">
       <span class="photos-clip" aria-hidden="true"></span>
       <button class="photos-card__button" type="button" aria-label="Open photo"
-        data-full="{{ .fullSize.RelPermalink }}"
-        data-width="{{ .fullSize.Width }}"
-        data-height="{{ .fullSize.Height }}">
+        data-thumbnail="{{ .thumbnail.RelPermalink }}"
+        data-thumbnail-width="{{ .thumbnail.Width }}"
+        data-thumbnail-height="{{ .thumbnail.Height }}"
+        data-full-mobile="{{ .mobileSize.RelPermalink }}"
+        data-mobile-width="{{ .mobileSize.Width }}"
+        data-mobile-height="{{ .mobileSize.Height }}"
+        data-full-desktop="{{ .desktopSize.RelPermalink }}"
+        data-desktop-width="{{ .desktopSize.Width }}"
+        data-desktop-height="{{ .desktopSize.Height }}">
         <img
           src="{{ .thumbnail.RelPermalink }}"
           width="{{ .thumbnail.Width }}"
@@ -41,10 +49,11 @@
   <button class="photos-viewer__step photos-viewer__step--previous" type="button" aria-label="Previous photo">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
   </button>
-  <img class="photos-viewer__image" alt="" decoding="async">
+  <img class="photos-viewer__image photos-viewer__image--preview" alt="" decoding="async">
+  <img class="photos-viewer__image photos-viewer__image--detail" alt="" decoding="async" aria-hidden="true">
   <button class="photos-viewer__step photos-viewer__step--next" type="button" aria-label="Next photo">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
   </button>
 </div>
-<script src="{{ "photos.js" | relURL }}?v=1" defer></script>
+<script src="{{ "photos.js" | relURL }}?v=2" defer></script>
 {{- end }}

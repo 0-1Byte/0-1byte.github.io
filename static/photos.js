@@ -1,35 +1,58 @@
 (() => {
   const viewer = document.querySelector(".photos-viewer");
-  const viewerImage = viewer.querySelector(".photos-viewer__image");
+  const previewImage = viewer.querySelector(".photos-viewer__image--preview");
+  const detailImage = viewer.querySelector(".photos-viewer__image--detail");
   const closeButton = viewer.querySelector(".photos-viewer__close");
   const previousButton = viewer.querySelector(".photos-viewer__step--previous");
   const nextButton = viewer.querySelector(".photos-viewer__step--next");
   const photos = Array.from(document.querySelectorAll(".photos-card__button")).map((button) => ({
     button,
-    src: button.dataset.full,
-    width: Number(button.dataset.width),
-    height: Number(button.dataset.height)
+    thumbnail: button.dataset.thumbnail,
+    thumbnailWidth: Number(button.dataset.thumbnailWidth),
+    thumbnailHeight: Number(button.dataset.thumbnailHeight),
+    mobile: {
+      src: button.dataset.fullMobile,
+      width: Number(button.dataset.mobileWidth),
+      height: Number(button.dataset.mobileHeight)
+    },
+    desktop: {
+      src: button.dataset.fullDesktop,
+      width: Number(button.dataset.desktopWidth),
+      height: Number(button.dataset.desktopHeight)
+    }
   }));
   let currentIndex = 0;
+  let requestId = 0;
   let lastFocusedElement = null;
   let previousOverflow = "";
   let touchStart = null;
 
-  function preload(index) {
-    const photo = photos[(index + photos.length) % photos.length];
-    if (!photo) return;
-    const image = new Image();
-    image.src = photo.src;
-  }
-
   function showPhoto(index) {
-    currentIndex = (index + photos.length) % photos.length;
+    const selectedIndex = (index + photos.length) % photos.length;
+    currentIndex = selectedIndex;
+    const activeRequest = ++requestId;
     const photo = photos[currentIndex];
-    viewerImage.src = photo.src;
-    viewerImage.width = photo.width;
-    viewerImage.height = photo.height;
-    preload(currentIndex - 1);
-    preload(currentIndex + 1);
+    const preview = photo.button.querySelector("img");
+    const fullSize = window.matchMedia("(max-width: 1024px)").matches ? photo.mobile : photo.desktop;
+
+    detailImage.classList.remove("is-ready");
+    detailImage.removeAttribute("src");
+    detailImage.width = fullSize.width;
+    detailImage.height = fullSize.height;
+    previewImage.src = preview.currentSrc || photo.thumbnail;
+    previewImage.width = photo.thumbnailWidth;
+    previewImage.height = photo.thumbnailHeight;
+
+    detailImage.fetchPriority = "high";
+    detailImage.decoding = "async";
+    detailImage.src = fullSize.src;
+    detailImage.decode().then(() => {
+      if (activeRequest !== requestId || viewer.hidden || currentIndex !== selectedIndex) return;
+      detailImage.classList.add("is-ready");
+    }).catch(() => {
+      if (activeRequest !== requestId || viewer.hidden || currentIndex !== selectedIndex) return;
+      detailImage.removeAttribute("src");
+    });
   }
 
   function openViewer(index) {
@@ -43,8 +66,11 @@
 
   function closeViewer() {
     if (viewer.hidden) return;
+    requestId += 1;
     viewer.hidden = true;
-    viewerImage.removeAttribute("src");
+    detailImage.classList.remove("is-ready");
+    detailImage.removeAttribute("src");
+    previewImage.removeAttribute("src");
     document.body.style.overflow = previousOverflow;
     lastFocusedElement?.focus();
   }
