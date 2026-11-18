@@ -82,7 +82,7 @@ standalone:
   - name: writing
     href: /posts/
     desc: 写下来的东西
-  - name: Thoughts
+  - name: thoughts
     href: /thoughts/
   # - name: random
   #   href: /random/
