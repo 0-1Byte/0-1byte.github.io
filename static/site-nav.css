@@ -32,6 +32,9 @@
   display: flex;
   align-items: center;
   flex: 1 1 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  column-gap: 26px;
   min-width: 0;
   /* 原先这里是 padding-right: 44px，给右上角的主题切换按钮让位。
      按钮已从所有页面移除，这段留白不再需要 —— 去掉它，
@@ -41,7 +44,9 @@
 .logo {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  box-sizing: border-box;
+  flex: 0 0 120px;
+  width: 120px;
   height: 60px;
 }
 
@@ -78,15 +83,18 @@
 /* ---------- 容器 ---------- */
 
 .hnav {
+  display: flex;
   flex: 1 1 auto;
   min-width: 0;
   position: relative;
   z-index: 1;
+  justify-content: flex-end;
 }
 
 .hnav-list {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 26px;
   margin: 0;
   padding: 0;
@@ -95,6 +103,31 @@
 
 .hnav-item {
   position: relative;
+}
+
+@media (min-width: 601px) and (max-width: 740px) {
+  .header {
+    align-items: flex-start;
+    gap: 16px;
+    height: auto;
+    min-height: 68px;
+  }
+
+  .header-nav,
+  .hnav-list {
+    align-items: flex-start;
+  }
+
+  .hnav-list {
+    flex-wrap: wrap;
+    gap: 4px 14px;
+  }
+}
+
+@media (min-width: 741px) and (max-width: 900px) {
+  .hnav-list {
+    gap: 18px;
+  }
 }
 
 /* ---------- 分组标签 ---------- */
@@ -266,6 +299,8 @@
      按钮已移除，留白也去掉，导航可以多用 38px。 */
 
   .logo {
+    flex: 0 0 auto;
+    width: auto;
     height: 48px;
   }
 
@@ -283,10 +318,12 @@
   .hnav {
     flex-wrap: wrap;
     row-gap: 4px;
+    justify-content: flex-start;
   }
 
   .hnav-list {
     flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 4px 16px;
     /* 折行后每行的点击区域更宽松，别贴着边缘 */
     padding: 2px 0;
