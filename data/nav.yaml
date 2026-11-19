@@ -84,7 +84,7 @@ standalone:
     desc: 写下来的东西
   - name: thoughts
     href: /thoughts/
-  - name: Photos
+  - name: photos
     href: /photos/
   # - name: random
   #   href: /random/
