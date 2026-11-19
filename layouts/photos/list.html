@@ -15,45 +15,50 @@
     ) }}
   {{- end }}
 {{- end }}
-<section class="photos-page">
-  <div class="photos-wall{{ if not $photos }} photos-wall--empty{{ end }}" role="list" aria-label="Photos">
-    {{- range $photos }}
-    <figure class="photos-card" role="listitem">
-      <span class="photos-clip" aria-hidden="true"></span>
-      <button class="photos-card__button" type="button" aria-label="Open photo"
-        data-thumbnail="{{ .thumbnail.RelPermalink }}"
-        data-thumbnail-width="{{ .thumbnail.Width }}"
-        data-thumbnail-height="{{ .thumbnail.Height }}"
-        data-full-mobile="{{ .mobileSize.RelPermalink }}"
-        data-mobile-width="{{ .mobileSize.Width }}"
-        data-mobile-height="{{ .mobileSize.Height }}"
-        data-full-desktop="{{ .desktopSize.RelPermalink }}"
-        data-desktop-width="{{ .desktopSize.Width }}"
-        data-desktop-height="{{ .desktopSize.Height }}">
-        <img
-          src="{{ .thumbnail.RelPermalink }}"
-          width="{{ .thumbnail.Width }}"
-          height="{{ .thumbnail.Height }}"
-          alt=""
-          loading="lazy"
-          decoding="async">
+<section class="photos-page" aria-label="Photos">
+  {{- if $photos }}
+  <div class="photos-strip" data-photos-strip>
+    <div class="photos-strip__track" role="list" aria-label="Photos">
+      {{- range $index, $photo := $photos }}
+      <button class="photos-frame{{ if eq $index 0 }} is-current{{ end }}" type="button" role="listitem"
+        data-index="{{ $index }}"
+        data-thumbnail="{{ $photo.thumbnail.RelPermalink }}"
+        data-thumbnail-width="{{ $photo.thumbnail.Width }}"
+        data-thumbnail-height="{{ $photo.thumbnail.Height }}"
+        data-full-mobile="{{ $photo.mobileSize.RelPermalink }}"
+        data-mobile-width="{{ $photo.mobileSize.Width }}"
+        data-mobile-height="{{ $photo.mobileSize.Height }}"
+        data-full-desktop="{{ $photo.desktopSize.RelPermalink }}"
+        data-desktop-width="{{ $photo.desktopSize.Width }}"
+        data-desktop-height="{{ $photo.desktopSize.Height }}"
+        aria-label="View photo {{ add $index 1 }}">
+        <img src="{{ $photo.thumbnail.RelPermalink }}"
+          width="{{ $photo.thumbnail.Width }}" height="{{ $photo.thumbnail.Height }}"
+          alt="" decoding="async" fetchpriority="{{ if eq $index 0 }}high{{ else }}low{{ end }}"
+          loading="{{ if eq $index 0 }}eager{{ else }}lazy{{ end }}">
       </button>
-    </figure>
-    {{- end }}
+      {{- end }}
+    </div>
   </div>
+  <button class="photos-sound-toggle" type="button" data-sound-toggle
+    aria-label="Mute film advance sound" aria-pressed="false">
+    <svg class="photos-sound-toggle__on" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 9v6h4l5 4V5l-5 4h-4Z" />
+      <path d="M17 9a4 4 0 0 1 0 6M19.5 6.5a7.5 7.5 0 0 1 0 11" />
+    </svg>
+    <svg class="photos-sound-toggle__off" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 9v6h4l5 4V5l-5 4h-4Z" />
+      <path d="m17 9 5 6m0-6-5 6" />
+    </svg>
+  </button>
+  <div class="photos-viewer" data-viewer hidden role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1">
+    <img class="photos-viewer__image is-active" data-viewer-image alt="" role="img" aria-hidden="true" decoding="async">
+    <img class="photos-viewer__image" data-viewer-image alt="" aria-hidden="true" decoding="async">
+    <button class="photos-viewer__close" type="button" data-viewer-close aria-label="Close photo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+    </button>
+  </div>
+  {{- end }}
 </section>
-<div class="photos-viewer" hidden role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1">
-  <button class="photos-viewer__close" type="button" aria-label="Close photo">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
-  </button>
-  <button class="photos-viewer__step photos-viewer__step--previous" type="button" aria-label="Previous photo">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
-  </button>
-  <img class="photos-viewer__image photos-viewer__image--preview" alt="" decoding="async">
-  <img class="photos-viewer__image photos-viewer__image--detail" alt="" decoding="async" aria-hidden="true">
-  <button class="photos-viewer__step photos-viewer__step--next" type="button" aria-label="Next photo">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
-  </button>
-</div>
-<script src="{{ "photos.js" | relURL }}?v=2" defer></script>
+<script src="{{ "photos.js" | relURL }}?v=7" defer></script>
 {{- end }}
