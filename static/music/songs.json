@@ -3300,5 +3300,26 @@
     "img": "lady-gaga-shadow-of-a-man-db0685b3",
     "lyricist": "Lady Gaga, Andrew Watt, Henry Russell Walter",
     "composer": "Lady Gaga, Andrew Watt, Henry Russell Walter"
+  },
+  {
+    "id": "lady-gaga-always-remember-us-this-way",
+    "title": "Always Remember Us This Way",
+    "artist": "Lady Gaga",
+    "cover": "/music/assets/lady-gaga-always-remember-us-this-way.jpg",
+    "album": "A Star Is Born Soundtrack",
+    "year": 2018,
+    "releaseDate": "2018-10-05",
+    "duration": "03:30",
+    "tags": [
+      "Soundtrack",
+      "Pop"
+    ],
+    "url": "https://music.apple.com/us/song/always-remember-us-this-way/1437668523",
+    "lyricist": "Lady Gaga, Natalie Hemby, Hillary Lindsey, Lori McKenna",
+    "composer": "Lady Gaga, Natalie Hemby, Hillary Lindsey, Lori McKenna",
+    "songwriters": "Lady Gaga (Stefani Germanotta), Natalie Hemby, Hillary Lindsey, Lori McKenna",
+    "producers": "Lady Gaga, Dave Cobb",
+    "label": "Interscope Records",
+    "img": "lady-gaga-always-remember-us-this-way-3b2a2bda"
   }
 ]
